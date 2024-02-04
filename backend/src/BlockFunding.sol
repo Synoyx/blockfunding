@@ -29,7 +29,6 @@ contract BlockFunding is Ownable {
     }
 
     function createNewContract(
-        address _owner,
         string calldata _name,
         string calldata _subtitle,
         string calldata _description,
@@ -40,27 +39,18 @@ contract BlockFunding is Ownable {
         uint _estimatedProjectReleaseDateTimestamp,
         ProjectCategory _projectCategory,
         uint _fundingRequested
-    ) public onlyOwner() {
+    ) public onlyOwner() returns(address){
         address newProjectAddress = Clones.clone(address(projectToClone));
+        BlockFundingProject(payable(newProjectAddress)).initialize();
         projects.push(newProjectAddress);
 
-        BlockFundingProject(payable(newProjectAddress)).initialize(
-            _owner,
-            BlockFundingProject.ContractDetails(_name,
-                _subtitle,
-                _description,
-                _mediasURI,
-                _targetWallet,
-                _campaignStartingDateTimestamp,
-                _campaignEndingDateTimestamp,
-                _estimatedProjectReleaseDateTimestamp,
-                _projectCategory,
-                _fundingRequested));
-
         emit NewProjectHasBeenCreated(newProjectAddress);
+        return newProjectAddress;
     }
 
     function getProjects() public view returns(address[] memory){
         return projects;
     }
+
+    
 }

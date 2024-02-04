@@ -14,37 +14,54 @@ contract BlockFundingProject is Initializable {
     * @notice Owner's address. 
     * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
     */
-    address public owner;
-    /// @notice The current amount requested
-    uint public currentFunding;
+    address public owner = msg.sender;
+    /**
+    * @notice The current amount requested
+    * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+    */
+    uint96 public currentFunding;
+
+    /// @notice The wallet into which the funds will be paid
+    address targetWallet;
+    /**
+    * @notice The amount of fundig (in WEI) to reach
+    * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+    */
+    uint96 fundingRequested;
+
+    /** 
+    * @notice Starting date of the crowdfunding campaign, in timestamp (seconds) format
+    * @dev uint32 allows timestamp up to year 2170, should be enough 
+    */
+    uint32 campaignStartingDateTimestamp;
+    /** 
+    * @notice Ending date of the crowdfunding campaign, in timestamp (seconds)  format
+    * @dev uint32 allows timestamp up to year 2170, should be enough 
+    */
+    uint32 campaignEndingDateTimestamp;
+    /** 
+    * @notice Estimated date of projet release, in timestamp (seconds)  format 
+    * @dev uint32 allows timestamp up to year 2170, should be enough 
+    */
+    uint32 estimatedProjectReleaseDateTimestamp;
+
+    /// @notice Category of the project (like art, automobile, sport, etc ...)
+    BlockFunding.ProjectCategory projectCategory; 
+
+    /// @notice Project's name
+    string name;
+    /// @notice A short description of the project, used for some displays in frontend
+    string subtitle;
+    /// @notice Description of the project
+    string description;
+    /// @notice List of medias linked to the project //TODO => Maybe use a map here ? 
+    string[] mediasURI;
+
     /// @notice Map of financers and their donations
     mapping(address => uint) public financersDonations;
 
-    /// @notice We use a struct here instead of using directly all the variables as state, to avoid stack too deep error
-    ContractDetails public contractDetails;
 
-    struct ContractDetails {
-        /// @notice Project's name
-        string name;
-        /// @notice A short description of the project, used for some displays in frontend
-        string subtitle;
-        /// @notice Description of the project
-        string description;
-        /// @notice List of medias linked to the project //TODO => Maybe use a map here ? 
-        string[] mediasURI;
-         /// @notice The wallet into which the funds will be paid
-        address targetWallet;
-        /// @notice Starting date of the crowdfunding campaign, in timestamp (seconds) format
-        uint campaignStartingDateTimestamp;
-        /// @notice Ending date of the crowdfunding campaign, in timestamp (seconds)  format
-        uint campaignEndingDateTimestamp;
-        /// @notice Estimated date of projet release, in timestamp (seconds)  format 
-        uint estimatedProjectReleaseDateTimestamp;
-        /// @notice Category of the project (like art, automobile, sport, etc ...)
-        BlockFunding.ProjectCategory projectCategory; 
-        /// @notice The amount of fundig (in WEI) to reach
-        uint fundingRequested;
-    }
+
 
    
 
@@ -61,26 +78,55 @@ contract BlockFundingProject is Initializable {
 
     /**
     * @notice As we'll clone this contract, we initialize variables here instead of using constructor.
-    *    We don't initialize financersDonations & currendFunding, as we just need the defaults values in theese variables
-    *    at contract's creation.
     */
-    function initialize (address _owner, ContractDetails calldata _contractDetails)
-    public initializer { 
-        owner = _owner;
-        contractDetails.name = _contractDetails.name;
-        contractDetails.subtitle = _contractDetails.subtitle;
-        contractDetails.description = _contractDetails.description;
-        contractDetails.targetWallet = _contractDetails.targetWallet;
-        contractDetails.campaignStartingDateTimestamp = _contractDetails.campaignStartingDateTimestamp;
-        contractDetails.campaignEndingDateTimestamp = _contractDetails.campaignEndingDateTimestamp;
-        contractDetails.estimatedProjectReleaseDateTimestamp = _contractDetails.estimatedProjectReleaseDateTimestamp;
-        contractDetails.fundingRequested = _contractDetails.fundingRequested;
+    function initialize () public initializer onlyOwner { 
+        owner = msg.sender;
     }
 
     receive() external payable {}
     fallback() external payable {}
 
     function getName() external view returns (string memory){
-        return contractDetails.name;
+        return name;
+    }
+    
+    function setName(string calldata _name) external onlyOwner {
+        name = _name;
+    }
+
+    function setSubtitle(string calldata _subtitle) external onlyOwner {
+        subtitle = _subtitle;
+    }
+
+    function setDescription(string calldata _description) external onlyOwner {
+        description = _description;
+    }
+
+    function setMediasURI(string[] memory _mediasURI) external onlyOwner {
+        mediasURI = _mediasURI;
+    }
+
+    function setTargetWallet(address _targetWallet) external onlyOwner {
+        targetWallet = _targetWallet;
+    }
+
+    function setCampaingnStartingDateTimestamp(uint32 _campaignStartingDateTimestamp) external onlyOwner {
+        campaignStartingDateTimestamp = _campaignStartingDateTimestamp;
+    }
+
+    function setCampaignEndingDateTimestamp(uint32 _campaignEndingDateTimestamp) external onlyOwner {
+        campaignEndingDateTimestamp = _campaignEndingDateTimestamp;
+    }
+
+    function setEstimatedProjectReleaseDateTimestamp(uint32 _estimatedProjectReleaseDateTimestamp) external onlyOwner {
+        estimatedProjectReleaseDateTimestamp = _estimatedProjectReleaseDateTimestamp;
+    }
+
+    function setProjectCategory(BlockFunding.ProjectCategory _projectCategory) external onlyOwner {
+        projectCategory = _projectCategory;
+    }
+
+    function setFundingRequested(uint96 _fundingRequested) external onlyOwner {
+        fundingRequested = _fundingRequested;
     }
 }

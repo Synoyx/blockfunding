@@ -10,16 +10,15 @@ library ClonesHelper {
     string public constant subtitle = "This is a mocked contract for testing purposes";
     string public constant description = "This is the description of the contract created for testing purposes";
     address public constant targetWallet = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-    uint public constant campaignStartingDateTimestamp = 1707005560;
-    uint public constant campaignEndingDateTimestamp = 1709507562;
-    uint public constant estimatedProjectReleaseDateTimestamp = 1727993562;
+    uint32 public constant campaignStartingDateTimestamp = 1707005560;
+    uint32 public constant campaignEndingDateTimestamp = 1709507562;
+    uint32 public constant estimatedProjectReleaseDateTimestamp = 1727993562;
     BlockFunding.ProjectCategory public constant projectCategory = BlockFunding.ProjectCategory.art;
-    uint public constant fundingRequested = 1000000000000000000;
+    uint96 public constant fundingRequested = 1000000000000000000;
 
 
     function createMockContract(address blockFundingContractAddress) public {
         BlockFunding(blockFundingContractAddress).createNewContract(
-            owner,
             name,
             subtitle,
             description,
@@ -28,7 +27,7 @@ library ClonesHelper {
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
             estimatedProjectReleaseDateTimestamp,
-            projectCategory,
+            BlockFunding.ProjectCategory.art,
             fundingRequested
         );
 
