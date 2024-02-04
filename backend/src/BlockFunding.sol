@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "./BlockFundingProject.sol";
+import "./tools/Strings.sol";
 
 /**
 * @author Julien P.
@@ -29,19 +30,27 @@ contract BlockFunding is Ownable {
     }
 
     function createNewContract(
-        string calldata _name,
-        string calldata _subtitle,
-        string calldata _description,
-        string[] calldata _mediasURI,
+        string[3] memory _name_subtitle_description,
+        string[] memory _mediasURI,
+        uint[4] calldata _campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested,
         address _targetWallet,
-        uint _campaignStartingDateTimestamp,
-        uint _campaignEndingDateTimestamp,
-        uint _estimatedProjectReleaseDateTimestamp,
-        ProjectCategory _projectCategory,
-        uint _fundingRequested
+        ProjectCategory _projectCategory
     ) public onlyOwner() returns(address){
         address newProjectAddress = Clones.clone(address(projectToClone));
-        BlockFundingProject(payable(newProjectAddress)).initialize();
+
+        BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
+        project.initialize();
+        project.setName(_name_subtitle_description[0]);
+        project.setSubtitle(_name_subtitle_description[1]);
+        project.setDescription(_name_subtitle_description[2]);
+        project.setMediasURI(_mediasURI);
+        project.setCampaingnStartingDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[0]));
+        project.setCampaignEndingDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[1]));
+        project.setEstimatedProjectReleaseDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[2]));
+        project.setFundingRequested(uint96(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[3]));
+        project.setTargetWallet(_targetWallet);
+        project.setProjectCategory(_projectCategory);
+
         projects.push(newProjectAddress);
 
         emit NewProjectHasBeenCreated(newProjectAddress);

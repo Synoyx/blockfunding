@@ -14,7 +14,7 @@ contract BlockFundingProject is Initializable {
     * @notice Owner's address. 
     * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
     */
-    address public owner = msg.sender;
+    address public owner;
     /**
     * @notice The current amount requested
     * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
@@ -79,7 +79,7 @@ contract BlockFundingProject is Initializable {
     /**
     * @notice As we'll clone this contract, we initialize variables here instead of using constructor.
     */
-    function initialize () public initializer onlyOwner { 
+    function initialize () public initializer { 
         owner = msg.sender;
     }
 

@@ -19,16 +19,16 @@ library ClonesHelper {
 
     function createMockContract(address blockFundingContractAddress) public {
         BlockFunding(blockFundingContractAddress).createNewContract(
-            name,
+            [name,
             subtitle,
-            description,
+            description],
             new string[](3),
+            [uint(campaignStartingDateTimestamp),
+            uint(campaignEndingDateTimestamp),
+            uint(estimatedProjectReleaseDateTimestamp),
+            uint(fundingRequested)],
             targetWallet,
-            campaignStartingDateTimestamp,
-            campaignEndingDateTimestamp,
-            estimatedProjectReleaseDateTimestamp,
-            BlockFunding.ProjectCategory.art,
-            fundingRequested
+            BlockFunding.ProjectCategory.art
         );
 
 
