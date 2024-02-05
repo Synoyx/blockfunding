@@ -17,4 +17,4 @@ jobs:
         run: pip3 install mythril
 
       - name: Launch analysis
-        run: find ./backend/src/*.sol | xargs myth analyze -x
+        run: find ./backend/src/*.sol | xargs myth analyze
