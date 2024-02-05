@@ -12,6 +12,12 @@ import "./BlockFunding.sol";
 * We don't use constructor because this contract will be cloned to reduce gas costs
 */
 contract BlockFundingProject is Initializable, ReentrancyGuard {
+    struct Message {
+        address sender;
+        string ipfsHash; // We store message content on IPFS to reduce storage cost on blockchain
+        uint256 timestamp;
+    }
+
     /**
     * @notice Owner's address. 
     * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
@@ -65,12 +71,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice Map of financers and their donations
     mapping(address => uint) public financersDonations;
 
+    /// @notice List of messages sent by financers & project creator about the project
+    Message[] public messages;
+
     //TODO how to implement rewards & team portraits ? 
 
 
     event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
     event ProjectIsFunded(string projectName, address contributor, uint fundedAmoutInWei);
     event FundsWithdrawn(string projectName, address targetAddress, uint withdrawnAmout);
+    event NewMessage(string projectName, address writer);
 
    
 
@@ -132,6 +142,15 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         if (checkIfProjectIsFunded() && !projectWasAlreadyFunded) {
             emit ProjectIsFunded(name, msg.sender, currentFunding);
         }
+    }
+
+    function addMessage(string calldata ipfsHash) external {
+        require(financersDonations[msg.sender] > 0 || msg.sender == owner, 
+            "You need to be the project creator or a financer to add a message");
+
+        messages.push(Message(msg.sender, ipfsHash, block.timestamp));
+
+        emit NewMessage(name, msg.sender);
     }
 
     function checkIfProjectIsFunded() public view returns (bool) {
