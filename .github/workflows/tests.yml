@@ -24,10 +24,6 @@ jobs:
           ref: ${{ github.head_ref }}
           submodules: recursive
 
-      - name: Use backend folder
-        run: |
-          cd backend
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -43,5 +39,5 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          FOUNDRY_PROFILE=CI forge test -vvv
+          FOUNDRY_PROFILE=CI forge test -vvv --root ./backend
         id: test
