@@ -24,7 +24,7 @@ jobs:
           ref: ${{ github.head_ref }}
           submodules: recursive
 
-       - name: Use backend folder
+      - name: Use backend folder
         run: |
           cd backend
 
