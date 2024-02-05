@@ -27,4 +27,15 @@ contract BlockFundingTest is Test {
         assertEq(Strings.compare(clonedProject.getName(), ClonesHelper.name), true, "Values in cloned contract seems incorrect");
     }
 
+    function test_blockfundingMultipleProjectsCloning() external {
+        assertEq(blockFunding.getProjects().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
+
+        for (uint i; i < 100; i++) {
+            ClonesHelper.createMockContract(address(blockFunding));
+        }
+
+        assertEq(blockFunding.getProjects().length, 100, "Projects array isn't empty when BlockFunding contract is initialized");
+
+    }
+
 }

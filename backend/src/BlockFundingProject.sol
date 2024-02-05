@@ -2,6 +2,8 @@
 pragma solidity ^0.8.23;
 
 import '@openzeppelin/contracts/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+
 
 import "./BlockFunding.sol";
 
@@ -9,7 +11,7 @@ import "./BlockFunding.sol";
 * @dev We use Initializable from Openzeppelin to ensure the method Initializable will only be called once.
 * We don't use constructor because this contract will be cloned to reduce gas costs
 */
-contract BlockFundingProject is Initializable {
+contract BlockFundingProject is Initializable, ReentrancyGuard {
     /**
     * @notice Owner's address. 
     * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
@@ -45,6 +47,9 @@ contract BlockFundingProject is Initializable {
     */
     uint32 estimatedProjectReleaseDateTimestamp;
 
+    /// @notice Flag to know if project creator has withdrawn 
+    bool hasBeenWithdrawn;
+
     /// @notice Category of the project (like art, automobile, sport, etc ...)
     BlockFunding.ProjectCategory projectCategory; 
 
@@ -60,14 +65,18 @@ contract BlockFundingProject is Initializable {
     /// @notice Map of financers and their donations
     mapping(address => uint) public financersDonations;
 
+    //TODO how to implement rewards & team portraits ? 
 
 
+    event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
+    event ProjectIsFunded(string projectName, address contributor, uint fundedAmoutInWei);
+    event FundsWithdrawn(string projectName, address targetAddress, uint withdrawnAmout);
 
    
 
-    //TODO how to implement rewards & team portraits ? 
 
     error OwnableUnauthorizedAccount(address account);
+    error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
 
     modifier onlyOwner() {
         if (owner != msg.sender) {
@@ -76,15 +85,58 @@ contract BlockFundingProject is Initializable {
         _;
     }
 
+    modifier fundingDatePassed {
+        if (campaignEndingDateTimestamp < block.timestamp) {
+            revert FundingIsntEndedYet(block.timestamp, campaignEndingDateTimestamp);
+        }
+        _;
+    }
+    modifier fundingDateNotPassed {
+        if (campaignEndingDateTimestamp > block.timestamp) {
+            revert FundingIsntEndedYet(block.timestamp, campaignEndingDateTimestamp);
+        }
+        _;
+    }
+
     /**
     * @notice As we'll clone this contract, we initialize variables here instead of using constructor.
     */
-    function initialize () public initializer { 
+    function initialize() external initializer { 
         owner = msg.sender;
     }
 
     receive() external payable {}
     fallback() external payable {}
+
+    function withdraw() external onlyOwner fundingDatePassed nonReentrant  {
+        require(checkIfProjectIsFunded(), "Project hasn't been funded yet, you can't withdraw funds !");
+        require(!hasBeenWithdrawn, "Funds have already been withdrawn");
+
+        hasBeenWithdrawn = true;
+        uint96 withdrawnAmount = currentFunding;
+        currentFunding -= withdrawnAmount;
+        payable(targetWallet).transfer(withdrawnAmount);
+
+        emit FundsWithdrawn(name, targetWallet, currentFunding);
+    }
+
+    function fundProject() external payable fundingDateNotPassed {
+        require(msg.value > 0, "Funding amount must be greater than 0");
+        bool projectWasAlreadyFunded = checkIfProjectIsFunded();
+        currentFunding += uint96(msg.value);
+
+        financersDonations[msg.sender] += uint96(msg.value);
+
+        emit ContributionAddedToProject(name, msg.sender, msg.value);
+        
+        if (checkIfProjectIsFunded() && !projectWasAlreadyFunded) {
+            emit ProjectIsFunded(name, msg.sender, currentFunding);
+        }
+    }
+
+    function checkIfProjectIsFunded() public view returns (bool) {
+        return currentFunding >= fundingRequested;
+    }
 
     function getName() external view returns (string memory){
         return name;

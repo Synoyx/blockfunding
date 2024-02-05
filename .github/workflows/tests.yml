@@ -1,9 +1,15 @@
-name: test
+name: Forge Tests
 
-on: workflow_dispatch
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
 
 env:
   FOUNDRY_PROFILE: ci
+
+permissions:
+  contents: write
 
 jobs:
   check:
@@ -13,9 +19,14 @@ jobs:
     name: Foundry project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
+          ref: ${{ github.head_ref }}
           submodules: recursive
+
+       - name: Use backend folder
+        run: |
+          cd backend
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -27,8 +38,10 @@ jobs:
           forge --version
           forge build --sizes
         id: build
+        # don't fail if contract sizes are too large; tests will fail next if compilation failed
+        continue-on-error: true
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          FOUNDRY_PROFILE=CI forge test -vvv
         id: test

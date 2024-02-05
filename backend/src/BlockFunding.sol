@@ -29,6 +29,11 @@ contract BlockFunding is Ownable {
         projectToClone = new BlockFundingProject();
     }
 
+    /**
+    * @notice Here we take arrays of parameters, as solidity can only handle 16 variables manipulations.
+    * Arrays are a way to deal with it, without costing too much in gas to transform datas back, that's why
+    * I use multiples array, to keep the types of variables, instead of one big bytes array.
+    */
     function createNewContract(
         string[3] memory _name_subtitle_description,
         string[] memory _mediasURI,
@@ -36,6 +41,7 @@ contract BlockFunding is Ownable {
         address _targetWallet,
         ProjectCategory _projectCategory
     ) public onlyOwner() returns(address){
+        //TODO Maybe use a mapping to pass parameters, like mapping(string => bytes[]) with
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
@@ -57,7 +63,11 @@ contract BlockFunding is Ownable {
         return newProjectAddress;
     }
 
-    function getProjects() public view returns(address[] memory){
+    /**
+    * @notice Get all projects addresses
+    * @return address[] List of projects addresses
+    */
+    function getProjects() public view returns(address[] memory) {
         return projects;
     }
 
