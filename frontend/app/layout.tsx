@@ -11,6 +11,8 @@ import { sepolia, hardhat } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { ReactNode } from "react";
 
+import { BlockFundingContractContextProvider } from "@/app/contexts/blockFundingContractContext";
+
 const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
 
 const { connectors } = getDefaultWallets({
@@ -50,7 +52,7 @@ export default function RootLayout({ children }: any) {
                 accentColorForeground: "#05045E",
               })}
             >
-              {children}
+              <BlockFundingContractContextProvider>{children}</BlockFundingContractContextProvider>
             </RainbowKitProvider>
           </WagmiConfig>
         </ChakraProvider>
