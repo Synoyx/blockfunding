@@ -2,11 +2,12 @@
 
 import { useAccount } from "wagmi";
 
-import logo from "@/app/assets/images/logo.png";
 import { Flex, Text, Menu, MenuButton, MenuList, Image } from "@chakra-ui/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { BellIcon } from "@chakra-ui/icons";
+import Link from "next/link";
 
+import logo from "@/app/assets/images/logo.png";
 const Header = () => {
   const { isConnected } = useAccount();
 
@@ -34,6 +35,9 @@ const Header = () => {
         {isConnected ? (
           <Flex mr="1rem">
             <Menu>
+              <Link href="/CreateProject" passHref>
+                <MenuButton>Créer un Nouveau Projet</MenuButton>
+              </Link>
               <MenuButton>
                 <BellIcon color="white" boxSize={6} />
               </MenuButton>
