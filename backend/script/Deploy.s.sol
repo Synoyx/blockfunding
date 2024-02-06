@@ -10,8 +10,12 @@ import "../src/BlockFunding.sol";
 * @author Julien P.
 */
 contract Deploy is Script {
+    function getPK() internal virtual returns(uint256) {
+        return vm.envUint("PRIVATE_KEY");
+    }
+
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        uint256 deployerPrivateKey = getPK();
         vm.startBroadcast(deployerPrivateKey);
 
         BlockFunding blockFunding = new BlockFunding();
@@ -20,7 +24,14 @@ contract Deploy is Script {
     }
 }
 
+contract DeployDev is Deploy {
+    function getPK() internal override returns(uint256) {
+        return vm.envUint("PRIVATE_KEY_DEV");
+    }
+}
+
 /**
 source .env
 forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast --verify -vvvv
+forge script script/Deploy.s.sol:DeployDev --rpc-url $ANVIL_RPC_URL --broadcast
 */

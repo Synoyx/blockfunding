@@ -3,9 +3,10 @@ cache/
 out/
 
 # Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
+backend/!/broadcast
+backend/broadcast/*/31337/
+backend/broadcast/**/dry-run/
+backend/broadcast/*/*
 
 # Docs
 docs/
