@@ -20,6 +20,7 @@ contract BlockFunding is Ownable {
 
     enum ProjectCategory {
         art,
+        automobile,
         software
     }
 
