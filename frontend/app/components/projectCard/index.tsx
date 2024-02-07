@@ -1,5 +1,5 @@
 import { Box, Image, Text, useColorModeValue, VStack } from "@chakra-ui/react";
-import { Project } from "@/app/js/objects/Project";
+import { Project } from "@/app/ts/objects/Project";
 
 interface ProjectCardProps {
   project: Project;
@@ -23,7 +23,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       flexGrow={0} // Empêche la carte de grandir
       flexShrink={0} // Empêche la carte de rétrécir
     >
-      <Image src={project.mediaLinks[0]} alt={project.name} borderRadius="lg" objectFit="cover" width="100%" height="200px" />
+      <Image src={project.mediasURI[0]} alt={project.name} borderRadius="lg" objectFit="cover" width="100%" height="200px" />
       <VStack spacing={2} align="start" mt={4}>
         <Text fontSize="xl" fontWeight="bold" noOfLines={1}>
           {project.name}

@@ -29,10 +29,27 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
       let projectsArray: Project[] = [];
 
       const results: any = await publicRead(BlockFundingFunctions.getProjects);
+      console.log(results);
       for (let res of results) {
-        const contractAddress: string = res.toString();
-        await publicRead(BlockFundingProjectFunctions.)
+        projectsArray.push(
+          new Project(
+            0,
+            res.name,
+            res.subtitle,
+            res.description,
+            res.targetWallet,
+            res.fundingRequested,
+            res.currentFunding,
+            res.campaignStartingDateTimestamp,
+            res.campaignEndingDateTimestamp,
+            res.estimatedProjectReleaseDateTimestamp,
+            res.projectCategory,
+            ["", "", ""]
+          )
+        );
       }
+      console.log("Toto");
+      console.log(projectsArray);
 
       setProjects(projectsArray);
     }

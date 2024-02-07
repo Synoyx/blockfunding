@@ -73,14 +73,13 @@ contract BlockFunding is Ownable {
     }
 
     /**
-    * @notice Get all projets. Used to optimize frontend.
+    * @notice Get all projets data. Used to optimize frontend.
     * @return BlockFundingProject[] List of projects
     */
-    function getProjects() public view returns(BlockFundingProject[] memory) {
-
-        BlockFundingProject[] memory ret = new BlockFundingProject[](projects.length);
+    function getProjects() public view returns(BlockFundingProject.ProjectData[] memory) {
+        BlockFundingProject.ProjectData[] memory ret = new BlockFundingProject.ProjectData[](projects.length);
         for(uint i; i < projects.length; i++) {
-            ret[i] = BlockFundingProject(payable(projects[i]));
+            ret[i] = BlockFundingProject(payable(projects[i])).getData();
         }
 
         return ret;
