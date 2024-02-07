@@ -1,14 +1,16 @@
 "use client";
 
 import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 
 import { Flex, Text, Menu, MenuButton, MenuList, Image } from "@chakra-ui/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { BellIcon } from "@chakra-ui/icons";
-import Link from "next/link";
 
-import logo from "@/app/assets/images/logo.png";
+import logo from "@/assets/images/logo.png";
+
 const Header = () => {
+  const router = useRouter();
   const { isConnected } = useAccount();
 
   return (
@@ -30,14 +32,15 @@ const Header = () => {
         </Text>
       </Flex>
 
+      <Flex>
+        <button onClick={() => router.push("/createproject")}>Accueil</button>
+      </Flex>
+
       <Text color="#fff8e3">{isConnected && `You are connected as TODO:SETUSERROLE`}</Text>
       <Flex alignItems="inherit">
         {isConnected ? (
           <Flex mr="1rem">
             <Menu>
-              <Link href="/CreateProject" passHref>
-                <MenuButton>Créer un Nouveau Projet</MenuButton>
-              </Link>
               <MenuButton>
                 <BellIcon color="white" boxSize={6} />
               </MenuButton>

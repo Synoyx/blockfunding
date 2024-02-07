@@ -1,9 +1,9 @@
 import { http, createPublicClient } from "viem";
 import { sepolia, localhost } from "viem/chains";
 
-import { BlockFundingProjectFunctions } from "@/app/ts/objects/BlockFundingProjectContract";
-import { BlockFundingFunctions } from "@/app/ts/objects/BlockFundingContract";
-import { contractAddress, abi } from "@/app/ts/constants";
+import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
+import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
+import { contractAddress, abi } from "@/ts/constants";
 
 export async function publicRead(functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions) {
   const publicClient = createPublicClient({

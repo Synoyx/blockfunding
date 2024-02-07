@@ -1,8 +1,8 @@
 import { http, createPublicClient, stringify } from "viem";
 import { sepolia } from "viem/chains";
 
-import { contractAddress, abi } from "@/app/js/constants";
-import { VotingFunctions } from "@/app/js/wagmiWrapper.js";
+import { contractAddress, abi } from "@/js/constants";
+import { VotingFunctions } from "@/js/wagmiWrapper.js";
 
 import { Flex, Heading, Text, Spinner } from "@chakra-ui/react";
 import { useEffect, useState } from "react";

@@ -1,8 +1,8 @@
 import { Box } from "@chakra-ui/react";
 
-import { useBlockFundingContractContext } from "@/app/contexts/blockFundingContractContext";
-import ProjectRow from "@/app/components/projectRow";
-import { Project } from "@/app/ts/objects/Project";
+import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
+import ProjectRow from "@/components/projectRow";
+import { Project } from "@/ts/objects/Project";
 
 export const HomePage = () => {
   const { projects, isLoadingProjects } = useBlockFundingContractContext();

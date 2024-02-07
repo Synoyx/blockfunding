@@ -1,7 +1,7 @@
 import { Box, Flex, Heading, IconButton, Text } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import ProjectCard from "@/app/components/projectCard";
-import { Project } from "@/app/js/objects/Project";
+import ProjectCard from "@/components/projectCard";
+import { Project } from "@/ts/objects/Project";
 import { useRef } from "react";
 
 interface ProjectRowProps {

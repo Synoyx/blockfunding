@@ -11,7 +11,7 @@ import { sepolia, hardhat } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { ReactNode } from "react";
 
-import { BlockFundingContractContextProvider } from "@/app/contexts/blockFundingContractContext";
+import { BlockFundingContractContextProvider } from "@/contexts/blockFundingContractContext";
 
 const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
 

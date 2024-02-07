@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { useAccount } from "wagmi";
 
-import { callReadMethod, callWriteMethod, watchEvent } from "@/app/ts/wagmiWrapper";
-import { BlockFundingFunctions } from "@/app/ts/objects/BlockFundingContract";
-import { Project } from "@/app/ts/objects/Project";
-import { publicRead } from "@/app/ts/viemWrapper";
+import { callReadMethod, callWriteMethod, watchEvent } from "@/ts/wagmiWrapper";
+import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
+import { Project } from "@/ts/objects/Project";
+import { publicRead } from "@/ts/viemWrapper";
 import { BlockFundingProjectFunctions } from "../ts/objects/BlockFundingProjectContract";
 
 interface BlockFundingContractContextType {
@@ -32,7 +32,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
       for (let res of results) {
         projectsArray.push(
           new Project(
-            0,
+            0, //TODO use address as ID ?
             res.name,
             res.subtitle,
             res.description,
@@ -43,7 +43,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
             res.campaignEndingDateTimestamp,
             res.estimatedProjectReleaseDateTimestamp,
             res.projectCategory,
-            ["", "", ""]
+            ["", "", ""] //TODO get media URIs
           )
         );
       }

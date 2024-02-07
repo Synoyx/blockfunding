@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
-import { ProjectCategory } from "@/app/js/objects/Project";
+import { ProjectCategory } from "@/ts/objects/Project";
 
 const CreateProject = () => {
   const minDate = new Date().toISOString().split("T")[0];

@@ -1,5 +1,5 @@
 import { Box, Image, Text, useColorModeValue, VStack } from "@chakra-ui/react";
-import { Project } from "@/app/ts/objects/Project";
+import { Project } from "@/ts/objects/Project";
 
 interface ProjectCardProps {
   project: Project;
@@ -19,6 +19,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       borderColor={borderColor}
       boxShadow="md"
       m={2} // Margin pour espacer les cartes
+      width="200px"
       maxWidth="200px" // Largeur fixe pour toutes les cartes
       flexGrow={0} // Empêche la carte de grandir
       flexShrink={0} // Empêche la carte de rétrécir

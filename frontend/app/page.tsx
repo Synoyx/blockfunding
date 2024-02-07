@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { Flex } from "@chakra-ui/react";
 
-import { useBlockFundingContractContext } from "@/app/contexts/blockFundingContractContext";
-import Header from "@/app/components/struct/Header";
-import Main from "@/app/pages/Main";
-import Footer from "@/app/components/struct/Footer";
+import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
+import Header from "@/components/struct/Header";
+import Main from "@/pages/Main";
+import Footer from "@/components/struct/Footer";
 
 export default function Page() {
   const { initBlockFundingContractContext } = useBlockFundingContractContext();

@@ -1,13 +1,12 @@
 import { Container } from "@chakra-ui/react";
 
-import { HomePage } from "@/app/pages/homePage/HomePage.tsx";
-import CreateProject from "@/app/pages/createProject/CreateProject.tsx";
+import { HomePage } from "@/pages/HomePage";
 
 const Main = () => {
   return (
     <>
       <Container my="4rem" maxW="120ch">
-        <HomePage/>
+        <HomePage />
       </Container>
     </>
   );

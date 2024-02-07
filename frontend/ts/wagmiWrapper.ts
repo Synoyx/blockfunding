@@ -2,9 +2,9 @@
 
 import { prepareWriteContract, writeContract, readContract, waitForTransaction, watchContractEvent, getPublicClient } from "@wagmi/core";
 
-import { BlockFundingProjectFunctions } from "@/app/ts/objects/BlockFundingProjectContract";
-import { BlockFundingFunctions } from "@/app/ts/objects/BlockFundingContract";
-import { contractAddress, abi, deployBlockNumber } from "@/app/ts/constants";
+import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
+import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
+import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
 
 /**
  * Method used to call a "read" method.

@@ -1,4 +1,4 @@
-import { Project, ProjectCategory } from "@/app/js/objects/Project";
+import { Project, ProjectCategory } from "@/ts/objects/Project";
 
 export const latestProjects: Project[] = [
   new Project(
