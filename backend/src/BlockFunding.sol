@@ -68,9 +68,21 @@ contract BlockFunding is Ownable {
     * @notice Get all projects addresses
     * @return address[] List of projects addresses
     */
-    function getProjects() public view returns(address[] memory) {
+    function getProjectsAddresses() public view returns(address[] memory) {
         return projects;
     }
 
-    
+    /**
+    * @notice Get all projets. Used to optimize frontend.
+    * @return BlockFundingProject[] List of projects
+    */
+    function getProjects() public view returns(BlockFundingProject[] memory) {
+
+        BlockFundingProject[] memory ret = new BlockFundingProject[](projects.length);
+        for(uint i; i < projects.length; i++) {
+            ret[i] = BlockFundingProject(payable(projects[i]));
+        }
+
+        return ret;
+    }
 }

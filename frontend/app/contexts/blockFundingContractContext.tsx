@@ -5,6 +5,7 @@ import { callReadMethod, callWriteMethod, watchEvent } from "@/app/ts/wagmiWrapp
 import { BlockFundingFunctions } from "@/app/ts/objects/BlockFundingContract";
 import { Project } from "@/app/ts/objects/Project";
 import { publicRead } from "@/app/ts/viemWrapper";
+import { BlockFundingProjectFunctions } from "../ts/objects/BlockFundingProjectContract";
 
 interface BlockFundingContractContextType {
   initBlockFundingContractContext: Function;
@@ -17,7 +18,7 @@ let initContractLock = false;
 
 export const BlockFundingContractContextProvider = ({ children }: { children: ReactNode }) => {
   let { address } = useAccount();
-  let [projects, setProjects] = useState([]);
+  let [projects, setProjects] = useState<Project[]>([]);
   let [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
   const initBlockFundingContractContext = async () => {
@@ -25,11 +26,15 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
     if (!initContractLock) {
       initContractLock = true;
 
-      const results = await publicRead(BlockFundingFunctions.getProjects);
-      console.log("Results = ");
-      console.log(results);
+      let projectsArray: Project[] = [];
 
-      setProjects([]);
+      const results: any = await publicRead(BlockFundingFunctions.getProjects);
+      for (let res of results) {
+        const contractAddress: string = res.toString();
+        await publicRead(BlockFundingProjectFunctions.)
+      }
+
+      setProjects(projectsArray);
     }
   };
 

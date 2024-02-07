@@ -16,11 +16,11 @@ contract BlockFundingTest is Test {
     }
 
     function test_blockfundingProjectCloning() external {
-        assertEq(blockFunding.getProjects().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
+        assertEq(blockFunding.getProjectsAddresses().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
 
         ClonesHelper.createMockContract(address(blockFunding));
 
-        assertEq(blockFunding.getProjects().length, 1, "The project clone hasn't been added to list");
+        assertEq(blockFunding.getProjectsAddresses().length, 1, "The project clone hasn't been added to list");
 
         BlockFundingProject clonedProject = BlockFundingProject(payable(blockFunding.projects(0)));
 
@@ -28,13 +28,13 @@ contract BlockFundingTest is Test {
     }
 
     function test_blockfundingMultipleProjectsCloning() external {
-        assertEq(blockFunding.getProjects().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
+        assertEq(blockFunding.getProjectsAddresses().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
 
         for (uint i; i < 100; i++) {
             ClonesHelper.createMockContract(address(blockFunding));
         }
 
-        assertEq(blockFunding.getProjects().length, 100, "Projects array isn't empty when BlockFunding contract is initialized");
+        assertEq(blockFunding.getProjectsAddresses().length, 100, "Projects array isn't empty when BlockFunding contract is initialized");
 
     }
 
