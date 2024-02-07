@@ -29,7 +29,6 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
       let projectsArray: Project[] = [];
 
       const results: any = await publicRead(BlockFundingFunctions.getProjects);
-      console.log(results);
       for (let res of results) {
         projectsArray.push(
           new Project(
@@ -48,8 +47,6 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
           )
         );
       }
-      console.log("Toto");
-      console.log(projectsArray);
 
       setProjects(projectsArray);
     }
