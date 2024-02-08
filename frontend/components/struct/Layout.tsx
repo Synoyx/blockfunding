@@ -30,18 +30,18 @@ const theme = extendTheme({
 
 export default function Layout({ children }: any) {
   return (
-    <html lang="fr">
-      <body>
-        <ChakraProvider theme={theme}>
-          <WagmiConfig config={wagmiConfig}>
-            <RainbowKitProvider
-              chains={chains}
-              theme={lightTheme({
-                accentColor: "#fff8e3",
-                accentColorForeground: "#05045E",
-              })}
-            >
-              <BlockFundingContractContextProvider>
+    <>
+      <ChakraProvider theme={theme}>
+        <WagmiConfig config={wagmiConfig}>
+          <RainbowKitProvider
+            chains={chains}
+            theme={lightTheme({
+              accentColor: "#fff8e3",
+              accentColorForeground: "#05045E",
+            })}
+          >
+            <BlockFundingContractContextProvider>
+              <main>
                 <Flex direction="column" height="100vh" justifyContent="space-between">
                   <Header />
                   <Flex grow="1" justifyContent="center">
@@ -49,11 +49,11 @@ export default function Layout({ children }: any) {
                   </Flex>
                   <Footer />
                 </Flex>
-              </BlockFundingContractContextProvider>
-            </RainbowKitProvider>
-          </WagmiConfig>
-        </ChakraProvider>
-      </body>
-    </html>
+              </main>
+            </BlockFundingContractContextProvider>
+          </RainbowKitProvider>
+        </WagmiConfig>
+      </ChakraProvider>
+    </>
   );
 }

@@ -12,7 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function init() {
-      //await initBlockFundingContractContext();
+      await initBlockFundingContractContext();
     }
 
     init();

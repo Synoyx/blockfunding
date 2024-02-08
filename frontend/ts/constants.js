@@ -1,4 +1,4 @@
-export const contractAddress = "0x0B306BF915C4d645ff596e518fAf3F9669b97016";
+export const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 export const deployBlockNumber = 5433453n; //Put it as a bigint !
 export const abi = [
   { type: "constructor", inputs: [], stateMutability: "nonpayable" },
