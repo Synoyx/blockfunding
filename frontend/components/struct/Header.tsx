@@ -9,7 +9,7 @@ import { BellIcon } from "@chakra-ui/icons";
 
 import logo from "@/assets/images/logo.png";
 
-const Header = () => {
+export const Header = () => {
   const router = useRouter();
   const { isConnected } = useAccount();
 
@@ -57,5 +57,3 @@ const Header = () => {
     </Flex>
   );
 };
-
-export default Header;

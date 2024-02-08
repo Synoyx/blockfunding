@@ -4,28 +4,17 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { extendTheme } from "@chakra-ui/react";
 import "@rainbow-me/rainbowkit/styles.css";
 
+import { Flex } from "@chakra-ui/react";
+
 // Importing rainbowkit for connecting wallet from different sources ...
-import { getDefaultWallets, RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit"; //getDefaultWallets,
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { sepolia, hardhat } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
-import { ReactNode } from "react";
+import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit"; //getDefaultWallets,
+import { WagmiConfig } from "wagmi";
 
 import { BlockFundingContractContextProvider } from "@/contexts/blockFundingContractContext";
+import { wagmiConfig, chains } from "@/ts/wagmiWrapper";
 
-const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
-
-const { connectors } = getDefaultWallets({
-  appName: "Voting contract app",
-  projectId: "fba081ed7d956cedcbd5453c3fb61423", // We let it clear, as it is easy to get it by looking on network exchanges of the DApp
-  chains,
-});
-
-const wagmiConfig = createConfig({
-  autoConnect: false,
-  connectors,
-  publicClient,
-});
+import { Header } from "@/components/struct/Header";
+import { Footer } from "@/components/struct/Footer";
 
 //CHAKRA UI THEME
 const theme = extendTheme({
@@ -39,7 +28,7 @@ const theme = extendTheme({
   },
 });
 
-export default function RootLayout({ children }: any) {
+export default function Layout({ children }: any) {
   return (
     <html lang="fr">
       <body>
@@ -52,7 +41,15 @@ export default function RootLayout({ children }: any) {
                 accentColorForeground: "#05045E",
               })}
             >
-              <BlockFundingContractContextProvider>{children}</BlockFundingContractContextProvider>
+              <BlockFundingContractContextProvider>
+                <Flex direction="column" height="100vh" justifyContent="space-between">
+                  <Header />
+                  <Flex grow="1" justifyContent="center">
+                    {children}
+                  </Flex>
+                  <Footer />
+                </Flex>
+              </BlockFundingContractContextProvider>
             </RainbowKitProvider>
           </WagmiConfig>
         </ChakraProvider>

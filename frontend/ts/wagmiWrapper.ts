@@ -1,10 +1,29 @@
 "use client";
 
 import { prepareWriteContract, writeContract, readContract, waitForTransaction, watchContractEvent, getPublicClient } from "@wagmi/core";
+import { publicProvider } from "wagmi/providers/public";
+import { configureChains, createConfig } from "wagmi";
+import { sepolia, hardhat } from "wagmi/chains";
+
+import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
+
+export const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
+
+const { connectors } = getDefaultWallets({
+  appName: "Voting contract app",
+  projectId: "fba081ed7d956cedcbd5453c3fb61423", // We let it clear, as it is easy to get it by looking on network exchanges of the DApp
+  chains,
+});
+
+export const wagmiConfig = createConfig({
+  autoConnect: false,
+  connectors,
+  publicClient,
+});
 
 /**
  * Method used to call a "read" method.
