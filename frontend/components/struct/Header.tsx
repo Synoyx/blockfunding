@@ -2,39 +2,47 @@
 
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import { Flex, Text, Menu, MenuButton, MenuList, Image } from "@chakra-ui/react";
+import { Flex, Text, Menu, MenuButton, MenuList, Image, Stack, MenuItem } from "@chakra-ui/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { BellIcon } from "@chakra-ui/icons";
 
 import logo from "@/assets/images/logo.png";
+import CreateProject from "../../pages/CreateProject";
 
 export const Header = () => {
   const router = useRouter();
   const { isConnected } = useAccount();
 
   return (
-    <Flex
-      px="2rem"
-      py="1rem"
-      justifyContent="space-between"
-      alignItems="center"
-      width="100%"
-      backgroundColor="#05045E"
-      pos="fixed"
-      top="0"
-      zIndex={2}
-    >
-      <Flex alignItems="center">
-        <Image src={logo.src} maxHeight="50px" alt="BlockFunding logo" />
-        <Text fontSize={18} marginLeft="15px" fontWeight={700} color="#fff8e3">
-          Blockfunding
-        </Text>
-      </Flex>
-
-      <Flex>
-        <button onClick={() => router.push("/createproject")}>Accueil</button>
-      </Flex>
+    <Flex px="2rem" py="1rem" justifyContent="space-between" alignItems="center" backgroundColor="#05045E">
+      <Link href="/">
+        <Flex alignItems="center">
+          <Image src={logo.src} maxHeight="50px" alt="BlockFunding logo" />
+          <Text fontSize={18} marginLeft="15px" fontWeight={700} color="#fff8e3">
+            Blockfunding
+          </Text>
+        </Flex>
+      </Link>
+      <Menu>
+        <Stack
+          spacing={8}
+          color="white"
+          align="center"
+          justify={["center", "space-between", "flex-end", "flex-end"]}
+          direction={["column", "row", "row", "row"]}
+          pt={[4, 4, 0, 0]}
+        >
+          <Link href="/">
+            <MenuItem>Home</MenuItem>
+          </Link>
+          <Link href="/CreateProject">
+            <MenuItem>Create project</MenuItem>
+          </Link>
+          ...
+        </Stack>
+      </Menu>
 
       <Text color="#fff8e3">{isConnected && `You are connected as TODO:SETUSERROLE`}</Text>
       <Flex alignItems="inherit">

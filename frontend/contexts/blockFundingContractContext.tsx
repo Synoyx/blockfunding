@@ -32,7 +32,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
       for (let res of results) {
         projectsArray.push(
           new Project(
-            0, //TODO use address as ID ?
+            projectsArray.length,
             res.name,
             res.subtitle,
             res.description,

@@ -11,3 +11,26 @@ export function getReadableDate() {
   });
   return dateFormatted;
 }
+
+export function getReadableDateFromTimestampSecond(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+
+  // Construire la date au format "MMM dd, yyyy"
+  const formattedDate = date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  // Construire l'heure au format "HH:mm"
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const formattedTime = `${hours}:${minutes}`;
+
+  // Combiner les parties pour obtenir la chaîne de date finale
+  return `${formattedDate} ${formattedTime}`;
+}
+
+export const weiToEth = (weiValue: BigInt) => {
+  return Number(weiValue) / 10 ** 18;
+};
