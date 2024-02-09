@@ -13,6 +13,7 @@ import { WagmiConfig } from "wagmi";
 import { BlockFundingContractContextProvider } from "@/contexts/blockFundingContractContext";
 import { wagmiConfig, chains } from "@/ts/wagmiWrapper";
 
+import { ContextsLoader } from "@/components/struct/ContextsLoader";
 import { Header } from "@/components/struct/Header";
 import { Footer } from "@/components/struct/Footer";
 
@@ -41,13 +42,15 @@ export default function Layout({ children }: any) {
             })}
           >
             <BlockFundingContractContextProvider>
-              <main>
-                <Flex direction="column" height="100vh">
-                  <Header />
-                  <Flex justifyContent="center">{children}</Flex>
-                  <Footer />
-                </Flex>
-              </main>
+              <ContextsLoader>
+                <main>
+                  <Flex direction="column" height="100vh">
+                    <Header />
+                    <Flex justifyContent="center">{children}</Flex>
+                    <Footer />
+                  </Flex>
+                </main>
+              </ContextsLoader>
             </BlockFundingContractContextProvider>
           </RainbowKitProvider>
         </WagmiConfig>

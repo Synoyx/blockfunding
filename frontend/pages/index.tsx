@@ -5,18 +5,9 @@ import { useEffect } from "react";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import ProjectRow from "@/components/projectRow";
-import { Project } from "@/ts/objects/Project";
 
 export default function HomePage() {
-  const { projects, isLoadingProjects, initBlockFundingContractContext } = useBlockFundingContractContext();
-
-  useEffect(() => {
-    async function init() {
-      await initBlockFundingContractContext();
-    }
-
-    init();
-  }, []);
+  const { projects, isLoadingProjects } = useBlockFundingContractContext();
 
   return (
     <Box marginTop="20px">
