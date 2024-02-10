@@ -14,12 +14,14 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 
 import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { ProjectCategory } from "@/ts/objects/Project";
 
 const CreateProject = () => {
+  const { address } = useAccount();
   const minDate = new Date().toISOString().split("T")[0];
 
   const [project, setProject] = useState({
@@ -196,9 +198,15 @@ const CreateProject = () => {
             ))}
             <IconButton aria-label="Ajouter un lien média" icon={<AddIcon />} onClick={addMediaLink} mt={2} />
           </FormControl>
-          <Button mt={4} colorScheme="teal" type="submit">
-            Créer Projet
-          </Button>
+          {address ? (
+            <Button mt={4} colorScheme="teal" type="submit">
+              Créer Projet
+            </Button>
+          ) : (
+            <Button mt={4} isDisabled={true} colorScheme="teal" type="submit">
+              Please connect to your wallet first
+            </Button>
+          )}
         </Stack>
       </form>
     </Box>
