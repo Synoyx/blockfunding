@@ -65,7 +65,7 @@ export async function callReadMethod(
  */
 export async function callWriteMethod(
   functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions,
-  args = [],
+  args: any[] = [],
   endTXCallback = () => {},
   errorCallback = (e: any) => {
     throw e;
@@ -76,12 +76,15 @@ export async function callWriteMethod(
   handleWaitingForMetamaskEndEvent = () => {}
 ) {
   try {
+    console.log("ARG = ");
+    console.log(args);
     const config = await prepareWriteContract({
       address: contractAddress,
       abi: abi,
       functionName: functionToCall.valueOf(),
       args: args,
     });
+    console.log(config);
     handleWaitingForMetamaskEvent();
     const { hash } = await writeContract(config);
     handleWaitingForMetamaskEndEvent();

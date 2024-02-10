@@ -14,6 +14,9 @@ import {
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
+
+import { callWriteMethod } from "@/ts/wagmiWrapper";
+import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { ProjectCategory } from "@/ts/objects/Project";
 
 const CreateProject = () => {
@@ -61,11 +64,25 @@ const CreateProject = () => {
     setProject((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    // Ici, vous implémenteriez la logique pour traiter et envoyer ces données
-    // Par exemple, sauvegarder dans un état global, envoyer à un backend, etc.
+    console.log("Calling method");
+    console.log("Project value = ");
     console.log(project);
+    await callWriteMethod(BlockFundingFunctions.createNewContract, [
+      [project.name, project.subtitle, project.description],
+      ["http://google.fr"],
+      [
+        new Date(project.startDate).getTime() / 1000,
+        new Date(project.endDate).getTime() / 1000,
+        new Date(project.estimatedCompletionDate).getTime() / 1000,
+        +project.fundingGoal,
+      ],
+      project.walletAddress,
+      0,
+    ]);
+    console.log("Called finished");
+
     toast({
       title: "Projet créé",
       description: "Nous avons créé votre projet avec succès.",

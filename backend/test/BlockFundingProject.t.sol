@@ -25,6 +25,6 @@ contract BlockFundingProjectTest is Test {
         BlockFundingProject clonedProject = BlockFundingProject(payable(blockFunding.projects(0)));
 
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
-        clonedProject.initialize();
+        clonedProject.initialize(msg.sender);
     }
 }

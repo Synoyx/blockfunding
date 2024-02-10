@@ -41,12 +41,11 @@ contract BlockFunding is Ownable {
         uint[4] calldata _campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested,
         address _targetWallet,
         ProjectCategory _projectCategory
-    ) public onlyOwner() returns(address){
+    ) public returns(address){
         //TODO Maybe use a mapping to pass parameters, like mapping(string => bytes[]) with
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
-        project.initialize();
         project.setName(_name_subtitle_description[0]);
         project.setSubtitle(_name_subtitle_description[1]);
         project.setDescription(_name_subtitle_description[2]);
@@ -57,6 +56,7 @@ contract BlockFunding is Ownable {
         project.setFundingRequested(uint96(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[3]));
         project.setTargetWallet(_targetWallet);
         project.setProjectCategory(_projectCategory);
+        project.initialize(msg.sender);
 
         projects.push(newProjectAddress);
 

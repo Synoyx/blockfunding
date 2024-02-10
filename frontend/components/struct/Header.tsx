@@ -44,7 +44,6 @@ export const Header = () => {
         </Stack>
       </Menu>
 
-      <Text color="#fff8e3">{isConnected && `You are connected as TODO:SETUSERROLE`}</Text>
       <Flex alignItems="inherit">
         {isConnected ? (
           <Flex mr="1rem">

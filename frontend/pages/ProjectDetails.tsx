@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Heading, Text, Image, Link, Flex, HStack, VStack, Stack, Icon } from "@chakra-ui/react";
+import { Box, Heading, Text, Image, Link, Flex, HStack, VStack, Stack, Icon, Button } from "@chakra-ui/react";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
@@ -11,6 +12,8 @@ import { Project } from "@/ts/objects/Project";
 
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
+  const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
+  let { address } = useAccount();
   const params = useSearchParams();
   const { projects } = useBlockFundingContractContext();
   const projectId = params!.get("id");
@@ -18,6 +21,14 @@ const ProjectDetails = () => {
   useEffect(() => {
     setProject(projects[+projectId!]);
   }, [projectId, projects]);
+
+  useEffect(() => {
+    if (project !== undefined) {
+      console.log("Toto " + address);
+      console.log("Tata " + project!.owner);
+      setIsUserProjectOwner(address === project!.owner);
+    } else setIsUserProjectOwner(false);
+  }, [address, project]);
 
   return (
     <>
@@ -41,6 +52,14 @@ const ProjectDetails = () => {
               </Text>
             </VStack>
             <Stack direction={{ base: "column" }} spacing={4} flex={1} ml={{ lg: 5 }}>
+              {isUserProjectOwner ? (
+                <Box p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
+                  <Button>Manage project</Button>
+                </Box>
+              ) : (
+                <></>
+              )}
+
               <Box p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Text fontSize="sm">
                   Actually, {weiToEth(project!.currentFunding).toString()} ETH have been gathered on{" "}

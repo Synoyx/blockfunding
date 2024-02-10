@@ -5,7 +5,6 @@ import { callReadMethod, callWriteMethod, watchEvent } from "@/ts/wagmiWrapper";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { Project } from "@/ts/objects/Project";
 import { publicRead } from "@/ts/viemWrapper";
-import { BlockFundingProjectFunctions } from "../ts/objects/BlockFundingProjectContract";
 
 interface BlockFundingContractContextType {
   initBlockFundingContractContext: Function;
@@ -33,6 +32,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
         projectsArray.push(
           new Project(
             projectsArray.length,
+            res.owner,
             res.name,
             res.subtitle,
             res.description,

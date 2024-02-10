@@ -16,6 +16,7 @@ contract BlockFundingTest is Test {
     }
 
     function test_blockfundingProjectCloning() external {
+        vm.startPrank(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
         assertEq(blockFunding.getProjectsAddresses().length, 0, "Projects array isn't empty when BlockFunding contract is initialized");
 
         ClonesHelper.createMockContract(address(blockFunding));

@@ -1,7 +1,6 @@
 "use client";
 
 import { Box } from "@chakra-ui/react";
-import { useEffect } from "react";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import ProjectRow from "@/components/projectRow";

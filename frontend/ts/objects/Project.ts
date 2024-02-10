@@ -7,12 +7,13 @@ export enum ProjectCategory {
 
 export class Project {
   id: number;
+  owner: string;
   name: string;
   subtitle: string;
   description: string;
   targetWallet: string;
-  fundingRequested: BigInt; // Stocké en Wei
-  currentFunding: BigInt; // Stocké en Wei
+  fundingRequested: number; // Stocké en Wei
+  currentFunding: number; // Stocké en Wei
   campaignStartingDateTimestamp: number; // Timestamp en secondes
   campaignEndingDateTimestamp: number; // Timestamp en secondes
   estimatedProjectReleaseDateTimestamp: number; // Timestamp en secondes
@@ -21,12 +22,13 @@ export class Project {
 
   constructor(
     id: number,
+    owner: string,
     name: string,
     subtitle: string,
     description: string,
     targetWallet: string,
-    fundingRequested: BigInt,
-    currentFunding: BigInt,
+    fundingRequested: number,
+    currentFunding: number,
     campaignStartingDateTimestamp: number,
     campaignEndingDateTimestamp: number,
     estimatedProjectReleaseDateTimestamp: number,
@@ -34,6 +36,7 @@ export class Project {
     mediasURI: string[]
   ) {
     this.id = id;
+    this.owner = owner;
     this.name = name;
     this.subtitle = subtitle;
     this.description = description;
@@ -49,6 +52,7 @@ export class Project {
 
   describe(): void {
     console.log(`Id: ${this.id}`);
+    console.log(`Owner: ${this.owner}`);
     console.log(`Nom: ${this.name}`);
     console.log(`Sous-titre: ${this.subtitle}`);
     console.log(`Description: ${this.description}`);

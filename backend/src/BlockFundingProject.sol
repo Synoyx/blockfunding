@@ -113,8 +113,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /**
     * @notice As we'll clone this contract, we initialize variables here instead of using constructor.
     */
-    function initialize() external initializer { 
-        data.owner = msg.sender;
+    function initialize(address contractOwner) external initializer { 
+        data.owner = contractOwner;
     }
 
     receive() external payable {}
