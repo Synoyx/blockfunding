@@ -44,7 +44,7 @@ export default function Layout({ children }: any) {
             <BlockFundingContractContextProvider>
               <ContextsLoader>
                 <main>
-                  <Flex direction="column" height="100vh">
+                  <Flex direction="column" height="100vh" justifyContent="space-between">
                     <Header />
                     <Flex justifyContent="center">{children}</Flex>
                     <Footer />
