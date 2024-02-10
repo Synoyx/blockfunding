@@ -42,21 +42,26 @@ contract BlockFunding is Ownable {
         address _targetWallet,
         ProjectCategory _projectCategory
     ) public returns(address){
-        //TODO Maybe use a mapping to pass parameters, like mapping(string => bytes[]) with
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
-        project.setName(_name_subtitle_description[0]);
-        project.setSubtitle(_name_subtitle_description[1]);
-        project.setDescription(_name_subtitle_description[2]);
-        project.setMediasURI(_mediasURI);
-        project.setCampaingnStartingDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[0]));
-        project.setCampaignEndingDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[1]));
-        project.setEstimatedProjectReleaseDateTimestamp(uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[2]));
-        project.setFundingRequested(uint96(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[3]));
-        project.setTargetWallet(_targetWallet);
-        project.setProjectCategory(_projectCategory);
-        project.initialize(msg.sender);
+        BlockFundingProject.ProjectData memory data = BlockFundingProject.ProjectData(
+            msg.sender,
+            0,
+            _targetWallet,
+            uint96(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[3]),
+            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[0]),
+            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[1]),
+            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[2]),
+            false,
+            _projectCategory,
+            _name_subtitle_description[0],
+            _name_subtitle_description[1],
+            _name_subtitle_description[2],
+            _mediasURI
+        );
+        
+        project.initialize(data);
 
         projects.push(newProjectAddress);
 

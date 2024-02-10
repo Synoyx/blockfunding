@@ -89,6 +89,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     error OwnableUnauthorizedAccount(address account);
     error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
+    /**
+     * @dev The owner is not a valid owner account. (eg. `address(0)`)
+     */
+    error OwnableInvalidOwner(address owner);
 
     modifier onlyOwner() {
         if (data.owner != msg.sender) {
@@ -111,10 +115,43 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     /**
-    * @notice As we'll clone this contract, we initialize variables here instead of using constructor.
+    * @notice As we'll clone this contract, we need to initialize owner here to BlockFundingContract's address
     */
-    function initialize(address contractOwner) external initializer { 
-        data.owner = contractOwner;
+    function initialize(ProjectData calldata _data) external reinitializer(1) { 
+        data.name = _data.name;
+        data.subtitle = _data.subtitle;
+        data.description = _data.description;
+        data.projectCategory = _data.projectCategory;
+        data.campaignStartingDateTimestamp = _data.campaignStartingDateTimestamp;
+        data.campaignEndingDateTimestamp = _data.campaignEndingDateTimestamp;
+        data.estimatedProjectReleaseDateTimestamp = _data.estimatedProjectReleaseDateTimestamp;
+        data.fundingRequested = _data.fundingRequested;
+        data.targetWallet = _data.targetWallet;
+
+        for (uint i; i < _data.mediasURI.length; i++) {
+            data.mediasURI.push(_data.mediasURI[i]);
+        }
+
+        _transferOwnership(_data.owner);
+    }
+
+    function transferOwner(address _newOwner)  public onlyOwner {
+        _transferOwnership(_newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address _newOwner) internal virtual {
+        if (_newOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
+        data.owner = _newOwner;
+    }
+
+    function getOwner() external view returns(address) {
+        return data.owner;
     }
 
     receive() external payable {}

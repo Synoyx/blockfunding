@@ -3,6 +3,7 @@ pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import "../../src/BlockFunding.sol";
+import "../../src/BlockFundingProject.sol";
 
 library ClonesHelper {
     address public constant owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
@@ -36,5 +37,22 @@ library ClonesHelper {
         //"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         //"https://farm4.staticflickr.com/3731/11808916273_e2f1728616.jpg",
         //"https://static.hitek.fr/img/actualite/ill_m/382925734/TrollFace.jpg"
+    }
+
+    function getMockedProjectData() public view returns(BlockFundingProject.ProjectData memory) {
+        return BlockFundingProject.ProjectData(
+            msg.sender,
+            0,
+            targetWallet,
+            fundingRequested,
+            campaignStartingDateTimestamp,
+            campaignEndingDateTimestamp,
+            estimatedProjectReleaseDateTimestamp,
+            false,
+            BlockFunding.ProjectCategory.art,
+            name,
+            subtitle,
+            description,
+            new string[](3));
     }
 }

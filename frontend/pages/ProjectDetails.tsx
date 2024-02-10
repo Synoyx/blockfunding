@@ -59,11 +59,10 @@ const ProjectDetails = () => {
               ) : (
                 <></>
               )}
-
               <Box p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Text fontSize="sm">
-                  Actually, {weiToEth(project!.currentFunding).toString()} ETH have been gathered on{" "}
-                  {weiToEth(project!.fundingRequested).toString()} ETH requested.
+                  Actually, {weiToEth(BigInt(project!.currentFunding)).toString()} ETH have been gathered on{" "}
+                  {weiToEth(BigInt(project!.fundingRequested)).toString()} ETH requested.
                 </Text>
                 <Link href={`https://etherscan.io/address/${project!.targetWallet}`} isExternal color="blue.500" fontWeight="medium">
                   {project!.targetWallet}
