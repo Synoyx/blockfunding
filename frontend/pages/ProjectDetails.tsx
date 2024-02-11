@@ -10,6 +10,8 @@ import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
 import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
 
+import { getData } from "@/ts/nftStorageWrapper";
+
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
   const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
@@ -19,13 +21,17 @@ const ProjectDetails = () => {
   const projectId = params!.get("id");
 
   useEffect(() => {
+    async function test() {
+      const message: string = await getData("bafkreiaerzwc75cplvwyfsawm5qyylpmlj2biwygmerv3wb5iknwgptbuu");
+      alert("Message = " + message);
+    }
+
     setProject(projects[+projectId!]);
+    test();
   }, [projectId, projects]);
 
   useEffect(() => {
     if (project !== undefined) {
-      console.log("Toto " + address);
-      console.log("Tata " + project!.owner);
       setIsUserProjectOwner(address === project!.owner);
     } else setIsUserProjectOwner(false);
   }, [address, project]);
