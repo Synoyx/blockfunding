@@ -33,9 +33,45 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     struct Message {
-        address sender;
-        string ipfsHash; // We store message content on IPFS to reduce storage cost on blockchain
-        uint256 timestamp;
+        /// @notice Address of write of this message
+        address writerWallet;
+
+        /**
+        * @notice IPFS CID of the message.
+        * We store messages offchain, to reduce TX costs.
+        * We use IPFS to stay decentralized as much as possible.
+        */
+        string ipfsCID;
+
+        /** 
+        * @notice Date of message storage, in timestamp (seconds) format
+        * @dev uint32 allows timestamp up to year 2170, should be enough 
+        */
+        uint32 timestamp;
+    }
+
+    struct ProjectStep {
+        /// @notice Name of this project step
+        string name;
+
+        /// @notice Description of this project step
+        string description;
+
+        
+        /**
+        * @notice Amount needed to realize this project step (can be incremented with a vote)
+        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+        */
+        uint96 amountNeeded;
+
+        /**
+        * @notice Amount currently withdrawn to realize this project step
+        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+        */
+        uint96 amountFounded;
+
+        /// @notice Does the team has withdrawn the 'amountNeeded' corresponding to this step
+        bool isFounded;
     }
 
     struct ProjectData {
@@ -89,7 +125,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         /// @notice Description of the project
         string description;
 
-        /// @notice List of medias linked to the project //TODO => Maybe use a map here ? 
+        /// @notice List of medias linked to the project //TODO Maybe use only 1 media (for banner) ?
         string[] mediasURI;
 
         /// @notice List of project's team members
@@ -101,8 +137,18 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice Map of financers and their donations
     mapping(address => uint) public financersDonations;
 
+    /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
+    mapping(address => bool) public teamMembers;
+
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
+
+    /// @notice Project's steps with their order number
+    mapping(uint8 => ProjectStep) public projectSteps;
+
+    /// @notice The current project step
+    uint8 currentProjectStep;
+
 
     //TODO Do I need to implement rewards ? Or let it free with the step validation system ?
 
@@ -114,6 +160,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
 
     error OwnableUnauthorizedAccount(address account);
+    error FinancerUnauthorizedAccount(address account);
+    error TeamMemberUnauthorizedAccount(address account);
+    error FinancerOrTeamMemberUnauthorizedAccount(address account);
     error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
     /**
      * @dev The owner is not a valid owner account. (eg. `address(0)`)
@@ -123,6 +172,27 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     modifier onlyOwner() {
         if (data.owner != msg.sender) {
             revert OwnableUnauthorizedAccount(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyFinancer() {
+        if (financersDonations[msg.sender] == 0) {
+            revert FinancerUnauthorizedAccount(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyTeamMember() {
+        if (teamMembers[msg.sender]) {
+            revert TeamMemberUnauthorizedAccount(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyTeamMemberOrFinancer() {
+        if (financersDonations[msg.sender] == 0 || teamMembers[msg.sender]) {
+            revert FinancerOrTeamMemberUnauthorizedAccount(msg.sender);
         }
         _;
     }
@@ -211,11 +281,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         }
     }
 
-    function addMessage(string calldata ipfsHash) external {
-        require(financersDonations[msg.sender] > 0 || msg.sender == data.owner, 
-            "You need to be the project creator or a financer to add a message");
-
-        messages.push(Message(msg.sender, ipfsHash, block.timestamp));
+    function addMessage(string calldata ipfsHash) external onlyTeamMemberOrFinancer {
+        messages.push(Message(msg.sender, ipfsHash, uint32(block.timestamp)));
 
         emit NewMessage(data.name, msg.sender);
     }
