@@ -58,7 +58,8 @@ contract BlockFunding is Ownable {
             _name_subtitle_description[0],
             _name_subtitle_description[1],
             _name_subtitle_description[2],
-            _mediasURI
+            _mediasURI,
+            new BlockFundingProject.TeamMember[](1)
         );
         
         project.initialize(data);

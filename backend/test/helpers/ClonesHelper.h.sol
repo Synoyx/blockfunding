@@ -53,6 +53,7 @@ library ClonesHelper {
             name,
             subtitle,
             description,
-            new string[](3));
+            new string[](3),
+            new BlockFundingProject.TeamMember[](1));
     }
 }
