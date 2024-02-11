@@ -12,6 +12,26 @@ import "./BlockFunding.sol";
 * We don't use constructor because this contract will be cloned to reduce gas costs
 */
 contract BlockFundingProject is Initializable, ReentrancyGuard {
+    struct TeamMember {
+        /// @notice Team member's first name
+        string firstName;
+
+        /// @notice Team member's last name
+        string lastName;
+
+        /// @notice A short description to display on project's page
+        string description;
+
+        /// @notice a direct link to a photo to display on project's page
+        string photoLink;
+
+        /// @notice Role of the team member on the project
+        string role;
+
+        /// @notice Wallet address of team member
+        address walletAddress; //TODO Make this address meaningfull by asking to stak X ETH for the project duration, to make his identity authentic
+    }
+
     struct Message {
         address sender;
         string ipfsHash; // We store message content on IPFS to reduce storage cost on blockchain
@@ -62,12 +82,18 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         /// @notice Project's name
         string name;
+
         /// @notice A short description of the project, used for some displays in frontend
         string subtitle;
+
         /// @notice Description of the project
         string description;
+
         /// @notice List of medias linked to the project //TODO => Maybe use a map here ? 
         string[] mediasURI;
+
+        /// @notice List of project's team members
+        TeamMember[] teamMembers;
     }
 
     ProjectData public data;
@@ -78,7 +104,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
 
-    //TODO how to implement rewards & team portraits ? 
+    //TODO Do I need to implement rewards ? Or let it free with the step validation system ?
 
 
     event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
@@ -157,6 +183,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     receive() external payable {}
     fallback() external payable {}
 
+
+    //TODO make a withdrawForStep and a withdrawProject()
     function withdraw() external onlyOwner fundingDatePassed nonReentrant  {
         require(checkIfProjectIsFunded(), "Project hasn't been funded yet, you can't withdraw funds !");
         require(!data.hasBeenWithdrawn, "Funds have already been withdrawn");
