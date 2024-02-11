@@ -12,7 +12,6 @@ import "./tools/Strings.sol";
 * This script will handle the whole BlockFunding storage and functions.
 * It will store the users and the projects. For the projects, we only store addresses, as each project has is own contract.
 * BlockFunding contract will use Clone's pattern, to create contracts for each new project with reduces gas cost
-* 
 */
 contract BlockFunding is Ownable {
     BlockFundingProject private projectToClone;
@@ -20,8 +19,19 @@ contract BlockFunding is Ownable {
 
     enum ProjectCategory {
         art,
-        automobile,
-        software
+        comics,
+        craft,
+        dance,
+        design,
+        fashion,
+        film,
+        food,
+        games,
+        journalism,
+        music,
+        publishing,
+        technology,
+        thater
     }
 
     event NewProjectHasBeenCreated(address projectAddress);
@@ -35,38 +45,16 @@ contract BlockFunding is Ownable {
     * Arrays are a way to deal with it, without costing too much in gas to transform datas back, that's why
     * I use multiples array, to keep the types of variables, instead of one big bytes array.
     */
-    function createNewContract(
-        string[3] memory _name_subtitle_description,
-        string[] memory _mediasURI,
-        uint[4] calldata _campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested,
-        address _targetWallet,
-        ProjectCategory _projectCategory
-    ) public returns(address){
+    function createNewProject(BlockFundingProject.ProjectData calldata _data) public returns(address){
+        //TODO set appropriated requires on projectData
+        //TODO maybe use cloneDeterministic method to clone, with salt, to avoid same projects to be deployed
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
-        BlockFundingProject.ProjectData memory data = BlockFundingProject.ProjectData(
-            msg.sender,
-            0,
-            _targetWallet,
-            uint96(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[3]),
-            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[0]),
-            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[1]),
-            uint32(_campaignStartAndEndingDate_estimatedProjectReleaseDate_fundingRequested[2]),
-            false,
-            _projectCategory,
-            _name_subtitle_description[0],
-            _name_subtitle_description[1],
-            _name_subtitle_description[2],
-            _mediasURI,
-            new BlockFundingProject.TeamMember[](1)
-        );
-        
-        project.initialize(data);
+        project.initialize(_data);
+        emit NewProjectHasBeenCreated(newProjectAddress);
 
         projects.push(newProjectAddress);
-
-        emit NewProjectHasBeenCreated(newProjectAddress);
         return newProjectAddress;
     }
 

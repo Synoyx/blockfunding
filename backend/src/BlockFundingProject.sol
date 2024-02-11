@@ -75,25 +75,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     struct ProjectData {
-        /**
-        * @notice Owner's address. 
-        * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
-        */
-        address owner;
-        /**
-        * @notice The current amount requested
-        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
-        */
-        uint96 currentFunding;
-
-        /// @notice The wallet into which the funds will be paid
-        address targetWallet;
-        /**
-        * @notice The amount of fundig (in WEI) to reach
-        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
-        */
-        uint96 fundingRequested;
-
         /** 
         * @notice Starting date of the crowdfunding campaign, in timestamp (seconds) format
         * @dev uint32 allows timestamp up to year 2170, should be enough 
@@ -113,6 +94,25 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         /// @notice Flag to know if project creator has withdrawn 
         bool hasBeenWithdrawn;
 
+        /**
+        * @notice Owner's address. 
+        * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
+        */
+        address owner;
+        /**
+        * @notice The current amount requested
+        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+        */
+        uint96 currentFunding;
+
+        /// @notice The wallet into which the funds will be paid
+        address targetWallet;
+        /**
+        * @notice The amount of fundig (in WEI) to reach
+        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+        */
+        uint96 fundingRequested;
+
         /// @notice Category of the project (like art, automobile, sport, etc ...)
         BlockFunding.ProjectCategory projectCategory; 
 
@@ -125,12 +125,21 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         /// @notice Description of the project
         string description;
 
-        /// @notice List of medias linked to the project //TODO Maybe use only 1 media (for banner) ?
-        string[] mediasURI;
+        /// @notice Media URI used as banner in project details page
+        string mediaURI;
 
         /// @notice List of project's team members
         TeamMember[] teamMembers;
+
+        /** 
+        * @notice Project's steps with their order number
+        * We use an array here because we're in a struct
+        */ 
+        ProjectStep[] projectSteps;
     }
+
+    /// @notice The current project step
+    uint8 currentProjectStep;
 
     ProjectData public data;
 
@@ -138,20 +147,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     mapping(address => uint) public financersDonations;
 
     /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
-    mapping(address => bool) public teamMembers;
+    mapping(address => bool) public teamMembersAddresses;
 
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
-
-    /// @notice Project's steps with their order number
-    mapping(uint8 => ProjectStep) public projectSteps;
-
-    /// @notice The current project step
-    uint8 currentProjectStep;
-
-
-    //TODO Do I need to implement rewards ? Or let it free with the step validation system ?
-
 
     event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
     event ProjectIsFunded(string projectName, address contributor, uint fundedAmoutInWei);
@@ -164,9 +163,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error TeamMemberUnauthorizedAccount(address account);
     error FinancerOrTeamMemberUnauthorizedAccount(address account);
     error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
-    /**
-     * @dev The owner is not a valid owner account. (eg. `address(0)`)
-     */
     error OwnableInvalidOwner(address owner);
 
     modifier onlyOwner() {
@@ -184,14 +180,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     modifier onlyTeamMember() {
-        if (teamMembers[msg.sender]) {
+        if (teamMembersAddresses[msg.sender]) {
             revert TeamMemberUnauthorizedAccount(msg.sender);
         }
         _;
     }
 
     modifier onlyTeamMemberOrFinancer() {
-        if (financersDonations[msg.sender] == 0 || teamMembers[msg.sender]) {
+        if (financersDonations[msg.sender] == 0 || teamMembersAddresses[msg.sender]) {
             revert FinancerOrTeamMemberUnauthorizedAccount(msg.sender);
         }
         _;
@@ -203,6 +199,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         }
         _;
     }
+
     modifier fundingDateNotPassed {
         if (data.campaignEndingDateTimestamp > block.timestamp) {
             revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
@@ -211,9 +208,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     /**
-    * @notice As we'll clone this contract, we need to initialize owner here to BlockFundingContract's address
+    * @notice As we'll clone this contract, we need to initialize variables here and not in a constructor
     */
-    function initialize(ProjectData calldata _data) external reinitializer(1) { 
+    function initialize(ProjectData calldata _data) external initializer { 
         data.name = _data.name;
         data.subtitle = _data.subtitle;
         data.description = _data.description;
@@ -223,9 +220,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.estimatedProjectReleaseDateTimestamp = _data.estimatedProjectReleaseDateTimestamp;
         data.fundingRequested = _data.fundingRequested;
         data.targetWallet = _data.targetWallet;
+        data.mediaURI = _data.mediaURI;
 
-        for (uint i; i < _data.mediasURI.length; i++) {
-            data.mediasURI.push(_data.mediasURI[i]);
+
+        for (uint i; i < _data.teamMembers.length; i++) {
+            data.teamMembers.push(_data.teamMembers[i]);
         }
 
         _transferOwnership(_data.owner);
@@ -297,45 +296,5 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function getName() external view returns (string memory){
         return data.name;
-    }
-    
-    function setName(string calldata _name) external onlyOwner {
-        data.name = _name;
-    }
-
-    function setSubtitle(string calldata _subtitle) external onlyOwner {
-        data.subtitle = _subtitle;
-    }
-
-    function setDescription(string calldata _description) external onlyOwner {
-        data.description = _description;
-    }
-
-    function setMediasURI(string[] memory _mediasURI) external onlyOwner {
-        data.mediasURI = _mediasURI;
-    }
-
-    function setTargetWallet(address _targetWallet) external onlyOwner {
-        data.targetWallet = _targetWallet;
-    }
-
-    function setCampaingnStartingDateTimestamp(uint32 _campaignStartingDateTimestamp) external onlyOwner {
-        data.campaignStartingDateTimestamp = _campaignStartingDateTimestamp;
-    }
-
-    function setCampaignEndingDateTimestamp(uint32 _campaignEndingDateTimestamp) external onlyOwner {
-        data.campaignEndingDateTimestamp = _campaignEndingDateTimestamp;
-    }
-
-    function setEstimatedProjectReleaseDateTimestamp(uint32 _estimatedProjectReleaseDateTimestamp) external onlyOwner {
-        data.estimatedProjectReleaseDateTimestamp = _estimatedProjectReleaseDateTimestamp;
-    }
-
-    function setProjectCategory(BlockFunding.ProjectCategory _projectCategory) external onlyOwner {
-        data.projectCategory = _projectCategory;
-    }
-
-    function setFundingRequested(uint96 _fundingRequested) external onlyOwner {
-        data.fundingRequested = _fundingRequested;
     }
 }

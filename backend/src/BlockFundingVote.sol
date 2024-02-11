@@ -42,7 +42,7 @@ abstract contract BlockFundingVote {
     function vote() external {
         //TODO check if msg.sender can vote according to voteType & msg.sender role (financer, teammember, other)
         //TODO check if a vote is currently running & endDate isn't passed
-        //TODO compute new vote result
+        //TODO compute new vote result => Use quadratic voting
         //TODO emit event
     }
 }

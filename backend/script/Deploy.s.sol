@@ -6,6 +6,7 @@ import "forge-std/console.sol";
 
 import "../src/BlockFunding.sol";
 import "../src/BlockFundingProject.sol";
+import "./tools/MockedData.sol";
 
 /**
 * @author Julien P.
@@ -38,27 +39,11 @@ contract DeployDev is Deploy {
 
     // Here we add some projects to be able to quickly test Blockfunding
     function runCallback(BlockFunding blockFunding) internal override {
-        blockFunding.createNewContract(
-            ["Projet Alpha", "Innovation en Art", "Exploration des frontieres numeriques dans l'art contemporain."],
-            emptyDynamicArray,
-            [uint(1707210857),uint(1709802857),uint(1725354857),uint(1000000000000000000)],
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-            BlockFunding.ProjectCategory.art
-        );
-        blockFunding.createNewContract(
-            ["Eco Drive", "Revolution Automobile", "Une approche durable de la mobilite urbaine."],
-            emptyDynamicArray,
-            [uint(1707210857),uint(1709802857),uint(1725354857),uint(1000000000000000000)],
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-            BlockFunding.ProjectCategory.automobile
-        );
-        blockFunding.createNewContract(
-            ["Tech Innovate", "Avancee en Informatique", "Developpement d'un nouveau systeme d'exploitation base sur la securite."],
-            emptyDynamicArray,
-            [uint(1707210857),uint(1709802857),uint(1725354857),uint(1000000000000000000)],
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-            BlockFunding.ProjectCategory.software
-        );
+        BlockFundingProject.ProjectData[] memory data = MockedData.getMockedProjectDatas();
+
+        for (uint i; i < data.length; i++) {
+            blockFunding.createNewProject(data[i]);
+        }
     }
 }
 
