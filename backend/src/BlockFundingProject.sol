@@ -29,7 +29,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         string role;
 
         /// @notice Wallet address of team member
-        address walletAddress; //TODO Make this address meaningfull by asking to stak X ETH for the project duration, to make his identity authentic
+        address walletAddress;
     }
 
     struct Message {
@@ -72,6 +72,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         /// @notice Does the team has withdrawn the 'amountNeeded' corresponding to this step
         bool isFounded;
+
+        /// @notice The order number of this step (lower is sooner)
+        uint8 orderNumber;
     }
 
     struct ProjectData {
@@ -149,6 +152,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
     mapping(address => bool) public teamMembersAddresses;
 
+    /// @notice We use this mapping to easily retrieve step by their order number while be able to easily iterate over them
+    mapping(uint8 => uint8) public projectStepsOrderedIndex;
+
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
 
@@ -222,9 +228,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.targetWallet = _data.targetWallet;
         data.mediaURI = _data.mediaURI;
 
-
         for (uint i; i < _data.teamMembers.length; i++) {
             data.teamMembers.push(_data.teamMembers[i]);
+            teamMembersAddresses[_data.teamMembers[i].walletAddress] = true;
+        }
+
+        for (uint i; i < _data.projectSteps.length; i++) {
+            data.projectSteps.push(_data.projectSteps[i]);
+            projectStepsOrderedIndex[_data.projectSteps[i].orderNumber] = uint8(i);
         }
 
         _transferOwnership(_data.owner);
@@ -251,6 +262,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     receive() external payable {}
     fallback() external payable {}
+
+    function withdrawCurrentStep() external onlyTeamMember {
+
+    }
 
 
     //TODO make a withdrawForStep and a withdrawProject()

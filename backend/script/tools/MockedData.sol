@@ -18,7 +18,7 @@ library MockedData {
         mockedData[0] = BlockFundingProject.ProjectData(
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
-            campaignEndingDateTimestamp,
+            estimatedProjectReleaseDateTimestamp,
             false,
             msg.sender,
             0,
@@ -37,7 +37,7 @@ library MockedData {
         mockedData[1] = BlockFundingProject.ProjectData(
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
-            campaignEndingDateTimestamp,
+            estimatedProjectReleaseDateTimestamp,
             false,
             msg.sender,
             0,
@@ -54,7 +54,7 @@ library MockedData {
         mockedData[2] = BlockFundingProject.ProjectData(
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
-            campaignEndingDateTimestamp,
+            estimatedProjectReleaseDateTimestamp,
             false,
             msg.sender,
             0,
@@ -115,7 +115,8 @@ library MockedData {
             description: "Defining the project scope and its feasibility.",
             amountNeeded: 1000000,
             amountFounded: 500000,
-            isFounded: true
+            isFounded: true,
+            orderNumber: 1
         });
 
         mockedData[1] = BlockFundingProject.ProjectStep({
@@ -123,7 +124,8 @@ library MockedData {
             description: "Creating detailed designs and specifications.",
             amountNeeded: 2000000,
             amountFounded: 0,
-            isFounded: false
+            isFounded: false,
+            orderNumber: 2
         });
 
         mockedData[2] = BlockFundingProject.ProjectStep({
@@ -131,7 +133,8 @@ library MockedData {
             description: "Development phase to build and test the project.",
             amountNeeded: 3000000,
             amountFounded: 1500000,
-            isFounded: false
+            isFounded: false,
+            orderNumber: 3
         });
 
         mockedData[3] = BlockFundingProject.ProjectStep({
@@ -139,7 +142,8 @@ library MockedData {
             description: "Rigorous testing to ensure quality and performance.",
             amountNeeded: 500000,
             amountFounded: 0,
-            isFounded: false
+            isFounded: false,
+            orderNumber: 4
         });
 
         mockedData[4] = BlockFundingProject.ProjectStep({
@@ -147,7 +151,8 @@ library MockedData {
             description: "Official launch of the project to the public.",
             amountNeeded: 1000000,
             amountFounded: 0,
-            isFounded: false
+            isFounded: false,
+            orderNumber: 5
         });
 
         return mockedData;
