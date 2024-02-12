@@ -13,10 +13,53 @@ import "./tools/Maths.sol";
 * We don't use constructor because this contract will be cloned to reduce gas costs
 */
 contract BlockFundingProject is Initializable, ReentrancyGuard {
+    //TODO remove uint96 things
+    /* *********************** 
+    *     Structs & enums
+    *********************** */
+
+    /**
+    * @notice Enum used to precise which vote type the current vote will be.
+    * There are 3 of them :
+    * - ValidateStep : Team members ask to financers to validate the current project step by giving proof that they did what they said. 
+    *    If financers are OK, project will go to the next step, and team members will be allows to withdraw next step amount 
+    *    needed to the target wallet
+    * - AddFundsForStep : Team members ask to allow to the current step more funds that initialy planned. The amount will be taken on the 
+    *    left balance of the contract (that equals currentContractBalance - sum(nextStepsFundsNeeded))
+    * - WithdrawProjectToFinancers : Financers can vote to stop project on the current step, and withdraw the leftover amount on the contract.
+    *    this gives power to financers, and ensure that project's team won't be able to scam financers.
+    */
     enum VoteType {
         ValidateStep, 
         AddFundsForStep,
         WithdrawProjectToFinancers
+    }
+
+
+    struct Vote {
+        /// @notice Type of vote (see enum comment for more details)
+        VoteType voteType;
+
+        /// @notice End vote date, in timestamp second format
+        uint96 endVoteDate;
+
+        /// @notice Mapping to keep a trace of who has voted
+        mapping (address => bool) hasFinancerVoted;
+
+        /// @notice Variable only use on VoteType.AddFundsForStep. It's the amount asked by the team to add on current step
+        uint96 askedAmountToAddForStep;
+
+        /// @notice Total of vote power voted in favor of current vote
+        uint votePowerInFavorOfProposal;
+
+        /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
+        uint votePowerNotInFavorOfProposal;
+        
+        /// @notice Does the action proposed to vote has been validated
+        bool hasVoteBeenValidated;
+
+        /// @notice Flag to know if vote is still running. Mostly used in modifiers
+        bool isVoteRunning;
     }
 
     struct TeamMember {
@@ -122,7 +165,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         * @notice Project's steps with their order number
         * We use an array here because we're in a struct
         */ 
-        ProjectStep[] projectSteps; //TODO use an index here ?
+        ProjectStep[] projectSteps; 
     }
 
     struct Message {
@@ -143,27 +186,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint32 timestamp;
     }
 
-    struct Vote {
-        VoteType voteType;
-        uint96 endVoteDate;
 
-        mapping (address => bool) hasFinancerVoted;
 
-        uint96 askedAmountToAddForStep;
-
-        uint votePowerInFavorOfProposal;
-        uint votePowerNotInFavorOfProposal;
-        
-        /// @notice 0 if vote not ended yet, -1 if votes say no, 1 if votes say yes (according to voteType)
-        int8 voteResult;
-
-        bool isVoteRunning;
-    }
+    /* *********************** 
+    *        Variables
+    *********************** */
 
     /// @notice The current project step
     uint8 currentProjectStep;
 
-    /// @notice Financers has vote to cancel the project
+    /// @notice Flag for case financers has vote to cancel the project
     bool projectGotVoteCanceled;
 
     /**
@@ -172,12 +204,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     */
     uint96 fundingRequested;
 
+    /// @notice Datas of contract. We use a struct to avoid "stack to deep" error in init method
     ProjectData public data;
 
     /// @notice Map of financers and their donations
     mapping(address => uint96) public financersDonations;
-
-    uint totalVotePower;
 
     /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
     mapping(address => bool) public teamMembersAddresses;
@@ -188,17 +219,50 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
 
+    /// @notice Mapping of all votes done
     mapping(uint256 => Vote) votes;
+
+    /// @notice Number of votes. Usefull to iterate over passed votes & get the current vote.
     uint256 lastVoteId;
 
+    /**
+    * @notice cumulated vote power of all financers, computed on each fund() method call. 
+    * We need to store it that wey as it take some ressources to compute, due to square root.
+    */
+    uint totalVotePower;
+
+
+
+    /* *********************** 
+    *        Events
+    *********************** */
+
+    /// @notice Event called when a user send a contribution
     event ContributionAddedToProject(address indexed contributor, uint amountInWei);
+
+    /// @notice Event called when the project's balance reaches the requested amount
     event ProjectIsFunded(address indexed contributor, uint fundedAmoutInWei);
+
+    /// @notice Event called when some funds are withdraws
     event FundsWithdrawn(address indexed targetAddress, uint withdrawnAmout);
+
+    /// @notice Event called when a new message is added
     event NewMessage(address indexed writer);
+
+    /// @notice Event called when a financer has vote
     event HasVoted(address indexed voterAddress, uint voteId, bool vote);
+
+    /// @notice Event called when a vote is started
     event VoteStarted(uint indexed voteId, VoteType voteType);
+
+    /// @notice Event called when a vote is ended
     event VoteEnded(uint indexed voteId, VoteType voteType, bool result);
 
+
+
+    /* *********************** 
+    *     Custom errors
+    *********************** */
 
     error OwnableUnauthorizedAccount(address account);
     error ProjectHasBeenCanceld();
@@ -208,6 +272,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
     error OwnableInvalidOwner(address owner);
 
+
+    /* *********************** 
+    *        Modifiers
+    *********************** */
+
+    /// @notice Ensure that only owner can call the function
     modifier onlyOwner() {
         if (data.owner != msg.sender) {
             revert OwnableUnauthorizedAccount(msg.sender);
@@ -215,6 +285,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that only financers can call the function
     modifier onlyFinancer() {
         if (financersDonations[msg.sender] == 0) {
             revert FinancerUnauthorizedAccount(msg.sender);
@@ -222,6 +293,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that only team members can call the function
     modifier onlyTeamMember() {
         if (!teamMembersAddresses[msg.sender]) {
             revert TeamMemberUnauthorizedAccount(msg.sender);
@@ -229,6 +301,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that only financers of team members can call the function
     modifier onlyTeamMemberOrFinancer() {
         if (financersDonations[msg.sender] == 0 && !teamMembersAddresses[msg.sender]) {
             revert FinancerOrTeamMemberUnauthorizedAccount(msg.sender);
@@ -236,6 +309,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that the project's campaign funding end date is passed
     modifier fundingDatePassed {
         if (data.campaignEndingDateTimestamp < block.timestamp) {
             revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
@@ -243,6 +317,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that the project's campaign functing end date is not passed
     modifier fundingDateNotPassed {
         if (data.campaignEndingDateTimestamp > block.timestamp) {
             revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
@@ -250,6 +325,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
     
+    /**
+    * @notice Ensure that msg.sender can actually start or end a vote of the given type
+    *
+    * @param voteType The type of vote that user is trying to start / end
+    */
     modifier canModifyCurrentVote(VoteType voteType) {
         if (voteType != VoteType.WithdrawProjectToFinancers && !teamMembersAddresses[msg.sender]) {
             revert("Only team members can use this type of vote");
@@ -260,6 +340,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    /// @notice Ensure that project hasn't been canceled by a vote
     modifier projectHasntBeenCanceled() {
         if (projectGotVoteCanceled) revert ProjectHasBeenCanceld();
         _;
@@ -270,8 +351,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+
+
+    /* *********************** 
+    *        Methods
+    *********************** */
+
     /**
     * @notice As we'll clone this contract, we need to initialize variables here and not in a constructor
+    *
+    * @param _data We use a struct as a parameter here, to avoid 'stack too deep' error as there as a lot of data.
     */
     function initialize(ProjectData calldata _data) external initializer { 
         data.name = _data.name;
@@ -300,13 +389,21 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _transferOwnership(_data.owner);
     }
 
+    /**
+    * @notice Set given address as the new owner.
+    * Only the actual owner can call it
+    *
+    * @param _newOwner The new owner address
+    */
     function transferOwner(address _newOwner)  public onlyOwner {
         _transferOwnership(_newOwner);
     }
 
     /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * @notice Transfers ownership of the contract to a new account (`newOwner`).
      * Internal function without access restriction.
+     *
+     * @param _newOwner The new owner address
      */
     function _transferOwnership(address _newOwner) internal virtual {
         if (_newOwner == address(0)) {
@@ -315,25 +412,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.owner = _newOwner;
     }
 
-    function getOwner() external view returns(address) {
-        return data.owner;
-    }
-
-    receive() external payable {}
-    fallback() external payable {}
-
-    function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
-        require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
-
-        uint256 PRECISION_FACTOR = 10 ** 12;
-        uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / uint256(data.totalFundsHarvested) / PRECISION_FACTOR;
-
-        //We set donations to 0, to remove this user from financers's list
-        financersDonations[msg.sender] = 0;
-
-        _safeWithdraw(amountToWithdraw, msg.sender);
-    }
-
+    /**
+     * @notice Method to call by team members, to withdraw funds for the current project step, once it has been validated by financer's vote
+     * This allow to unlock project's finances step by step, a process more secure for financers, to avoid scams
+     */
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed projectHasntBeenCanceled nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
         require(!currentStep.isFunded, "Current step funds has already been withdrawn");
@@ -345,10 +427,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _safeWithdraw(amountToWithdraw, data.targetWallet);
     }
 
+    /**
+     * @notice Method to call by team members, to withdraw funds left for the project once every step has been done and end project date is passed.
+     */
     function endProjectWithdraw() onlyTeamMember nonReentrant external {
-        require(currentProjectStep == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated, "Project isn't on his last step");
-        require(data.estimatedProjectReleaseDateTimestamp < block.timestamp, "Project is'nt ended yet");
         require(address(this).balance > 0, "There is nothing to withdraw");
+        require(data.estimatedProjectReleaseDateTimestamp < block.timestamp, "Project is'nt ended yet");
+        require(currentProjectStep == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated, "Project isn't on his last step");
 
         uint96 amountToWithdraw = uint96(address(this).balance);
 
@@ -370,6 +455,29 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _safeWithdraw(amountToWithdraw, msg.sender);
     }
 
+    /**
+     * @notice Method to call by financers if a vote set the project as cancaled.
+     * This allows financers to get their funding back, minus a potential portail consumed for the projet (depending on current step).
+     */
+    function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
+        require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
+
+        uint256 PRECISION_FACTOR = 10 ** 12;
+        uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / uint256(data.totalFundsHarvested) / PRECISION_FACTOR;
+
+        //We set donations to 0, to remove this user from financers's list
+        financersDonations[msg.sender] = 0;
+
+        _safeWithdraw(amountToWithdraw, msg.sender);
+    }
+
+
+    /**
+    * @notice Sends to the given target the amount asked
+    * 
+    * @param _amountToWithdraw The amount to withdraw, in wei
+    * @param _to Address that will receive funds
+    */
     function _safeWithdraw(uint _amountToWithdraw, address _to) internal {
         //TODO if fail, transfer in WETH ?
         (bool success, ) = payable(_to).call{value: _amountToWithdraw}("");
@@ -377,6 +485,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         emit FundsWithdrawn(_to, _amountToWithdraw);
     }
 
+
+    /**
+    * @notice Methods used by users to send some funds to the project.
+    * The minimal amount is 1000 wei. 
+    * Once a used made a donation, he is considered as a financer, and has vote power.
+    */
     function fundProject() external payable fundingDateNotPassed {
         require(msg.value > 1000, "Funding amount must be greater than 1000 wei");
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
@@ -398,7 +512,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
 
-    function askForMoreFunds(uint amountAsked) external onlyTeamMember projectHasntBeenCanceled noVoteIsRunning{
+    /**
+    * @notice Method that can be used by team members to ask more funds for the current step.
+    * It's only possible if the left balance on the contract is > to sum(amounNeededForFutureSteps)
+    *
+    * @param amountAsked The amount asked in wei
+    */
+    function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
+        //TODO REMAKE THAT !!
         require(amountAsked < address(this).balance, "You can't ask an amount greater than what's left on balance");
 
         Vote storage newVote = votes[lastVoteId];
@@ -410,7 +531,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         emit VoteStarted(lastVoteId, VoteType.AddFundsForStep);
     }
 
-    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) projectHasntBeenCanceled noVoteIsRunning {
+    /**
+    * @notice Team members or financers can start a vote here (different that 'ask for funds vote' that is special) 
+    * 
+    * @param voteType The type of vote to start : ValidateStep or WithdrawProjectToFinancers
+    */
+    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
         require(voteType != VoteType.AddFundsForStep, "Use method 'askForModeFunds' for this type of vote");
 
         Vote storage newVote = votes[lastVoteId];
@@ -421,17 +547,21 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         emit VoteStarted(lastVoteId, voteType);
     }
 
-    function endVote() external canModifyCurrentVote(votes[lastVoteId].voteType){
+    /**
+    * @notice Financers or team members can end vote is conditions are ok.
+    * If enough votes are in favor of the proposal, this will be immediatly applied.
+    */
+    function endVote() external canModifyCurrentVote(votes[lastVoteId].voteType) fundingDatePassed{
         Vote storage currentVote = votes[lastVoteId];
 
         require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
 
         if (isVoteValidated(currentVote.votePowerInFavorOfProposal, totalVotePower)) {
-            currentVote.voteResult = 1;
+            currentVote.hasVoteBeenValidated = true;
         }
 
-        if (currentVote.voteResult > 0) {
+        if (currentVote.hasVoteBeenValidated) {
             if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) projectGotVoteCanceled = true;
             if (currentVote.voteType == VoteType.ValidateStep) {
                 data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated = true;
@@ -443,18 +573,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             }
         }
 
-        emit VoteEnded(lastVoteId, votes[lastVoteId].voteType, votes[lastVoteId].voteResult == 1);
+        emit VoteEnded(lastVoteId, currentVote.voteType, currentVote.hasVoteBeenValidated);
 
         lastVoteId++;
     }
 
-    function isVoteValidated(uint _voteInFavorOfProposal, uint _totalVotePower) internal pure returns(bool){
-        uint256 PRECISION_FACTOR = 10;
-        uint256 percentage = (_voteInFavorOfProposal * PRECISION_FACTOR) / _totalVotePower;
-
-        return percentage >= 5;
-    }
-
+    /**
+    * @notice Method that allow financers to vote, if conditions are OK.
+    *
+    * @param vote Boolean that user fill to say if he approves or not the proposition.
+    */
     function sendVote(bool vote) external projectHasntBeenCanceled onlyFinancer {
         Vote storage currentVote = votes[lastVoteId];
         require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
@@ -468,18 +596,54 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         emit HasVoted(msg.sender, lastVoteId, vote);
     }
 
-    function computeVoteEndDate(uint96 timestampStartDate) internal pure returns(uint96) {
-        return timestampStartDate + 3*24*60*60; // Default vote period of 3 days
-    }
-
+    /**
+    * @notice Add a message. Message content is store on IPFS, we only keep the CID to retrive content later on the front, to reduce costs.
+    *
+    * @param ipfsHash The CID of the message content on IPFS
+    */
     function addMessage(string calldata ipfsHash) external onlyTeamMemberOrFinancer {
         messages.push(Message(msg.sender, ipfsHash, uint32(block.timestamp)));
 
         emit NewMessage(msg.sender);
     }
 
+
+    /* *********************** 
+    *        Helpers
+    *********************** */
+
+    /// @notice Simple mthode to check if the project balance >= asked funds
     function checkIfProjectIsFunded() public view returns (bool) {
         return data.totalFundsHarvested >= fundingRequested;
+    }
+
+    /** 
+    * @notice Simple methode to compute end vote date from the start date.
+    * We use 3 days as default value.
+    *
+    * @param timestampStartDate Start date of the vote, in timestamp seconds
+    */
+    function computeVoteEndDate(uint96 timestampStartDate) internal pure returns(uint96) {
+        return timestampStartDate + 3*24*60*60; // Default vote period of 3 days
+    }
+
+    /**
+    * @notice Simple method to compute the vote result. 
+    * We consider the motion approved if 50% or more of the total vote power has approved the motion
+    */
+    function isVoteValidated(uint _voteInFavorOfProposal, uint _totalVotePower) internal pure returns(bool){
+        uint256 PRECISION_FACTOR = 10;
+        uint256 percentage = (_voteInFavorOfProposal * PRECISION_FACTOR) / _totalVotePower;
+
+        return percentage >= 5;
+    }
+
+    /* *********************** 
+    *        Getters
+    *********************** */
+
+    function getOwner() external view returns(address) {
+        return data.owner;
     }
 
     function getData() external view returns (ProjectData memory) {
@@ -489,4 +653,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function getName() external view returns (string memory){
         return data.name;
     }
+
+
+    /* *********************** 
+    *        Payable
+    *********************** */
+
+    receive() external payable {}
+    fallback() external payable {}
 }
