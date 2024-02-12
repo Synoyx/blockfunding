@@ -75,6 +75,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         /// @notice The order number of this step (lower is sooner)
         uint8 orderNumber;
+
+        /// @notice Project step has been validated with a financer's vote
+        bool hasBeenValidated;
     }
 
     struct ProjectData {

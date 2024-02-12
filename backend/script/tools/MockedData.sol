@@ -113,7 +113,8 @@ library MockedData {
             amountNeeded: 1000000,
             amountFunded: 500000,
             isFounded: true,
-            orderNumber: 1
+            orderNumber: 1,
+            hasBeenValidated: false
         });
 
         mockedData[1] = BlockFundingProject.ProjectStep({
@@ -122,7 +123,8 @@ library MockedData {
             amountNeeded: 2000000,
             amountFunded: 0,
             isFounded: false,
-            orderNumber: 2
+            orderNumber: 2,
+            hasBeenValidated: false
         });
 
         mockedData[2] = BlockFundingProject.ProjectStep({
@@ -131,7 +133,8 @@ library MockedData {
             amountNeeded: 3000000,
             amountFunded: 1500000,
             isFounded: false,
-            orderNumber: 3
+            orderNumber: 3,
+            hasBeenValidated: false
         });
 
         mockedData[3] = BlockFundingProject.ProjectStep({
@@ -140,7 +143,8 @@ library MockedData {
             amountNeeded: 500000,
             amountFunded: 0,
             isFounded: false,
-            orderNumber: 4
+            orderNumber: 4,
+            hasBeenValidated: false
         });
 
         mockedData[4] = BlockFundingProject.ProjectStep({
@@ -149,7 +153,8 @@ library MockedData {
             amountNeeded: 1000000,
             amountFunded: 0,
             isFounded: false,
-            orderNumber: 5
+            orderNumber: 5,
+            hasBeenValidated: false
         });
 
         return mockedData;
