@@ -10,7 +10,6 @@ library MockedData {
     uint32 public constant campaignStartingDateTimestamp = 1707005560;
     uint32 public constant campaignEndingDateTimestamp = 1709507562;
     uint32 public constant estimatedProjectReleaseDateTimestamp = 1727993562;
-    uint96 public constant fundingRequested = 1000000000000000000;
 
     function getMockedProjectDatas() public view returns(BlockFundingProject.ProjectData[] memory) {
         BlockFundingProject.ProjectData[] memory mockedData = new BlockFundingProject.ProjectData[](3);
@@ -19,10 +18,9 @@ library MockedData {
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
             estimatedProjectReleaseDateTimestamp,
+            targetWallet,
             msg.sender,
             0,
-            targetWallet,
-            fundingRequested * 100,
             BlockFunding.ProjectCategory.art,
             "Projet Alpha",
             "Innovation en Art",
@@ -37,10 +35,9 @@ library MockedData {
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
             estimatedProjectReleaseDateTimestamp,
+            targetWallet,
             msg.sender,
             0,
-            targetWallet,
-            fundingRequested * 100,
             BlockFunding.ProjectCategory.technology,
             "Eco drive",
             "Revolution automobile",
@@ -53,10 +50,9 @@ library MockedData {
             campaignStartingDateTimestamp,
             campaignEndingDateTimestamp,
             estimatedProjectReleaseDateTimestamp,
+            targetWallet,
             msg.sender,
             0,
-            targetWallet,
-            fundingRequested * 100,
             BlockFunding.ProjectCategory.art,
             "Tech innovate",
             "Avancee en informatique",

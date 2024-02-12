@@ -97,24 +97,19 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         */
         uint32 estimatedProjectReleaseDateTimestamp;
 
+        /// @notice The wallet into which the funds will be paid
+        address targetWallet;
+
         /**
         * @notice Owner's address. 
         * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
         */
         address owner;
         /**
-        * @notice The current amount requested
+        * @notice The total amount harvested
         * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
         */
-        uint96 currentFunding;
-
-        /// @notice The wallet into which the funds will be paid
-        address targetWallet;
-        /**
-        * @notice The amount of fundig (in WEI) to reach
-        * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
-        */
-        uint96 fundingRequested;
+        uint96 totalFundsHarvested;
 
         /// @notice Category of the project (like art, automobile, sport, etc ...)
         BlockFunding.ProjectCategory projectCategory; 
@@ -143,6 +138,15 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     /// @notice The current project step
     uint8 currentProjectStep;
+
+    /// @notice Financers has vote to cancel the project
+    bool projectGotVoteCanceled; //TODO set it by vote
+
+    /**
+    * @notice The total amount requested (sum of project's steps amounts)
+    * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
+    */
+    uint96 fundingRequested;
 
     ProjectData public data;
 
@@ -224,7 +228,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.campaignStartingDateTimestamp = _data.campaignStartingDateTimestamp;
         data.campaignEndingDateTimestamp = _data.campaignEndingDateTimestamp;
         data.estimatedProjectReleaseDateTimestamp = _data.estimatedProjectReleaseDateTimestamp;
-        data.fundingRequested = _data.fundingRequested;
         data.targetWallet = _data.targetWallet;
         data.mediaURI = _data.mediaURI;
 
@@ -236,6 +239,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         for (uint i; i < _data.projectSteps.length; i++) {
             data.projectSteps.push(_data.projectSteps[i]);
             projectStepsOrderedIndex[_data.projectSteps[i].orderNumber] = uint8(i);
+            fundingRequested += _data.projectSteps[i].amountNeeded;
         }
 
         _transferOwnership(_data.owner);
@@ -263,6 +267,25 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     receive() external payable {}
     fallback() external payable {}
 
+    //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
+    //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
+    //TODO check that sum amoutNeededFor steps = RequestedAmount for project
+
+    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (emit event ?) (Utiliser le front pour qu'à chaque consultation il y ait un check ? (page projet ou connexion utilisateur))
+
+
+
+    function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
+        require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
+
+        uint256 PRECISION_FACTOR = 10 ** 12;
+        uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / data.totalFundsHarvested / PRECISION_FACTOR;
+
+        //We set donations to 0, to make remove this user from financers's list
+        financersDonations[msg.sender] = 0;
+
+        _safeWithdraw(amountToWithdraw, msg.sender);
+    }
 
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
@@ -272,27 +295,17 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         currentStep.isFounded = true;
         currentStep.amountFunded += amountToWithdraw;
         
-        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
-        require(success, "Withdraw failed.");
-        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
+        _safeWithdraw(amountToWithdraw, data.targetWallet);
     }
 
-    //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
-    //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
-    //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
-
-    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (emit event ?) (Utiliser le front pour qu'à chaque consultation il y ait un check ? (page projet ou connexion utilisateur))
-
-    function endProjectWithdraw() external {
+    function endProjectWithdraw() onlyTeamMember nonReentrant external {
         require(currentProjectStep == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated, "Project isn't on his last step");
         require(data.estimatedProjectReleaseDateTimestamp < block.timestamp, "Project is'nt ended yet");
         require(address(this).balance > 0, "There is nothing to withdraw");
 
         uint96 amountToWithdraw = uint96(address(this).balance);
 
-        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
-        require(success, "Withdraw failed.");
-        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
+        _safeWithdraw(amountToWithdraw, data.targetWallet);
     }
 
     /**
@@ -307,23 +320,27 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint96 amountToWithdraw = financersDonations[msg.sender];
         financersDonations[msg.sender] = 0;
 
-        (bool success, ) = payable(msg.sender).call{value: amountToWithdraw}("");
+        _safeWithdraw(amountToWithdraw, msg.sender);
+    }
+
+    function _safeWithdraw(uint _amountToWithdraw, address _to) internal {
         //TODO if fail, transfer in WETH ?
+        (bool success, ) = payable(_to).call{value: _amountToWithdraw}("");
         require(success, "Withdraw failed.");
-        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
+        emit FundsWithdrawn(data.name, _to, _amountToWithdraw);
     }
 
     function fundProject() external payable fundingDateNotPassed {
         require(msg.value > 0, "Funding amount must be greater than 0");
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
-        data.currentFunding += uint96(msg.value);
+        data.totalFundsHarvested += uint96(msg.value);
 
         financersDonations[msg.sender] += uint96(msg.value);
 
         emit ContributionAddedToProject(data.name, msg.sender, msg.value);
         
         if (checkIfProjectIsFunded() && !projectWasAlreadyFunded) {
-            emit ProjectIsFunded(data.name, msg.sender, data.currentFunding);
+            emit ProjectIsFunded(data.name, msg.sender, data.totalFundsHarvested);
         }
     }
 
@@ -334,7 +351,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     function checkIfProjectIsFunded() public view returns (bool) {
-        return data.currentFunding >= data.fundingRequested;
+        return data.totalFundsHarvested >= fundingRequested;
     }
 
     function getData() external view returns (ProjectData memory) {

@@ -29,7 +29,7 @@ export const abi = [
         internalType: "struct BlockFundingProject.ProjectData[]",
         components: [
           { name: "owner", type: "address", internalType: "address" },
-          { name: "currentFunding", type: "uint96", internalType: "uint96" },
+          { name: "totalFundsHarvested", type: "uint96", internalType: "uint96" },
           { name: "targetWallet", type: "address", internalType: "address" },
           { name: "fundingRequested", type: "uint96", internalType: "uint96" },
           { name: "campaignStartingDateTimestamp", type: "uint32", internalType: "uint32" },

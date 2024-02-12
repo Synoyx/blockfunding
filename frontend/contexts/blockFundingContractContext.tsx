@@ -38,7 +38,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
             res.description,
             res.targetWallet,
             res.fundingRequested,
-            res.currentFunding,
+            res.totalFundsHarvested,
             res.campaignStartingDateTimestamp,
             res.campaignEndingDateTimestamp,
             res.estimatedProjectReleaseDateTimestamp,

@@ -13,7 +13,7 @@ export class Project {
   description: string;
   targetWallet: string;
   fundingRequested: number; // Stocké en Wei
-  currentFunding: number; // Stocké en Wei
+  totalFundsHarvested: number; // Stocké en Wei
   campaignStartingDateTimestamp: number; // Timestamp en secondes
   campaignEndingDateTimestamp: number; // Timestamp en secondes
   estimatedProjectReleaseDateTimestamp: number; // Timestamp en secondes
@@ -28,7 +28,7 @@ export class Project {
     description: string,
     targetWallet: string,
     fundingRequested: number,
-    currentFunding: number,
+    totalFundsHarvested: number,
     campaignStartingDateTimestamp: number,
     campaignEndingDateTimestamp: number,
     estimatedProjectReleaseDateTimestamp: number,
@@ -42,7 +42,7 @@ export class Project {
     this.description = description;
     this.targetWallet = targetWallet;
     this.fundingRequested = fundingRequested;
-    this.currentFunding = currentFunding;
+    this.totalFundsHarvested = totalFundsHarvested;
     this.campaignStartingDateTimestamp = campaignStartingDateTimestamp;
     this.campaignEndingDateTimestamp = campaignEndingDateTimestamp;
     this.estimatedProjectReleaseDateTimestamp = estimatedProjectReleaseDateTimestamp;
