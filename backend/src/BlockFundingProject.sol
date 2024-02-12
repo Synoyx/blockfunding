@@ -267,14 +267,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     receive() external payable {}
     fallback() external payable {}
 
-    //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
-    //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
-    //TODO check that sum amoutNeededFor steps = RequestedAmount for project
-
-    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (emit event ?) (Utiliser le front pour qu'à chaque consultation il y ait un check ? (page projet ou connexion utilisateur))
-
-
-
     function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
         require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
 
@@ -331,9 +323,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     function fundProject() external payable fundingDateNotPassed {
-        require(msg.value > 0, "Funding amount must be greater than 0");
+        require(msg.value > 1000, "Funding amount must be greater than 1000 wei");
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
-        data.totalFundsHarvested += uint96(msg.value);
+        data.totalFundsHarvested += uint96(msg.value); //TODO Potential loss here, verify if everything can be done in uint256 ?
 
         financersDonations[msg.sender] += uint96(msg.value);
 
