@@ -5,9 +5,7 @@ abstract contract BlockFundingVote {
     enum VoteType {
         ValidateStep, 
         AddFundsForStep,
-        ValidateProject,
-        WithdrawProjectToFinancers,
-        WithdrawProjectToTeamMembers
+        WithdrawProjectToFinancers
     }
 
     struct Vote {
@@ -25,25 +23,33 @@ abstract contract BlockFundingVote {
     event VoteStarted(uint voteId, VoteType voteType);
     event VoteEnded(uint voteId, VoteType voteType, bool result);
 
+    modifier canModifyCurrentVote(VoteType voteType) {
+        if (voteType != VoteType.WithdrawProjectToFinancers && !isTeamMember) {
+            revert("Only team members can use this type of vote");
+        } else if (voteType == VoteType.WithdrawProjectToFinancers && !isFinancer) {
+            revert("Only financers can use this type of vote");
+        }
+
+        _;
+    }
+
 
     uint idCounter;
     Vote[] public oldVotes;
     Vote public currentVote;
     mapping(address => bool) currentVoteVotes;
 
-    function startVote(VoteType voteType) external {
+    function startVote(VoteType voteType) external canModifyCurrentVote(voteType){
         require(currentVote.id == 0, "A vote is running, you can't start another one for the moment");
-        //TODO check if, in function of voteType, msg.sender can start it.
 
         currentVote = Vote(++idCounter, voteType, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), 0);
 
         emit VoteStarted(currentVote.id, currentVote.voteType);
     }
 
-    function endVote() external {
+    function endVote() external canModifyCurrentVote(currentVote.voteType){
         require(currentVote.id > 0, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
-        //TODO check if, un function of voteType, msg.sender can end it
 
         //TODO store vote results (or make it automatically when voting ?)
         //TODO make modifications needed according to votetype & vote results
@@ -55,11 +61,10 @@ abstract contract BlockFundingVote {
         delete currentVote;
     }
 
-    function sendVote(bool vote) external {
+    function sendVote(bool vote) external onlyFinancers {
         require(currentVote.id > 0, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate < block.timestamp, "Vote time is endend, you can't vote anymore");
-        //TODO check if msg.sender can vote according to voteType & msg.sender role (financer, teammember, other)
-        
+
         //TODO compute new vote result => Use quadratic voting
 
         emit HasVoted(msg.sender, currentVote.id, vote);
