@@ -185,14 +185,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     Vote public currentVote;
     mapping(address => bool) currentVoteVotes;
 
-    //TODO maybe remove project name, as an event is linked to project address
-    event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
-    event ProjectIsFunded(string projectName, address contributor, uint fundedAmoutInWei);
-    event FundsWithdrawn(string projectName, address targetAddress, uint withdrawnAmout);
-    event NewMessage(string projectName, address writer);
-    event HasVoted(address voterAddress, uint voteId, bool vote);
-    event VoteStarted(uint voteId, VoteType voteType);
-    event VoteEnded(uint voteId, VoteType voteType, bool result);
+    event ContributionAddedToProject(address indexed contributor, uint amountInWei);
+    event ProjectIsFunded(address indexed contributor, uint fundedAmoutInWei);
+    event FundsWithdrawn(address indexed targetAddress, uint withdrawnAmout);
+    event NewMessage(address indexed writer);
+    event HasVoted(address indexed voterAddress, uint voteId, bool vote);
+    event VoteStarted(uint indexed voteId, VoteType voteType);
+    event VoteEnded(uint indexed voteId, VoteType voteType, bool result);
 
 
     error OwnableUnauthorizedAccount(address account);
@@ -363,7 +362,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         //TODO if fail, transfer in WETH ?
         (bool success, ) = payable(_to).call{value: _amountToWithdraw}("");
         require(success, "Withdraw failed.");
-        emit FundsWithdrawn(data.name, _to, _amountToWithdraw);
+        emit FundsWithdrawn(_to, _amountToWithdraw);
     }
 
     function fundProject() external payable fundingDateNotPassed {
@@ -373,10 +372,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         financersDonations[msg.sender] += uint96(msg.value);
 
-        emit ContributionAddedToProject(data.name, msg.sender, msg.value);
+        emit ContributionAddedToProject(msg.sender, msg.value);
         
         if (checkIfProjectIsFunded() && !projectWasAlreadyFunded) {
-            emit ProjectIsFunded(data.name, msg.sender, data.totalFundsHarvested);
+            emit ProjectIsFunded(msg.sender, data.totalFundsHarvested);
         }
     }
 
@@ -435,7 +434,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function addMessage(string calldata ipfsHash) external onlyTeamMemberOrFinancer {
         messages.push(Message(msg.sender, ipfsHash, uint32(block.timestamp)));
 
-        emit NewMessage(data.name, msg.sender);
+        emit NewMessage(msg.sender);
     }
 
     function checkIfProjectIsFunded() public view returns (bool) {
