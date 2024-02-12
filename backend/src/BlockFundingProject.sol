@@ -279,7 +279,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
 
         uint256 PRECISION_FACTOR = 10 ** 12;
-        uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / data.totalFundsHarvested / PRECISION_FACTOR;
+        uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / uint256(data.totalFundsHarvested) / PRECISION_FACTOR;
 
         //We set donations to 0, to make remove this user from financers's list
         financersDonations[msg.sender] = 0;
