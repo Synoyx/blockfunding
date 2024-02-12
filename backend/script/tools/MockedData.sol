@@ -114,7 +114,7 @@ library MockedData {
             name: "Conceptualization",
             description: "Defining the project scope and its feasibility.",
             amountNeeded: 1000000,
-            amountFounded: 500000,
+            amountFunded: 500000,
             isFounded: true,
             orderNumber: 1
         });
@@ -123,7 +123,7 @@ library MockedData {
             name: "Design",
             description: "Creating detailed designs and specifications.",
             amountNeeded: 2000000,
-            amountFounded: 0,
+            amountFunded: 0,
             isFounded: false,
             orderNumber: 2
         });
@@ -132,7 +132,7 @@ library MockedData {
             name: "Development",
             description: "Development phase to build and test the project.",
             amountNeeded: 3000000,
-            amountFounded: 1500000,
+            amountFunded: 1500000,
             isFounded: false,
             orderNumber: 3
         });
@@ -141,7 +141,7 @@ library MockedData {
             name: "Testing",
             description: "Rigorous testing to ensure quality and performance.",
             amountNeeded: 500000,
-            amountFounded: 0,
+            amountFunded: 0,
             isFounded: false,
             orderNumber: 4
         });
@@ -150,7 +150,7 @@ library MockedData {
             name: "Launch",
             description: "Official launch of the project to the public.",
             amountNeeded: 1000000,
-            amountFounded: 0,
+            amountFunded: 0,
             isFounded: false,
             orderNumber: 5
         });

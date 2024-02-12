@@ -68,7 +68,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         * @notice Amount currently withdrawn to realize this project step
         * @dev uint96 stores 600x more than total eth available (in wei unit), should be enough
         */
-        uint96 amountFounded;
+        uint96 amountFunded;
 
         /// @notice Does the team has withdrawn the 'amountNeeded' corresponding to this step
         bool isFounded;
@@ -263,12 +263,29 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     receive() external payable {}
     fallback() external payable {}
 
-    function withdrawCurrentStep() external onlyTeamMember {
 
+    function withdrawCurrentStep() external onlyTeamMember fundingDatePassed nonReentrant {
+        ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
+        require(currentStep.isFounded, "Current step funds has already been withdrawn");
+
+        uint96 amountToWithdraw = currentStep.amountNeeded - currentStep.amountFunded;
+        currentStep.isFounded = true;
+        currentStep.amountFunded += amountToWithdraw;
+        
+        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
+        require(success, "Withdraw failed.");
     }
 
+    //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
+    //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
 
-    //TODO make a withdrawForStep and a withdrawProject()
+    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (requested funds < currentFunds && endDate > startDate)
+    function withdrawProject() external {
+        //TODO 3 cas de figure : Le projet est terminé, les steps sont validées, la team récupère les fonds restants
+        //TODO Les fonds récoltés ne sont pas égaux aux fonds demandés ==> Les financers peuvent récupérer leurs fonds
+        //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
+    }
+
     function withdraw() external onlyOwner fundingDatePassed nonReentrant  {
         require(checkIfProjectIsFunded(), "Project hasn't been funded yet, you can't withdraw funds !");
         require(!data.hasBeenWithdrawn, "Funds have already been withdrawn");
