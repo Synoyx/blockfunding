@@ -186,7 +186,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     modifier onlyTeamMember() {
-        if (teamMembersAddresses[msg.sender]) {
+        if (!teamMembersAddresses[msg.sender]) {
             revert TeamMemberUnauthorizedAccount(msg.sender);
         }
         _;
@@ -266,7 +266,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
-        require(currentStep.isFounded, "Current step funds has already been withdrawn");
+        require(!currentStep.isFounded, "Current step funds has already been withdrawn");
 
         uint96 amountToWithdraw = currentStep.amountNeeded - currentStep.amountFunded;
         currentStep.isFounded = true;
@@ -279,14 +279,20 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
     //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
+    //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
 
     //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (emit event ?) (Utiliser le front pour qu'à chaque consultation il y ait un check ? (page projet ou connexion utilisateur))
 
-    //TODO 3 cas de figure : Le projet est terminé, les steps sont validées, la team récupère les fonds restants
-    //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
     function endProjectWithdraw() external {
-        //TODO check if curStep is lastStep
-        //TODO check if curDate is end project date or more
+        require(currentProjectStep == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated, "Project isn't on his last step");
+        require(data.estimatedProjectReleaseDateTimestamp < block.timestamp, "Project is'nt ended yet");
+        require(address(this).balance > 0, "There is nothing to withdraw");
+
+        uint96 amountToWithdraw = uint96(address(this).balance);
+
+        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
+        require(success, "Withdraw failed.");
+        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
     }
 
     /**
@@ -301,7 +307,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint96 amountToWithdraw = financersDonations[msg.sender];
         financersDonations[msg.sender] = 0;
 
-        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
+        (bool success, ) = payable(msg.sender).call{value: amountToWithdraw}("");
+        //TODO if fail, transfer in WETH ?
         require(success, "Withdraw failed.");
         emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
     }

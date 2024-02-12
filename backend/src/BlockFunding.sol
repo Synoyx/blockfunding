@@ -49,6 +49,7 @@ contract BlockFunding is Ownable {
         require(_data.fundingRequested > 0, "Funding requested must be greater than 0");
         require(_data.teamMembers.length > 0, "You must give at least 1 team member");
         require(_data.projectSteps.length > 1, "You must give at least 2 project steps");
+        //TODO targetWallet musn't be one of team member's
         _;
     }
 
