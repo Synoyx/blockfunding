@@ -122,7 +122,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         * @notice Project's steps with their order number
         * We use an array here because we're in a struct
         */ 
-        ProjectStep[] projectSteps;
+        ProjectStep[] projectSteps; //TODO use an index here ?
     }
 
     struct Message {
@@ -150,6 +150,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         mapping (address => bool) hasFinancerVoted;
 
         uint96 askedAmountToAddForStep;
+
+        uint votePowerInFavorOfProposal;
+        uint votePowerNotInFavorOfProposal;
         
         /// @notice 0 if vote not ended yet, -1 if votes say no, 1 if votes say yes (according to voteType)
         int8 voteResult;
@@ -410,7 +413,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) projectHasntBeenCanceled noVoteIsRunning {
         require(voteType != VoteType.AddFundsForStep, "Use method 'askForModeFunds' for this type of vote");
 
-        //TODO check that
         Vote storage newVote = votes[lastVoteId];
         newVote.voteType = voteType;
         newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
@@ -425,7 +427,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
 
-        //TODO store vote results (or make it automatically when voting ?)
+        if (isVoteValidated(currentVote.votePowerInFavorOfProposal, totalVotePower)) {
+            currentVote.voteResult = 1;
+        }
+
         if (currentVote.voteResult > 0) {
             if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) projectGotVoteCanceled = true;
             if (currentVote.voteType == VoteType.ValidateStep) {
@@ -443,16 +448,23 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         lastVoteId++;
     }
 
+    function isVoteValidated(uint _voteInFavorOfProposal, uint _totalVotePower) internal pure returns(bool){
+        uint256 PRECISION_FACTOR = 10;
+        uint256 percentage = (_voteInFavorOfProposal * PRECISION_FACTOR) / _totalVotePower;
+
+        return percentage >= 5;
+    }
+
     function sendVote(bool vote) external projectHasntBeenCanceled onlyFinancer {
         Vote storage currentVote = votes[lastVoteId];
         require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote time is ended, you can't vote anymore");
         require(!currentVote.hasFinancerVoted[msg.sender], "You have already voted !");
 
-        //TODO compute new vote result => Use quadratic voting
-        uint votePower = Maths.sqrt(financersDonations[msg.sender]);
+        if (vote) currentVote.votePowerInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
+        else currentVote.votePowerNotInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
 
-        votes[lastVoteId].hasFinancerVoted[msg.sender] = true;
+        currentVote.hasFinancerVoted[msg.sender] = true;
         emit HasVoted(msg.sender, lastVoteId, vote);
     }
 
