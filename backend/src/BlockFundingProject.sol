@@ -94,9 +94,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         */
         uint32 estimatedProjectReleaseDateTimestamp;
 
-        /// @notice Flag to know if project creator has withdrawn 
-        bool hasBeenWithdrawn;
-
         /**
         * @notice Owner's address. 
         * As we can't constructors, we can't use Ownable from openzeppelin, so I do it 'manually'
@@ -147,7 +144,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     ProjectData public data;
 
     /// @notice Map of financers and their donations
-    mapping(address => uint) public financersDonations;
+    mapping(address => uint96) public financersDonations;
 
     /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
     mapping(address => bool) public teamMembersAddresses;
@@ -274,28 +271,36 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         
         (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
         require(success, "Withdraw failed.");
+        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
     }
 
     //TODO vérifier la gestion de la récolte de fonds pendant la phase initiale du projet
     //TODO mettre en place un amoutToFund minimum, pour pouvoir "tanker" les frais de gas qui auront lieux lors des TX (et du withdraw ?)
 
-    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (requested funds < currentFunds && endDate > startDate)
-    function withdrawProject() external {
-        //TODO 3 cas de figure : Le projet est terminé, les steps sont validées, la team récupère les fonds restants
-        //TODO Les fonds récoltés ne sont pas égaux aux fonds demandés ==> Les financers peuvent récupérer leurs fonds
-        //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
+    //TODO gérer le fait d'un projet n'ai pas eu le financement nécessaire (emit event ?) (Utiliser le front pour qu'à chaque consultation il y ait un check ? (page projet ou connexion utilisateur))
+
+    //TODO 3 cas de figure : Le projet est terminé, les steps sont validées, la team récupère les fonds restants
+    //TODO Les financers ont voté pour l'arrêt du projet à la currentStep, ils se partagent les fonds restants du projet
+    function endProjectWithdraw() external {
+        //TODO check if curStep is lastStep
+        //TODO check if curDate is end project date or more
     }
 
-    function withdraw() external onlyOwner fundingDatePassed nonReentrant  {
-        require(checkIfProjectIsFunded(), "Project hasn't been funded yet, you can't withdraw funds !");
-        require(!data.hasBeenWithdrawn, "Funds have already been withdrawn");
+    /**
+    * @notice With that method, financers can withdraw their donations if the project hasn't reach expected funds after the campaign's
+    * end date. Each financer will be able to withdraw their funds.
+    *
+    * @dev Don't need to check the left donations to withdraw here, as to be a financer you need to have donations left (check modifier)
+    */
+    function projectNotFundedWithdraw() external onlyFinancer fundingDatePassed nonReentrant {
+        require(!checkIfProjectIsFunded(), "Project has received enough funds to continue, you can't withdraw now !");
 
-        data.hasBeenWithdrawn = true;
-        uint96 withdrawnAmount = data.currentFunding;
-        data.currentFunding -= withdrawnAmount;
-        payable(data.targetWallet).transfer(withdrawnAmount);
+        uint96 amountToWithdraw = financersDonations[msg.sender];
+        financersDonations[msg.sender] = 0;
 
-        emit FundsWithdrawn(data.name, data.targetWallet, data.currentFunding);
+        (bool success, ) = payable(data.targetWallet).call{value: amountToWithdraw}("");
+        require(success, "Withdraw failed.");
+        emit FundsWithdrawn(data.name, data.targetWallet, amountToWithdraw);
     }
 
     function fundProject() external payable fundingDateNotPassed {
