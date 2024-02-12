@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
 
 import "./BlockFunding.sol";
+import "./tools/Maths.sol";
 
 /**
 * @dev We use Initializable from Openzeppelin to ensure the method Initializable will only be called once.
@@ -143,15 +144,17 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     struct Vote {
-        uint id;
         VoteType voteType;
-        uint96 startVoteDate;
         uint96 endVoteDate;
+
+        mapping (address => bool) hasFinancerVoted;
 
         uint96 askedAmountToAddForStep;
         
         /// @notice 0 if vote not ended yet, -1 if votes say no, 1 if votes say yes (according to voteType)
         int8 voteResult;
+
+        bool isVoteRunning;
     }
 
     /// @notice The current project step
@@ -171,6 +174,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice Map of financers and their donations
     mapping(address => uint96) public financersDonations;
 
+    uint totalVotePower;
+
     /// @notice Map of team members. Used for modifiers mostly (reduce gas gost)
     mapping(address => bool) public teamMembersAddresses;
 
@@ -180,10 +185,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
 
-    uint idCounter;
-    Vote[] public oldVotes;
-    Vote public currentVote;
-    mapping(address => bool) currentVoteVotes;
+    mapping(uint256 => Vote) votes;
+    uint256 lastVoteId;
 
     event ContributionAddedToProject(address indexed contributor, uint amountInWei);
     event ProjectIsFunded(address indexed contributor, uint fundedAmoutInWei);
@@ -195,6 +198,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
 
     error OwnableUnauthorizedAccount(address account);
+    error ProjectHasBeenCanceld();
     error FinancerUnauthorizedAccount(address account);
     error TeamMemberUnauthorizedAccount(address account);
     error FinancerOrTeamMemberUnauthorizedAccount(address account);
@@ -253,8 +257,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    modifier projectHasntBeenCanceled() {
+        if (projectGotVoteCanceled) revert ProjectHasBeenCanceld();
+        _;
+    }
+
     modifier noVoteIsRunning() {
-        if(currentVote.id > 0) revert("A vote is running, you can't start another one for the moment");
+        if(votes[lastVoteId].isVoteRunning) revert("A vote is running, you can't start another one for the moment");
         _;
     }
 
@@ -322,7 +331,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _safeWithdraw(amountToWithdraw, msg.sender);
     }
 
-    function withdrawCurrentStep() external onlyTeamMember fundingDatePassed nonReentrant {
+    function withdrawCurrentStep() external onlyTeamMember fundingDatePassed projectHasntBeenCanceled nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
         require(!currentStep.isFunded, "Current step funds has already been withdrawn");
 
@@ -370,7 +379,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
         data.totalFundsHarvested += uint96(msg.value); //TODO Potential loss here, verify if everything can be done in uint256 ?
 
+        // If user has already donated to the project, removing his old vote power to compute the new one later
+        if (financersDonations[msg.sender] > 0) {
+            totalVotePower -= Maths.sqrt(financersDonations[msg.sender]);
+        }
+
         financersDonations[msg.sender] += uint96(msg.value);
+        totalVotePower += Maths.sqrt(financersDonations[msg.sender]);
 
         emit ContributionAddedToProject(msg.sender, msg.value);
         
@@ -380,22 +395,34 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
 
-    function askForMoreFunds(uint amountAsked) external onlyTeamMember noVoteIsRunning{
+    function askForMoreFunds(uint amountAsked) external onlyTeamMember projectHasntBeenCanceled noVoteIsRunning{
         require(amountAsked < address(this).balance, "You can't ask an amount greater than what's left on balance");
 
-        currentVote = Vote(++idCounter, VoteType.AddFundsForStep, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), uint96(amountAsked), 0);
+        Vote storage newVote = votes[lastVoteId];
+        newVote.voteType = VoteType.AddFundsForStep;
+        newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
+        newVote.askedAmountToAddForStep = uint96(amountAsked);
+        newVote.isVoteRunning = true;
 
-        emit VoteStarted(currentVote.id, currentVote.voteType);
+        emit VoteStarted(lastVoteId, VoteType.AddFundsForStep);
     }
 
-    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) noVoteIsRunning{
-        currentVote = Vote(++idCounter, voteType, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), 0, 0);
+    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) projectHasntBeenCanceled noVoteIsRunning {
+        require(voteType != VoteType.AddFundsForStep, "Use method 'askForModeFunds' for this type of vote");
 
-        emit VoteStarted(currentVote.id, currentVote.voteType);
+        //TODO check that
+        Vote storage newVote = votes[lastVoteId];
+        newVote.voteType = voteType;
+        newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
+        newVote.isVoteRunning = true;
+
+        emit VoteStarted(lastVoteId, voteType);
     }
 
-    function endVote() external canModifyCurrentVote(currentVote.voteType){
-        require(currentVote.id > 0, "There is no vote running, so you can't use this method");
+    function endVote() external canModifyCurrentVote(votes[lastVoteId].voteType){
+        Vote storage currentVote = votes[lastVoteId];
+
+        require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
 
         //TODO store vote results (or make it automatically when voting ?)
@@ -411,20 +438,22 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             }
         }
 
-        oldVotes.push(currentVote);
-        emit VoteEnded(currentVote.id, currentVote.voteType, currentVote.voteResult == 1);
+        emit VoteEnded(lastVoteId, votes[lastVoteId].voteType, votes[lastVoteId].voteResult == 1);
 
-        // We reset variable to let new votes happen
-        delete currentVote;
+        lastVoteId++;
     }
 
-    function sendVote(bool vote) external onlyFinancer {
-        require(currentVote.id > 0, "There is no vote running, so you can't use this method");
+    function sendVote(bool vote) external projectHasntBeenCanceled onlyFinancer {
+        Vote storage currentVote = votes[lastVoteId];
+        require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
         require(currentVote.endVoteDate > block.timestamp, "Vote time is ended, you can't vote anymore");
+        require(!currentVote.hasFinancerVoted[msg.sender], "You have already voted !");
 
         //TODO compute new vote result => Use quadratic voting
+        uint votePower = Maths.sqrt(financersDonations[msg.sender]);
 
-        emit HasVoted(msg.sender, currentVote.id, vote);
+        votes[lastVoteId].hasFinancerVoted[msg.sender] = true;
+        emit HasVoted(msg.sender, lastVoteId, vote);
     }
 
     function computeVoteEndDate(uint96 timestampStartDate) internal pure returns(uint96) {
