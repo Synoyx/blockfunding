@@ -59,7 +59,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint96 amountFunded;
 
         /// @notice Does the team has withdrawn the 'amountNeeded' corresponding to this step
-        bool isFounded;
+        bool isFunded;
 
         /// @notice The order number of this step (lower is sooner)
         uint8 orderNumber;
@@ -147,6 +147,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         VoteType voteType;
         uint96 startVoteDate;
         uint96 endVoteDate;
+
+        uint96 askedAmountToAddForStep;
         
         /// @notice 0 if vote not ended yet, -1 if votes say no, 1 if votes say yes (according to voteType)
         int8 voteResult;
@@ -156,7 +158,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     uint8 currentProjectStep;
 
     /// @notice Financers has vote to cancel the project
-    bool projectGotVoteCanceled; //TODO set it by vote
+    bool projectGotVoteCanceled;
 
     /**
     * @notice The total amount requested (sum of project's steps amounts)
@@ -222,7 +224,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     modifier onlyTeamMemberOrFinancer() {
-        if (financersDonations[msg.sender] == 0 || teamMembersAddresses[msg.sender]) {
+        if (financersDonations[msg.sender] == 0 && !teamMembersAddresses[msg.sender]) {
             revert FinancerOrTeamMemberUnauthorizedAccount(msg.sender);
         }
         _;
@@ -252,6 +254,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
+    modifier noVoteIsRunning() {
+        if(currentVote.id > 0) revert("A vote is running, you can't start another one for the moment");
+        _;
+    }
+
     /**
     * @notice As we'll clone this contract, we need to initialize variables here and not in a constructor
     */
@@ -276,6 +283,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             projectStepsOrderedIndex[_data.projectSteps[i].orderNumber] = uint8(i);
             fundingRequested += _data.projectSteps[i].amountNeeded;
         }
+
+        currentProjectStep = 1;
 
         _transferOwnership(_data.owner);
     }
@@ -316,10 +325,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
-        require(!currentStep.isFounded, "Current step funds has already been withdrawn");
+        require(!currentStep.isFunded, "Current step funds has already been withdrawn");
 
         uint96 amountToWithdraw = currentStep.amountNeeded - currentStep.amountFunded;
-        currentStep.isFounded = true;
+        currentStep.isFunded = true;
         currentStep.amountFunded += amountToWithdraw;
         
         _safeWithdraw(amountToWithdraw, data.targetWallet);
@@ -372,11 +381,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
 
+    function askForMoreFunds(uint amountAsked) external onlyTeamMember noVoteIsRunning{
+        require(amountAsked < address(this).balance, "You can't ask an amount greater than what's left on balance");
 
-    function startVote(VoteType voteType) external canModifyCurrentVote(voteType){
-        require(currentVote.id == 0, "A vote is running, you can't start another one for the moment");
+        currentVote = Vote(++idCounter, VoteType.AddFundsForStep, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), uint96(amountAsked), 0);
 
-        currentVote = Vote(++idCounter, voteType, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), 0);
+        emit VoteStarted(currentVote.id, currentVote.voteType);
+    }
+
+    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) noVoteIsRunning{
+        currentVote = Vote(++idCounter, voteType, uint96(block.timestamp), computeVoteEndDate(uint96(block.timestamp)), 0, 0);
 
         emit VoteStarted(currentVote.id, currentVote.voteType);
     }
@@ -386,7 +400,17 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
 
         //TODO store vote results (or make it automatically when voting ?)
-        //TODO make modifications needed according to votetype & vote results
+        if (currentVote.voteResult > 0) {
+            if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) projectGotVoteCanceled = true;
+            if (currentVote.voteType == VoteType.ValidateStep) {
+                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated = true;
+                if (currentProjectStep < data.projectSteps.length) currentProjectStep += 1;
+            } 
+            if (currentVote.voteType == VoteType.AddFundsForStep) {
+                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].isFunded = false;
+                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].amountNeeded += currentVote.askedAmountToAddForStep;
+            }
+        }
 
         oldVotes.push(currentVote);
         emit VoteEnded(currentVote.id, currentVote.voteType, currentVote.voteResult == 1);
@@ -397,7 +421,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function sendVote(bool vote) external onlyFinancer {
         require(currentVote.id > 0, "There is no vote running, so you can't use this method");
-        require(currentVote.endVoteDate < block.timestamp, "Vote time is endend, you can't vote anymore");
+        require(currentVote.endVoteDate > block.timestamp, "Vote time is ended, you can't vote anymore");
 
         //TODO compute new vote result => Use quadratic voting
 
