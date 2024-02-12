@@ -2,6 +2,8 @@
 pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
+
 
 import "../src/tools/Strings.sol";
 import "../src/BlockFunding.sol";
@@ -45,7 +47,29 @@ contract BlockFundingTest is Test {
         }
 
         assertEq(blockFunding.getProjectsAddresses().length, 100, "Projects array isn't empty when BlockFunding project is initialized");
-
     }
 
+    function test_clonesAreDeployedToDifferentAddresses() external {
+        address[] memory clonesAddresses = new address[](3);
+
+        for (uint i; i < 3; i++) {
+            blockFunding.createNewProject(MockedData.getMockedProjectDatas()[i]);
+            clonesAddresses[i] = blockFunding.projects(i);
+            console.log(blockFunding.projects(i));
+
+            assertEq(arrayContainsOnlyOnce(blockFunding.projects(i), clonesAddresses), true, "Clones have the same addresses !");
+        }
+    }
+
+    function arrayContainsOnlyOnce(address value, address[] memory array) internal pure returns(bool) {
+        uint count;
+
+        for (uint e; e < array.length; e++) { 
+            if (array[e] == value) {
+                count++;
+            }
+        }
+
+        return count == 1;
+    }
 }

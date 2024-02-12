@@ -62,7 +62,6 @@ contract BlockFunding is Ownable {
     * I use multiples array, to keep the types of variables, instead of one big bytes array.
     */
     function createNewProject(BlockFundingProject.ProjectData calldata _data) public validProjectData(_data) returns(address){
-        //TODO maybe use cloneDeterministic method to clone, with salt, to avoid same projects to be deployed
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
