@@ -162,6 +162,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /// @notice List of messages sent by financers & project creator about the project
     Message[] public messages;
 
+    //TODO maybe remove project name, as an event is linked to project address
     event ContributionAddedToProject(string projectName, address contributor, uint amountInWei);
     event ProjectIsFunded(string projectName, address contributor, uint fundedAmoutInWei);
     event FundsWithdrawn(string projectName, address targetAddress, uint withdrawnAmout);
@@ -273,7 +274,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint256 PRECISION_FACTOR = 10 ** 12;
         uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / uint256(data.totalFundsHarvested) / PRECISION_FACTOR;
 
-        //We set donations to 0, to make remove this user from financers's list
+        //We set donations to 0, to remove this user from financers's list
         financersDonations[msg.sender] = 0;
 
         _safeWithdraw(amountToWithdraw, msg.sender);
