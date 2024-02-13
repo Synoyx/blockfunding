@@ -534,7 +534,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param amountAsked The amount asked in wei
     */
     function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
-        require((address(this).balance - getSumOfFundsOfLeftSteps()) > 0, "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
+        require((address(this).balance > amountAsked) && ((address(this).balance - getSumOfFundsOfLeftSteps()) > 0), "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = VoteType.AddFundsForStep;

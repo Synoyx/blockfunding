@@ -49,6 +49,68 @@ contract BlockFundingProjectTest is Test {
     }
 
     /**************************
+    *    AskForMoreFunds()
+    ***************************/
+
+    function test_askForMoreFunds() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        assertEq(defaultProject.isCurrentVoteRunning(), false, "Abnormal running vote state in init");
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+        assertEq(defaultProject.isCurrentVoteRunning(), true, "Abnormal running vote state after starting vote");
+    }
+
+    function test_askForMoreFundsEvent() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.startPrank(teamMemberAddress);
+        vm.expectEmit();
+        emit BlockFundingProject.VoteStarted(defaultProject.getCurrentVoteId(), BlockFundingProject.VoteType.AddFundsForStep);    
+        defaultProject.askForMoreFunds(1000);
+    }
+
+    function test_askForMoreFundsWithoutTeamMemberRights() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.TeamMemberUnauthorizedAccount.selector, address(this)));
+        defaultProject.askForMoreFunds(1000);
+    }
+
+    function test_askForMoreFundsInFundingPhase() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsntEndedYet.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+    }
+
+    function test_askForMoreFundsWhenProjectIsCanceled() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectHasBeenCanceled.selector));
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+    }
+
+    function test_askForMoreFundsWhenVoteIsRunning() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.VoteIsAlreadyRunning.selector));
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+    }
+
+    /**************************
     *       StartVote()
     ***************************/
 
