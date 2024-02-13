@@ -48,6 +48,83 @@ contract BlockFundingProjectTest is Test {
         //clonedProject.initialize(msg.sender, ClonesHelper.getMockedProjectData());
     }
 
+
+    /**************************
+    *         EndVote()
+    ***************************/
+
+    function test_endVote() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+
+        uint currentVoteId = defaultProject.getCurrentVoteId();
+
+        defaultProject.endVote();
+        assertEq(defaultProject.getCurrentVoteId(), currentVoteId + 1, "Vote id hasn't been increased");
+    }
+
+    function test_endVoteEvent() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+
+        uint oldVoteId = defaultProject.getCurrentVoteId();
+
+        vm.expectEmit();
+        emit BlockFundingProject.VoteEnded(oldVoteId, true);    
+        defaultProject.endVote();
+    }
+
+    function test_endVoteWithoutFinancersRights() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+
+        vm.startPrank(visitorAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OnlyFinancersCanModifyThisVote.selector));
+        defaultProject.endVote();
+
+    }
+
+    function test_endVoteWithoutTeamMemberRights() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.prank(teamMemberAddress);
+        defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+        defaultProject.sendVote(true);
+
+        vm.prank(visitorAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OnlyTeamMembersCanModifyThisVote.selector));
+        defaultProject.endVote();
+    }
+
+    function test_endVoteWhenNoVoteRunning() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.NoVoteRunning.selector));
+        defaultProject.endVote();
+
+    }
+
+    function test_endVoteWhenEndDateNotPassed() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+        
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ConditionsForEndingVoteNoteMeetedYet.selector));
+        defaultProject.endVote();
+    }
+
     /**************************
     *        SendVote()
     ***************************/
@@ -76,10 +153,6 @@ contract BlockFundingProjectTest is Test {
         emit BlockFundingProject.HasVoted(address(this), 0, true);    
         defaultProject.sendVote(true);
         
-    }
-
-    function test_sendVoteWhileProjectGotCanceled() external {
-
     }
 
     function test_sendVoteWithoutBeingFinancer() external {

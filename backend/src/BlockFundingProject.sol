@@ -53,7 +53,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         uint votePowerInFavorOfProposal;
 
         /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
-        uint votePowerNotInFavorOfProposal;
+        uint votePowerAgainstProposal;
         
         /// @notice Does the action proposed to vote has been validated
         bool hasVoteBeenValidated;
@@ -223,7 +223,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     mapping(uint256 => Vote) votes;
 
     /// @notice Number of votes. Usefull to iterate over passed votes & get the current vote.
-    uint256 lastVoteId;
+    uint256 currentVoteId;
 
     /**
     * @notice cumulated vote power of all financers, computed on each fund() method call. 
@@ -256,7 +256,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     event VoteStarted(uint indexed voteId, VoteType voteType);
 
     /// @notice Event called when a vote is ended
-    event VoteEnded(uint indexed voteId, VoteType voteType, bool result);
+    event VoteEnded(uint indexed voteId, bool result);
 
 
 
@@ -276,6 +276,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error NoVoteRunning();
     error AlreadyVoted(address voterAddress);
     error VoteTimeEnded(uint voteTimeEndTimestamp);
+    error OnlyTeamMembersCanModifyThisVote();
+    error OnlyFinancersCanModifyThisVote();
+    error ConditionsForEndingVoteNoteMeetedYet();
 
 
     /* *********************** 
@@ -337,9 +340,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     */
     modifier canModifyCurrentVote(VoteType voteType) {
         if (voteType != VoteType.WithdrawProjectToFinancers && !teamMembersAddresses[msg.sender]) {
-            revert("Only team members can use this type of vote");
+            revert OnlyTeamMembersCanModifyThisVote();
         } else if (voteType == VoteType.WithdrawProjectToFinancers && financersDonations[msg.sender] == 0) {
-            revert("Only financers can use this type of vote");
+            revert OnlyFinancersCanModifyThisVote();
         }
 
         _;
@@ -352,7 +355,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     modifier noVoteIsRunning() {
-        if(votes[lastVoteId].isVoteRunning) revert("A vote is running, you can't start another one for the moment");
+        if(votes[currentVoteId].isVoteRunning) revert("A vote is running, you can't start another one for the moment");
+        _;
+    }
+
+    modifier voteIsRunning() {
+        if (!votes[currentVoteId].isVoteRunning) revert NoVoteRunning();
         _;
     }
 
@@ -526,13 +534,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
         require((address(this).balance - getSumOfFundsOfLeftSteps()) > 0, "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
 
-        Vote storage newVote = votes[lastVoteId];
+        Vote storage newVote = votes[currentVoteId];
         newVote.voteType = VoteType.AddFundsForStep;
         newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
         newVote.askedAmountToAddForStep = uint96(amountAsked);
         newVote.isVoteRunning = true;
 
-        emit VoteStarted(lastVoteId, VoteType.AddFundsForStep);
+        emit VoteStarted(currentVoteId, VoteType.AddFundsForStep);
     }
 
     /**
@@ -543,23 +551,27 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
         require(voteType != VoteType.AddFundsForStep, "Use method 'askForModeFunds' for this type of vote");
 
-        Vote storage newVote = votes[lastVoteId];
+        Vote storage newVote = votes[currentVoteId];
         newVote.voteType = voteType;
         newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
         newVote.isVoteRunning = true;
 
-        emit VoteStarted(lastVoteId, voteType);
+        emit VoteStarted(currentVoteId, voteType);
     }
 
     /**
     * @notice Financers or team members can end vote is conditions are ok.
     * If enough votes are in favor of the proposal, this will be immediatly applied.
+    *
+    * @dev Don't need to use modifier "projectHasntBeenCanceled" has you can't start a vote if project got canceled
+    * Don't need to test if project is in funding phase as you can't start a vote in funding phase
     */
-    function endVote() external canModifyCurrentVote(votes[lastVoteId].voteType) fundingDatePassed{
-        Vote storage currentVote = votes[lastVoteId];
+    function endVote() external voteIsRunning canModifyCurrentVote(votes[currentVoteId].voteType){
+        Vote storage currentVote = votes[currentVoteId];
 
-        require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
-        require(currentVote.endVoteDate > block.timestamp, "Vote's end date isn't passed yet, please wait before ending vote");
+        //TODO date AND total power not reached
+        if ((currentVote.endVoteDate > block.timestamp) 
+            && ((currentVote.votePowerInFavorOfProposal + currentVote.votePowerAgainstProposal) < totalVotePower)) revert ConditionsForEndingVoteNoteMeetedYet();
 
         if (isVoteValidated(currentVote.votePowerInFavorOfProposal, totalVotePower)) {
             currentVote.hasVoteBeenValidated = true;
@@ -577,27 +589,28 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             }
         }
 
-        emit VoteEnded(lastVoteId, currentVote.voteType, currentVote.hasVoteBeenValidated);
+        emit VoteEnded(currentVoteId, currentVote.hasVoteBeenValidated);
 
-        lastVoteId++;
+        currentVoteId++;
     }
 
     /**
     * @notice Method that allow financers to vote, if conditions are OK.
     *
+    * @dev Don't need to use modifier "projectHasntBeenCanceled" has you can't start a vote if project got canceled
+    *
     * @param vote Boolean that user fill to say if he approves or not the proposition.
     */
-    function sendVote(bool vote) external projectHasntBeenCanceled onlyFinancer {
-        Vote storage currentVote = votes[lastVoteId];
-        if(!currentVote.isVoteRunning) revert NoVoteRunning();
+    function sendVote(bool vote) external onlyFinancer voteIsRunning {
+        Vote storage currentVote = votes[currentVoteId];
         if(currentVote.endVoteDate < block.timestamp) revert VoteTimeEnded(currentVote.endVoteDate);
         if(currentVote.hasFinancerVoted[msg.sender]) revert AlreadyVoted(msg.sender);
 
         if (vote) currentVote.votePowerInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
-        else currentVote.votePowerNotInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
+        else currentVote.votePowerAgainstProposal += Maths.sqrt(financersDonations[msg.sender]);
 
         currentVote.hasFinancerVoted[msg.sender] = true;
-        emit HasVoted(msg.sender, lastVoteId, vote);
+        emit HasVoted(msg.sender, currentVoteId, vote);
     }
 
     /**
@@ -670,12 +683,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return messages;
     }
 
+    function getCurrentVoteId() external view returns(uint) {
+        return currentVoteId;
+    }
+
     function getCurrentVotePower() external view returns (uint) {
-        return votes[lastVoteId].votePowerInFavorOfProposal;
+        return votes[currentVoteId].votePowerInFavorOfProposal;
     }
 
     function getCurrentVoteEndDate() external view returns (uint) {
-        return votes[lastVoteId].endVoteDate;
+        return votes[currentVoteId].endVoteDate;
     }
 
     function getName() external view returns (string memory){
