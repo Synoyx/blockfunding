@@ -64,7 +64,7 @@ library MockedData {
         return mockedData;
     }
 
-    function getMockedTeamMembers() public pure returns(BlockFundingProject.TeamMember[] memory) {
+    function getMockedTeamMembers() internal pure returns(BlockFundingProject.TeamMember[] memory) {
         BlockFundingProject.TeamMember[] memory mockedData = new BlockFundingProject.TeamMember[](3);
 
         // Premier membre de l'équipe
@@ -100,7 +100,7 @@ library MockedData {
         return mockedData;
     }
 
-    function getMockedProjectSteps() public pure returns(BlockFundingProject.ProjectStep[] memory) {
+    function getMockedProjectSteps() internal pure returns(BlockFundingProject.ProjectStep[] memory) {
         BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](5);
 
         mockedData[0] = BlockFundingProject.ProjectStep({

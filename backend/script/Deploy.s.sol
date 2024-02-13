@@ -47,6 +47,8 @@ contract DeployDev is Deploy {
     }
 }
 
+//TODO Script pour intéragir avec la blockchain !
+
 /**
 source .env
 forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast --verify -vvvv

@@ -150,9 +150,9 @@ contract BlockFundingTest is Test {
             blockFunding.createNewProject(MockedData.getMockedProjectDatas()[i]);
         }
 
-        assertEq(BlockFundingProject(payable(blockFunding.projects(0))).getName(), MockedData.getMockedProjectDatas()[0].name, "Name seems to not be assigned correcctly !");
-        assertEq(BlockFundingProject(payable(blockFunding.projects(1))).getName(), MockedData.getMockedProjectDatas()[1].name, "Name seems to not be assigned correcctly !");
-        assertEq(BlockFundingProject(payable(blockFunding.projects(2))).getName(), MockedData.getMockedProjectDatas()[2].name, "Name seems to not be assigned correcctly !");
+        assertEq(blockFunding.getProjects()[0].name, MockedData.getMockedProjectDatas()[0].name, "Name seems to not be assigned correcctly !");
+        assertEq(blockFunding.getProjects()[1].name, MockedData.getMockedProjectDatas()[1].name, "Name seems to not be assigned correcctly !");
+        assertEq(blockFunding.getProjects()[2].name, MockedData.getMockedProjectDatas()[2].name, "Name seems to not be assigned correcctly !");
     }
 
     function test_clonesAreDeployedToDifferentAddresses() external {
