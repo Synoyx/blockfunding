@@ -49,6 +49,143 @@ contract BlockFundingProjectTest is Test {
     }
 
     /**************************
+    *   WithdrawCurrentStep()
+    ***************************/
+
+    /**************************
+    *   EndProjectWithdraw()
+    ***************************/
+
+    function test_endProjectWithdraw() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        assertEq(address(defaultProject).balance, 1000000000000000, "Balance of project seems abnormal");
+        vm.prank(teamMemberAddress);
+        defaultProject.endProjectWithdraw();
+        assertEq(address(defaultProject).balance, 0, "Balance of project seems abnormal");
+    }
+
+    function test_endProjectWithdrawEvent() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        vm.expectEmit();
+        emit BlockFundingProject.FundsWithdrawn(defaultProject.getData().targetWallet, 1000000000000000);   
+        vm.prank(teamMemberAddress);
+        defaultProject.endProjectWithdraw();
+    }
+
+    function test_endProjectWithdrawWithoutTeamMemberRights() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.TeamMemberUnauthorizedAccount.selector, address(this)));
+        defaultProject.endProjectWithdraw();
+    }
+
+    function test_endProjectWithdrawWithEmptyBalance() external {
+        defaultProject.fundProject{value: 500000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+
+        vm.prank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectBalanceIsEmpty.selector));
+        vm.prank(teamMemberAddress);
+        defaultProject.endProjectWithdraw();
+    }
+
+    function test_endProjectWithdrawBeforeEndProject() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsntEndedYet.selector));
+        vm.prank(teamMemberAddress);
+        defaultProject.endProjectWithdraw();
+    }
+
+    function test_endProjectWithdrawBeforeValidationOfLastStep() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length - 1; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+        
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.LastStepOfProjectNotValidatedYet.selector));
+        vm.prank(teamMemberAddress);
+        defaultProject.endProjectWithdraw();
+    }
+
+    /**************************
     * ProjectNotFundedWithdraw()
     ***************************/
 

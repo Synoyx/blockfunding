@@ -284,6 +284,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error FundingAmountIsTooLow();
     error ProjectHasntBeenCanceled();
     error ProjectIsFundedYouCantWithdrawNow();
+    error ProjectBalanceIsEmpty();
+    error ProjectIsntEndedYet();
+    error LastStepOfProjectNotValidatedYet();
 
 
     /* *********************** 
@@ -370,6 +373,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
 
+    //TODO Check if project is funded everywhere needed
 
     /* *********************** 
     *        Methods
@@ -449,9 +453,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      * @notice Method to call by team members, to withdraw funds left for the project once every step has been done and end project date is passed.
      */
     function endProjectWithdraw() onlyTeamMember nonReentrant external {
-        require(address(this).balance > 0, "There is nothing to withdraw");
-        require(data.estimatedProjectReleaseDateTimestamp < block.timestamp, "Project is'nt ended yet");
-        require(currentProjectStep == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated, "Project isn't on his last step");
+        if(address(this).balance == 0) revert ProjectBalanceIsEmpty();
+        if(data.estimatedProjectReleaseDateTimestamp > block.timestamp) revert ProjectIsntEndedYet();
+        if(currentProjectStep != data.projectSteps.length 
+            || (currentProjectStep == data.projectSteps.length && !data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated)) 
+            revert LastStepOfProjectNotValidatedYet();
 
         uint96 amountToWithdraw = uint96(address(this).balance);
 
@@ -585,6 +591,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) projectGotVoteCanceled = true;
             if (currentVote.voteType == VoteType.ValidateStep) {
                 data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated = true;
+                //TODO when going to the next step, take the funds of the last step not withdrawn and add them to the next step ?
                 if (currentProjectStep < data.projectSteps.length) currentProjectStep += 1;
             } 
             if (currentVote.voteType == VoteType.AddFundsForStep) {

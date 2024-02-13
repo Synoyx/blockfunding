@@ -108,7 +108,7 @@ library MockedData {
             description: "Defining the project scope and its feasibility.",
             amountNeeded: 1000000,
             amountFunded: 500000,
-            isFunded: true,
+            isFunded: false,
             orderNumber: 1,
             hasBeenValidated: false
         });
