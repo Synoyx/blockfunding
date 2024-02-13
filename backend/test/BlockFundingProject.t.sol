@@ -47,8 +47,27 @@ contract BlockFundingProjectTest is Test {
 
 
     /**************************
-    *   WithdrawCurrentStep()
+    *     TransferOwner()
     ***************************/
+
+    function test_transferOwner() external {
+        vm.prank(defaultProject.getOwner());
+        defaultProject.transferOwner(visitorAddress);
+
+        assertEq(defaultProject.getOwner(), visitorAddress, "Owner transfer doesn't work !");
+    }
+
+    function test_transferOwnerWithoutBeingOwner() external {
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OwnableUnauthorizedAccount.selector, address(this)));
+        defaultProject.transferOwner(visitorAddress);
+    }
+
+
+    function test_transferOwnerWithEmptyAddress() external {
+        vm.prank(defaultProject.getOwner());
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OwnableInvalidOwner.selector, address(0)));
+        defaultProject.transferOwner(address(0));
+    }
 
     /**************************
     *   WithdrawCurrentStep()

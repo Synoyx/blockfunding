@@ -294,14 +294,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *        Modifiers
     *********************** */
 
-    /// @notice Ensure that only owner can call the function
-    modifier onlyOwner() {
-        if (data.owner != msg.sender) {
-            revert OwnableUnauthorizedAccount(msg.sender);
-        }
-        _;
-    }
-
     /// @notice Ensure that only financers can call the function
     modifier onlyFinancer() {
         if (financersDonations[msg.sender] == 0) {
@@ -418,7 +410,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *
     * @param _newOwner The new owner address
     */
-    function transferOwner(address _newOwner)  public onlyOwner {
+    function transferOwner(address _newOwner) public {
+        if (data.owner != msg.sender) revert OwnableUnauthorizedAccount(msg.sender);
         _transferOwnership(_newOwner);
     }
 
