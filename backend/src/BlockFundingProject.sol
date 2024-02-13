@@ -265,7 +265,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *********************** */
 
     error OwnableUnauthorizedAccount(address account);
-    error ProjectHasBeenCanceld();
+    error ProjectHasBeenCanceled();
     error FinancerUnauthorizedAccount(address account);
     error TeamMemberUnauthorizedAccount(address account);
     error FinancerOrTeamMemberUnauthorizedAccount(address account);
@@ -274,11 +274,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error OwnableInvalidOwner(address owner);
     error EmptyString(string parameterName);
     error NoVoteRunning();
+    error VoteIsAlreadyRunning();
     error AlreadyVoted(address voterAddress);
     error VoteTimeEnded(uint voteTimeEndTimestamp);
     error OnlyTeamMembersCanModifyThisVote();
     error OnlyFinancersCanModifyThisVote();
     error ConditionsForEndingVoteNoteMeetedYet();
+    error UseDedicatedMethodToStartAskFundsVote();
 
 
     /* *********************** 
@@ -350,12 +352,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     /// @notice Ensure that project hasn't been canceled by a vote
     modifier projectHasntBeenCanceled() {
-        if (projectGotVoteCanceled) revert ProjectHasBeenCanceld();
+        if (projectGotVoteCanceled) revert ProjectHasBeenCanceled();
         _;
     }
 
     modifier noVoteIsRunning() {
-        if(votes[currentVoteId].isVoteRunning) revert("A vote is running, you can't start another one for the moment");
+        if(votes[currentVoteId].isVoteRunning) revert VoteIsAlreadyRunning();
         _;
     }
 
@@ -549,7 +551,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param voteType The type of vote to start : ValidateStep or WithdrawProjectToFinancers
     */
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
-        require(voteType != VoteType.AddFundsForStep, "Use method 'askForModeFunds' for this type of vote");
+        if(voteType == VoteType.AddFundsForStep) revert UseDedicatedMethodToStartAskFundsVote();
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = voteType;
@@ -569,7 +571,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function endVote() external voteIsRunning canModifyCurrentVote(votes[currentVoteId].voteType){
         Vote storage currentVote = votes[currentVoteId];
 
-        //TODO date AND total power not reached
         if ((currentVote.endVoteDate > block.timestamp) 
             && ((currentVote.votePowerInFavorOfProposal + currentVote.votePowerAgainstProposal) < totalVotePower)) revert ConditionsForEndingVoteNoteMeetedYet();
 
@@ -689,6 +690,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function getCurrentVotePower() external view returns (uint) {
         return votes[currentVoteId].votePowerInFavorOfProposal;
+    }
+
+    function isCurrentVoteRunning() external view returns(bool) {
+        return votes[currentVoteId].isVoteRunning;
     }
 
     function getCurrentVoteEndDate() external view returns (uint) {
