@@ -34,7 +34,7 @@ contract BlockFunding is Ownable {
         thater
     }
 
-    event NewProjectHasBeenCreated(address projectAddress);
+    event NewProjectHasBeenCreated();
 
     modifier validProjectData(BlockFundingProject.ProjectData calldata _data) {
         require(bytes(_data.name).length > 0, "Project's name mustn't be empty");
@@ -66,7 +66,7 @@ contract BlockFunding is Ownable {
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
         project.initialize(_data);
-        emit NewProjectHasBeenCreated(newProjectAddress);
+        emit NewProjectHasBeenCreated();
 
         projects.push(newProjectAddress);
         return newProjectAddress;
@@ -87,7 +87,7 @@ contract BlockFunding is Ownable {
     function getProjects() public view returns(BlockFundingProject.ProjectData[] memory) {
         BlockFundingProject.ProjectData[] memory ret = new BlockFundingProject.ProjectData[](projects.length);
         for(uint i; i < projects.length; i++) {
-           // ret[i] = BlockFundingProject(payable(projects[i])).getData();
+           ret[i] = BlockFundingProject(payable(projects[i])).getData();
         }
 
         return ret;

@@ -7,7 +7,7 @@ library Maths {
     * @notice Babylonian method for getting square root.
     * It's an approximation, as solidity doesn't handle floating numbers
     */
-    function sqrt(uint x) pure internal returns (uint y) {
+    function sqrt(uint x) public pure returns (uint y) {
         uint z = (x + 1) / 2;
         y = x;
         while (z < y) {
