@@ -48,6 +48,38 @@ contract BlockFundingProjectTest is Test {
         //clonedProject.initialize(msg.sender, ClonesHelper.getMockedProjectData());
     }
 
+
+    /**************************
+    *      FundProject()
+    ***************************/
+
+    function test_fundProject() external {
+        assertEq(defaultProject.getData().totalFundsHarvested, 0, "Total funds at init aren't set at 0");
+        defaultProject.fundProject{value: 10000}();
+        assertEq(defaultProject.getData().totalFundsHarvested, 10000, "Total funds isn't refresh after add funds");
+    }
+
+    function test_fundProjectEvent() external {
+        vm.expectEmit();
+        emit BlockFundingProject.ContributionAddedToProject(address(this), 10000);  
+        defaultProject.fundProject{value: 10000}();
+
+        vm.expectEmit();
+        emit BlockFundingProject.ProjectIsFunded(address(this), 1000000000010000);   
+        defaultProject.fundProject{value: 1000000000000000}();
+    }
+
+    function test_fundProjectAfterFundingPhasePassed() external {
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsEnded.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
+        defaultProject.fundProject{value: 10000}();
+    }
+
+    function test_fundProjectWithTooLowAmount() external {
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingAmountIsTooLow.selector));
+        defaultProject.fundProject{value: 1}();
+    }
+
     /**************************
     *    AskForMoreFunds()
     ***************************/

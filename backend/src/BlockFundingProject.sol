@@ -281,6 +281,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error OnlyFinancersCanModifyThisVote();
     error ConditionsForEndingVoteNoteMeetedYet();
     error UseDedicatedMethodToStartAskFundsVote();
+    error FundingAmountIsTooLow();
 
 
     /* *********************** 
@@ -507,7 +508,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * Once a used made a donation, he is considered as a financer, and has vote power.
     */
     function fundProject() external payable fundingDateNotPassed {
-        require(msg.value > 1000, "Funding amount must be greater than 1000 wei");
+        if(msg.value < 1000) revert FundingAmountIsTooLow();
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
         data.totalFundsHarvested += uint96(msg.value); //TODO Potential loss here, verify if everything can be done in uint256 ?
 
