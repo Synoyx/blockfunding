@@ -48,6 +48,51 @@ contract BlockFundingProjectTest is Test {
         //clonedProject.initialize(msg.sender, ClonesHelper.getMockedProjectData());
     }
 
+    /**************************
+    * ProjectNotFundedWithdraw()
+    ***************************/
+
+    function test_projectNotFundedWithdraw() external {
+        defaultProject.fundProject{value: 2000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        assertEq(address(defaultProject).balance, 2000, "Balance of project seems abnormal");
+        defaultProject.projectNotFundedWithdraw();
+        assertEq(address(defaultProject).balance, 0, "Balance of project seems abnormal");
+    }
+
+    function test_projectNotFundedWithdrawEvent() external {
+        defaultProject.fundProject{value: 2000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectEmit();
+        emit BlockFundingProject.FundsWithdrawn(address(this), 2000);   
+        defaultProject.projectNotFundedWithdraw();
+    }
+
+    function test_projectNotFundedWithdrawWithoutFinancerRights() external {
+        defaultProject.fundProject{value: 2000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.startPrank(visitorAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FinancerUnauthorizedAccount.selector, visitorAddress));
+        defaultProject.projectNotFundedWithdraw();
+    }
+
+    function test_projectNotFundedWithdrawWhileBeingInFundingPhase() external {
+        defaultProject.fundProject{value: 2000}();
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsntEndedYet.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
+        defaultProject.projectNotFundedWithdraw();
+    }
+
+    function test_projectNotFundedWithdrawWithProjectFunded() external {
+        defaultProject.fundProject{value: 200000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsFundedYouCantWithdrawNow.selector));
+        defaultProject.projectNotFundedWithdraw();
+    }
 
     /**************************
     * WithdrawProjectCanceled()

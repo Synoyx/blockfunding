@@ -283,6 +283,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error UseDedicatedMethodToStartAskFundsVote();
     error FundingAmountIsTooLow();
     error ProjectHasntBeenCanceled();
+    error ProjectIsFundedYouCantWithdrawNow();
 
 
     /* *********************** 
@@ -464,7 +465,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @dev Don't need to check the left donations to withdraw here, as to be a financer you need to have donations left (check modifier)
     */
     function projectNotFundedWithdraw() external onlyFinancer fundingDatePassed nonReentrant {
-        require(!checkIfProjectIsFunded(), "Project has received enough funds to continue, you can't withdraw now !");
+        if(checkIfProjectIsFunded()) revert ProjectIsFundedYouCantWithdrawNow();
 
         uint96 amountToWithdraw = financersDonations[msg.sender];
         financersDonations[msg.sender] = 0;
