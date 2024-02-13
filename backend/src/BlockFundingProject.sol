@@ -282,6 +282,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error ConditionsForEndingVoteNoteMeetedYet();
     error UseDedicatedMethodToStartAskFundsVote();
     error FundingAmountIsTooLow();
+    error ProjectHasntBeenCanceled();
 
 
     /* *********************** 
@@ -476,7 +477,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      * This allows financers to get their funding back, minus a potential portail consumed for the projet (depending on current step).
      */
     function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
-        require(projectGotVoteCanceled, "Project hasn't been canceled by financer's vote, you can't withdraw");
+       if (!projectGotVoteCanceled) revert ProjectHasntBeenCanceled();
 
         uint256 PRECISION_FACTOR = 10 ** 12;
         uint256 amountToWithdraw = (uint256(financersDonations[msg.sender]) * address(this).balance * PRECISION_FACTOR) / uint256(data.totalFundsHarvested) / PRECISION_FACTOR;

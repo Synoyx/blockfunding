@@ -50,6 +50,66 @@ contract BlockFundingProjectTest is Test {
 
 
     /**************************
+    * WithdrawProjectCanceled()
+    ***************************/
+
+    function test_withdrawProjectCanceled() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        assertEq(address(defaultProject).balance, 10000000, "Balance of project seems abnormal");
+        defaultProject.withdrawProjectCanceled();
+        assertEq(address(defaultProject).balance, 0, "Balance of project seems abnormal");
+    }
+
+    function test_withdrawProjectCanceledEvent() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        vm.expectEmit();
+        emit BlockFundingProject.FundsWithdrawn(address(this), 10000000);   
+        defaultProject.withdrawProjectCanceled();
+    }
+
+    function test_withdrawProjectCanceledWithoutBeingFinancer() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        vm.startPrank(visitorAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FinancerUnauthorizedAccount.selector, visitorAddress));
+        defaultProject.withdrawProjectCanceled();
+    }
+
+    function test_withdrawProjectCanceledWhileBeingInFundingPhase() external {
+        defaultProject.fundProject{value: 10000000}();
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsntEndedYet.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
+        defaultProject.withdrawProjectCanceled();
+
+    }
+
+    function test_withdrawProjectCanceledWithoutProjectBeingCanceled() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectHasntBeenCanceled.selector));
+        defaultProject.withdrawProjectCanceled();
+    }
+
+
+    /**************************
     *      FundProject()
     ***************************/
 
@@ -402,4 +462,8 @@ contract BlockFundingProjectTest is Test {
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FinancerOrTeamMemberUnauthorizedAccount.selector, visitorAddress));
         defaultProject.addMessage(messageCID);
     }
+
+
+    receive() external payable {}
+    fallback() external payable {}
 }
