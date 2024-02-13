@@ -161,7 +161,6 @@ contract BlockFundingTest is Test {
         for (uint i; i < 3; i++) {
             blockFunding.createNewProject(MockedData.getMockedProjectDatas()[i]);
             clonesAddresses[i] = blockFunding.projects(i);
-            console.log(blockFunding.projects(i));
 
             assertEq(arrayContainsOnlyOnce(blockFunding.projects(i), clonesAddresses), true, "Clones have the same addresses !");
         }

@@ -270,7 +270,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error TeamMemberUnauthorizedAccount(address account);
     error FinancerOrTeamMemberUnauthorizedAccount(address account);
     error FundingIsntEndedYet(uint currentDate, uint campaignEndDate);
+    error FundingIsEnded(uint currentDate, uint campaignEndDate);
     error OwnableInvalidOwner(address owner);
+    error EmptyString(string parameterName);
+    error NoVoteRunning();
+    error AlreadyVoted(address voterAddress);
+    error VoteTimeEnded(uint voteTimeEndTimestamp);
 
 
     /* *********************** 
@@ -311,7 +316,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     /// @notice Ensure that the project's campaign funding end date is passed
     modifier fundingDatePassed {
-        if (data.campaignEndingDateTimestamp < block.timestamp) {
+        if (block.timestamp < data.campaignEndingDateTimestamp) {
             revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
         }
         _;
@@ -319,8 +324,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     /// @notice Ensure that the project's campaign functing end date is not passed
     modifier fundingDateNotPassed {
-        if (data.campaignEndingDateTimestamp > block.timestamp) {
-            revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
+        if (block.timestamp > data.campaignEndingDateTimestamp) {
+            revert FundingIsEnded(block.timestamp, data.campaignEndingDateTimestamp);
         }
         _;
     }
@@ -584,9 +589,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     */
     function sendVote(bool vote) external projectHasntBeenCanceled onlyFinancer {
         Vote storage currentVote = votes[lastVoteId];
-        require(currentVote.isVoteRunning, "There is no vote running, so you can't use this method");
-        require(currentVote.endVoteDate > block.timestamp, "Vote time is ended, you can't vote anymore");
-        require(!currentVote.hasFinancerVoted[msg.sender], "You have already voted !");
+        if(!currentVote.isVoteRunning) revert NoVoteRunning();
+        if(currentVote.endVoteDate < block.timestamp) revert VoteTimeEnded(currentVote.endVoteDate);
+        if(currentVote.hasFinancerVoted[msg.sender]) revert AlreadyVoted(msg.sender);
 
         if (vote) currentVote.votePowerInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
         else currentVote.votePowerNotInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
@@ -601,6 +606,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param ipfsHash The CID of the message content on IPFS
     */
     function addMessage(string calldata ipfsHash) external onlyTeamMemberOrFinancer {
+        if(bytes(ipfsHash).length == 0) revert EmptyString("ipfsHash");
+
         messages.push(Message(msg.sender, ipfsHash, uint32(block.timestamp)));
 
         emit NewMessage(msg.sender);
@@ -612,7 +619,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *********************** */
 
     /// @notice Simple mthode to check if the project balance >= asked funds
-    function checkIfProjectIsFunded() public view returns (bool) {
+    function checkIfProjectIsFunded() internal view returns (bool) {
         return data.totalFundsHarvested >= fundingRequested;
     }
 
@@ -657,6 +664,18 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function getData() external view returns (ProjectData memory) {
         return data;
+    }
+
+    function getMessages() external view returns (Message[] memory) {
+        return messages;
+    }
+
+    function getCurrentVotePower() external view returns (uint) {
+        return votes[lastVoteId].votePowerInFavorOfProposal;
+    }
+
+    function getCurrentVoteEndDate() external view returns (uint) {
+        return votes[lastVoteId].endVoteDate;
     }
 
     function getName() external view returns (string memory){
