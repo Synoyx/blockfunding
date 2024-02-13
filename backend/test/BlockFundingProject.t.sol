@@ -28,9 +28,6 @@ contract BlockFundingProjectTest is Test {
         data.teamMembers = teamMembers;
         blockFunding.createNewProject(data);
         defaultProject = BlockFundingProject(payable(blockFunding.projects(0)));
-
-        //vm.prank(financerAddress);
-        //defaultProject.fundProject{value: 100000000000000000000}();
     }
 
     /**
@@ -48,9 +45,87 @@ contract BlockFundingProjectTest is Test {
         //clonedProject.initialize(msg.sender, ClonesHelper.getMockedProjectData());
     }
 
+
     /**************************
     *   WithdrawCurrentStep()
     ***************************/
+
+    /**************************
+    *   WithdrawCurrentStep()
+    ***************************/
+
+    function test_withdrawCurrentStep() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+
+        assertEq(address(defaultProject).balance, 1000000000000000, "Balance of project seems abnormal");
+
+        uint amountToWithdraw = defaultProject.getData().projectSteps[0].amountNeeded - defaultProject.getData().projectSteps[0].amountFunded;
+
+        vm.prank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+
+        assertEq(address(defaultProject).balance, 1000000000000000 - amountToWithdraw, "Balance of project seems abnormal");
+    }
+
+    function test_withdrawCurrentStepEvent() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+
+
+        uint amountToWithdraw = defaultProject.getData().projectSteps[0].amountNeeded - defaultProject.getData().projectSteps[0].amountFunded;
+
+        vm.expectEmit();
+        emit BlockFundingProject.FundsWithdrawn(defaultProject.getData().targetWallet, amountToWithdraw);   
+        vm.prank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+
+    }
+
+    function test_withdrawCurrentStepWithoutBeingTeamMember() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.TeamMemberUnauthorizedAccount.selector, address(this)));
+        defaultProject.withdrawCurrentStep();
+    }
+
+    function test_withdrawCurrentStepInFundingPhase() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsntEndedYet.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
+        vm.prank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+    }
+
+    function test_withdrawCurrentStepWithProjectCanceled() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        vm.prank(teamMemberAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectHasBeenCanceled.selector));
+        defaultProject.withdrawCurrentStep();
+    }
+
+    function test_withdrawCurrentStepTwice() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+
+
+        vm.startPrank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.CurrentStepFundsAlreadyWithdrawn.selector));
+        defaultProject.withdrawCurrentStep();
+
+    }
 
     /**************************
     *   EndProjectWithdraw()

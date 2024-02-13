@@ -287,6 +287,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error ProjectBalanceIsEmpty();
     error ProjectIsntEndedYet();
     error LastStepOfProjectNotValidatedYet();
+    error CurrentStepFundsAlreadyWithdrawn();
 
 
     /* *********************** 
@@ -440,7 +441,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      */
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed projectHasntBeenCanceled nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
-        require(!currentStep.isFunded, "Current step funds has already been withdrawn");
+        if(currentStep.isFunded) revert CurrentStepFundsAlreadyWithdrawn();
 
         uint96 amountToWithdraw = currentStep.amountNeeded - currentStep.amountFunded;
         currentStep.isFunded = true;
@@ -451,6 +452,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     /**
      * @notice Method to call by team members, to withdraw funds left for the project once every step has been done and end project date is passed.
+     *
+     * @dev We don't test if project is canceled here, as if you can't cancel project after the last step has been validated
      */
     function endProjectWithdraw() onlyTeamMember nonReentrant external {
         if(address(this).balance == 0) revert ProjectBalanceIsEmpty();
@@ -561,6 +564,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     */
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
         if(voteType == VoteType.AddFundsForStep) revert UseDedicatedMethodToStartAskFundsVote();
+
+        //TODO Can't start vote to cancel project on last step
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = voteType;
