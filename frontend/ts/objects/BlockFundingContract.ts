@@ -7,7 +7,7 @@ import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
 
 export const enum BlockFundingFunctions {
   getProjects = "getProjects",
-  createNewContract = "createNewContract",
+  createNewContract = "createNewProject",
 }
 
 export async function getProjects() {

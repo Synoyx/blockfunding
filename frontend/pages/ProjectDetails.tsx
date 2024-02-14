@@ -23,7 +23,7 @@ const ProjectDetails = () => {
   useEffect(() => {
     async function test() {
       const message: string = await getData("bafkreiaerzwc75cplvwyfsawm5qyylpmlj2biwygmerv3wb5iknwgptbuu");
-      alert("Message = " + message);
+      //alert("Message = " + message);
     }
 
     setProject(projects[+projectId!]);

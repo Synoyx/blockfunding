@@ -29,6 +29,8 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
 
       const results: any = await publicRead(BlockFundingFunctions.getProjects);
       for (let res of results) {
+        console.log("RESULT = ");
+        console.log(res);
         projectsArray.push(
           new Project(
             projectsArray.length,

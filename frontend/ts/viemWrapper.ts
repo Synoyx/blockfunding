@@ -5,7 +5,8 @@ import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectCo
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { contractAddress, abi } from "@/ts/constants";
 
-export async function publicRead(functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions) {
+//export async function publicRead(functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions) {
+export async function publicRead(functionToCall: BlockFundingFunctions) {
   const publicClient = createPublicClient({
     chain: localhost,
     transport: http(),
