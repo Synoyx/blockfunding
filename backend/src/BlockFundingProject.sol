@@ -288,6 +288,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error ProjectIsntEndedYet();
     error LastStepOfProjectNotValidatedYet();
     error CurrentStepFundsAlreadyWithdrawn();
+    error FailWithdrawTo(address to);
 
 
     /* *********************** 
@@ -501,7 +502,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function _safeWithdraw(uint _amountToWithdraw, address _to) internal {
         //TODO if fail, transfer in WETH ?
         (bool success, ) = payable(_to).call{value: _amountToWithdraw}("");
-        require(success, "Withdraw failed.");
+        if (!success) revert FailWithdrawTo(_to);
         emit FundsWithdrawn(_to, _amountToWithdraw);
     }
 
@@ -539,7 +540,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param amountAsked The amount asked in wei
     */
     function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
-        require((address(this).balance > amountAsked) && ((address(this).balance - getSumOfFundsOfLeftSteps()) > 0), "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
+        require((address(this).balance > amountAsked) && (address(this).balance > getSumOfFundsOfLeftSteps()), "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = VoteType.AddFundsForStep;
@@ -698,6 +699,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function getCurrentVotePower() external view returns (uint) {
         return votes[currentVoteId].votePowerInFavorOfProposal;
+    }
+
+    function getCurrentProjectStepId() external view returns (uint) {
+        return projectStepsOrderedIndex[currentProjectStep];
+    }
+
+    function getCurrentVotePowerAgainstProposal() external view returns (uint) {
+        return votes[currentVoteId].votePowerAgainstProposal;
     }
 
     function isCurrentVoteRunning() external view returns(bool) {

@@ -18,12 +18,15 @@ contract BlockFundingProjectTest is Test {
 
     BlockFunding blockFunding;
     BlockFundingProject defaultProject;
+    UnpayableTestContract unpayableTestContract;
 
     function setUp() external {
         blockFunding = new BlockFunding();
+        unpayableTestContract = new UnpayableTestContract();
 
-        BlockFundingProject.TeamMember[] memory teamMembers = new BlockFundingProject.TeamMember[](1);
+        BlockFundingProject.TeamMember[] memory teamMembers = new BlockFundingProject.TeamMember[](2);
         teamMembers[0] = BlockFundingProject.TeamMember("Theo", "Riz", "Une personne hypothetique", "", "Savant", teamMemberAddress);
+        teamMembers[1] = BlockFundingProject.TeamMember("Jean", "Bonnot", "Amateur de bonne bouffe", "", "Boucher", address(unpayableTestContract));
         BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
         data.teamMembers = teamMembers;
         blockFunding.createNewProject(data);
@@ -298,6 +301,22 @@ contract BlockFundingProjectTest is Test {
 
         vm.expectEmit();
         emit BlockFundingProject.FundsWithdrawn(address(this), 2000);   
+        defaultProject.projectNotFundedWithdraw();
+    }
+
+    function test_withdrawCurrentStepFromUnpayableContract() external {
+        // We need to do that to give funds to Unpayable contract
+        SuicideContractToFeedUnpayableContract suicideContract = new SuicideContractToFeedUnpayableContract();
+        (bool success, ) = payable(address(suicideContract)).call{value: 20000}("");
+        assertEq(success, true, "Funding contract for testing failed");
+        suicideContract.destructTo(address(unpayableTestContract));
+        
+        vm.prank(address(unpayableTestContract));
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+        
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FailWithdrawTo.selector, address(unpayableTestContract)));
+        vm.prank(address(unpayableTestContract));
         defaultProject.projectNotFundedWithdraw();
     }
 
@@ -583,6 +602,30 @@ contract BlockFundingProjectTest is Test {
         defaultProject.endVote();
     }
 
+    function test_endVoteOnAddFundsForStep() external {
+        defaultProject.fundProject{value: 1000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+
+        vm.prank(teamMemberAddress);
+        defaultProject.withdrawCurrentStep();
+
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+
+        defaultProject.sendVote(true);
+
+        uint oldAmountNeeded = defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].amountNeeded;
+
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].isFunded, true, "Project step is already funded on init");
+        vm.prank(teamMemberAddress);
+        defaultProject.endVote();
+
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].isFunded, false, "Project step isfunded hasn't changed");
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].amountNeeded, oldAmountNeeded + 1000, "Project step amount needed hasn't changed");
+
+    }
+
     function test_endVoteWithoutFinancersRights() external {
         defaultProject.fundProject{value: 10000}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
@@ -656,6 +699,18 @@ contract BlockFundingProjectTest is Test {
         emit BlockFundingProject.HasVoted(address(this), 0, true);    
         defaultProject.sendVote(true);
         
+    }
+
+    function test_sendVoteTotalPowerAdded() external {
+        defaultProject.fundProject{value: 10000}();
+
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+
+        assertEq(defaultProject.getCurrentVotePowerAgainstProposal(), 0, "Abnormal init vote power");
+        defaultProject.sendVote(false);
+        assertEq(defaultProject.getCurrentVotePowerAgainstProposal(), 100, "Abnormal vote power"); // 100 is sqrt(10000)
     }
 
     function test_sendVoteWithoutBeingFinancer() external {
@@ -739,6 +794,17 @@ contract BlockFundingProjectTest is Test {
         defaultProject.addMessage(messageCID);
     }
 
+
+    receive() external payable {}
+    fallback() external payable {}
+}
+
+contract UnpayableTestContract {}
+
+contract SuicideContractToFeedUnpayableContract {
+    function destructTo(address _to) external {
+        selfdestruct(payable(_to));
+    }
 
     receive() external payable {}
     fallback() external payable {}
