@@ -289,6 +289,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error CurrentStepFundsAlreadyWithdrawn();
     error FailWithdrawTo(address to);
     error AmountAskedTooHigh();
+    error CantCancelProjectAtTheLastStep();
 
 
     /* *********************** 
@@ -556,8 +557,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     */
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
         if(voteType == VoteType.AddFundsForStep) revert UseDedicatedMethodToStartAskFundsVote();
-
-        //TODO Can't start vote to cancel project on last step
+        if (voteType == VoteType.WithdrawProjectToFinancers 
+            && currentProjectStep == data.projectSteps.length 
+            && data.projectSteps[currentProjectStep - 1].hasBeenValidated) revert CantCancelProjectAtTheLastStep();
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = voteType;
@@ -732,5 +734,4 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *********************** */
 
     receive() external payable {}
-    //TODO check if no fallback is'nt a problem
 }

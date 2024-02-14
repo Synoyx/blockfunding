@@ -521,6 +521,24 @@ contract BlockFundingProjectTest is Test {
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
     }
 
+    function test_startVoteToCancelOnLastStep() external {
+        defaultProject.fundProject{value: 1000000000000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.CantCancelProjectAtTheLastStep.selector));
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+    }
+
     function test_startVoteWithoutFinancersRights() external {
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
