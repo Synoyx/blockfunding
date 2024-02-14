@@ -7,9 +7,9 @@ import "../../src/BlockFundingProject.sol";
 
 library MockedData {
     address public constant targetWallet = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-    uint32 public constant campaignStartingDateTimestamp = 1707005560;
-    uint32 public constant campaignEndingDateTimestamp = 1709507562;
-    uint32 public constant estimatedProjectReleaseDateTimestamp = 1727993562;
+    uint32 public constant campaignStartingDateTimestamp = 1717901384;
+    uint32 public constant campaignEndingDateTimestamp = 1718001384;
+    uint32 public constant estimatedProjectReleaseDateTimestamp = 1719001384;
 
     function getMockedProjectDatas() public view returns(BlockFundingProject.ProjectData[] memory) {
         BlockFundingProject.ProjectData[] memory mockedData = new BlockFundingProject.ProjectData[](3);
@@ -28,8 +28,6 @@ library MockedData {
             "https://cdn2.f-cdn.com/contestentries/1262273/26237065/5a8d53d99fc82_thumb900.jpg",
             getMockedTeamMembers(),
             getMockedProjectSteps());
-
-        //TODO handle accents in strings
 
         mockedData[1] = BlockFundingProject.ProjectData(
             campaignStartingDateTimestamp,

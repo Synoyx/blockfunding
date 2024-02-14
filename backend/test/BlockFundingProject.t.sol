@@ -33,21 +33,6 @@ contract BlockFundingProjectTest is Test {
         defaultProject = BlockFundingProject(payable(blockFunding.projects(0)));
     }
 
-    /**
-    * @notice Check that you can't initialize twice the contract
-    */
-    function test_initializeTwice() external {
-        blockFunding.createNewProject(MockedData.getMockedProjectDatas()[0]);
-
-        vm.roll(10);
-
-        //TODO Strange behaviour here, According to openzeppellin it seems to be normal under test conditions
-        //TO test that, wait for a initialized event instead ?
-        //BlockFundingProject clonedProject = BlockFundingProject(payable(blockFunding.projects(0)));
-        //vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
-        //clonedProject.initialize(msg.sender, ClonesHelper.getMockedProjectData());
-    }
-
 
     /**************************
     *     TransferOwner()
@@ -424,6 +409,14 @@ contract BlockFundingProjectTest is Test {
         defaultProject.fundProject{value: 1000000000000000}();
     }
 
+    function test_fundProjectTwice() external {
+        assertEq(defaultProject.getTotalVotePower(), 0, "Total vote power isn't set at 0");
+        defaultProject.fundProject{value: 10000}();
+        assertEq(defaultProject.getTotalVotePower(), 100, "Total vote power isn't computed correctly");
+        defaultProject.fundProject{value: 10000}();
+        assertEq(defaultProject.getTotalVotePower(), 141, "Total vote power isn't computed correctly");
+    }
+
     function test_fundProjectAfterFundingPhasePassed() external {
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsEnded.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
@@ -495,6 +488,15 @@ contract BlockFundingProjectTest is Test {
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.VoteIsAlreadyRunning.selector));
         vm.prank(teamMemberAddress);
         defaultProject.askForMoreFunds(1000);
+    }
+
+    function test_askForMoreFundsWithTooMuchAmount() external {
+        defaultProject.fundProject{value: 10000000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.prank(teamMemberAddress);
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.AmountAskedTooHigh.selector));
+        defaultProject.askForMoreFunds(10000000);
     }
 
     /**************************
@@ -602,6 +604,20 @@ contract BlockFundingProjectTest is Test {
         defaultProject.endVote();
     }
 
+    function test_endVoteWithoutVote() external {
+        defaultProject.fundProject{value: 10000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 3*24*60*60 + 1);
+
+        uint currentVoteId = defaultProject.getCurrentVoteId();
+        defaultProject.endVote();
+        assertEq(defaultProject.getCurrentVoteId(), currentVoteId + 1, "Vote id hasn't been increased");
+        assertEq(defaultProject.isLastVoteValidated(), false, "Vote has been validated, it shouldn't in that case");
+    }
+
     function test_endVoteOnAddFundsForStep() external {
         defaultProject.fundProject{value: 1000000000}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
@@ -623,7 +639,7 @@ contract BlockFundingProjectTest is Test {
 
         assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].isFunded, false, "Project step isfunded hasn't changed");
         assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].amountNeeded, oldAmountNeeded + 1000, "Project step amount needed hasn't changed");
-
+        assertEq(defaultProject.isLastVoteValidated(), true, "Vote hasn't been validated");
     }
 
     function test_endVoteWithoutFinancersRights() external {
@@ -793,7 +809,6 @@ contract BlockFundingProjectTest is Test {
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FinancerOrTeamMemberUnauthorizedAccount.selector, visitorAddress));
         defaultProject.addMessage(messageCID);
     }
-
 
     receive() external payable {}
     fallback() external payable {}

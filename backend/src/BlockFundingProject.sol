@@ -13,7 +13,6 @@ import "./tools/Maths.sol";
 * We don't use constructor because this contract will be cloned to reduce gas costs
 */
 contract BlockFundingProject is Initializable, ReentrancyGuard {
-    //TODO remove uint96 things
     /* *********************** 
     *     Structs & enums
     *********************** */
@@ -289,6 +288,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error LastStepOfProjectNotValidatedYet();
     error CurrentStepFundsAlreadyWithdrawn();
     error FailWithdrawTo(address to);
+    error AmountAskedTooHigh();
 
 
     /* *********************** 
@@ -515,12 +515,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function fundProject() external payable fundingDateNotPassed {
         if(msg.value < 1000) revert FundingAmountIsTooLow();
         bool projectWasAlreadyFunded = checkIfProjectIsFunded();
-        data.totalFundsHarvested += uint96(msg.value); //TODO Potential loss here, verify if everything can be done in uint256 ?
+        data.totalFundsHarvested += uint96(msg.value);
 
-        // If user has already donated to the project, removing his old vote power to compute the new one later
-        if (financersDonations[msg.sender] > 0) {
-            totalVotePower -= Maths.sqrt(financersDonations[msg.sender]);
-        }
+        // Removing his old vote power to compute the new one later. If user did'nt fund yet, won't change anything as sqrt(0) = 0
+        totalVotePower -= Maths.sqrt(financersDonations[msg.sender]);
 
         financersDonations[msg.sender] += uint96(msg.value);
         totalVotePower += Maths.sqrt(financersDonations[msg.sender]);
@@ -540,7 +538,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param amountAsked The amount asked in wei
     */
     function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
-        require((address(this).balance > amountAsked) && (address(this).balance > getSumOfFundsOfLeftSteps()), "You can't ask an amount greater than what's left on balance minus what left to ask for next project steps");
+        if((address(this).balance < amountAsked) || (address(this).balance < (getSumOfFundsOfLeftSteps() + amountAsked))) revert AmountAskedTooHigh();
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = VoteType.AddFundsForStep;
@@ -584,16 +582,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         if (isVoteValidated(currentVote.votePowerInFavorOfProposal, totalVotePower)) {
             currentVote.hasVoteBeenValidated = true;
-        }
 
-        if (currentVote.hasVoteBeenValidated) {
-            if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) projectGotVoteCanceled = true;
-            if (currentVote.voteType == VoteType.ValidateStep) {
+            if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) { projectGotVoteCanceled = true; }
+            else if (currentVote.voteType == VoteType.ValidateStep) {
                 data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated = true;
                 //TODO when going to the next step, take the funds of the last step not withdrawn and add them to the next step ?
-                if (currentProjectStep < data.projectSteps.length) currentProjectStep += 1;
+                if (currentProjectStep < data.projectSteps.length) { currentProjectStep += 1; }
             } 
-            if (currentVote.voteType == VoteType.AddFundsForStep) {
+            else if (currentVote.voteType == VoteType.AddFundsForStep) {
                 data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].isFunded = false;
                 data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].amountNeeded += currentVote.askedAmountToAddForStep;
             }
@@ -616,8 +612,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         if(currentVote.endVoteDate < block.timestamp) revert VoteTimeEnded(currentVote.endVoteDate);
         if(currentVote.hasFinancerVoted[msg.sender]) revert AlreadyVoted(msg.sender);
 
-        if (vote) currentVote.votePowerInFavorOfProposal += Maths.sqrt(financersDonations[msg.sender]);
-        else currentVote.votePowerAgainstProposal += Maths.sqrt(financersDonations[msg.sender]);
+        currentVote.votePowerInFavorOfProposal += vote ? Maths.sqrt(financersDonations[msg.sender]) : 0;
+        currentVote.votePowerAgainstProposal += vote ? 0 : Maths.sqrt(financersDonations[msg.sender]);
 
         currentVote.hasFinancerVoted[msg.sender] = true;
         emit HasVoted(msg.sender, currentVoteId, vote);
@@ -713,6 +709,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return votes[currentVoteId].isVoteRunning;
     }
 
+    function isLastVoteValidated() external view returns (bool) {
+        uint currentId = currentVoteId > 0 ? currentVoteId - 1 : 0;
+        return votes[currentId].hasVoteBeenValidated;
+    }
+
     function getCurrentVoteEndDate() external view returns (uint) {
         return votes[currentVoteId].endVoteDate;
     }
@@ -721,11 +722,15 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return data.name;
     }
 
+    function getTotalVotePower() external view returns (uint) {
+        return totalVotePower;
+    }
+
 
     /* *********************** 
     *        Payable
     *********************** */
 
     receive() external payable {}
-    fallback() external payable {}
+    //TODO check if no fallback is'nt a problem
 }

@@ -23,6 +23,4 @@ export async function getProjects() {
   } catch (e) {}
 }
 
-export async function getOldsEvents() {
-  //TODO get passed events
-}
+export async function getOldsEvents() {}
