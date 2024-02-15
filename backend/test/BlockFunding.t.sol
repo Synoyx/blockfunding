@@ -105,13 +105,35 @@ contract BlockFundingTest is Test {
         blockFunding.createNewProject(data);
     }
 
-/*
-    function test_createProjectEmit() external {
+    function test_createProjectWithEmptyTeamMemberAddress() external {
+        BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
+        data.teamMembers[0].walletAddress = address(0);
+
+        vm.expectRevert(abi.encodePacked(BlockFundingProject.GivenTargetWalletAddressIsEmpty.selector));
+        blockFunding.createNewProject(data);
+    }
+
+    function test_createProjectWithTargetWalletSameAsTeamAddress() external {
+        BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
+        data.teamMembers[0].walletAddress = data.targetWallet;
+
+        vm.expectRevert(abi.encodePacked(BlockFundingProject.TargetWalletSameAsTeamMember.selector));
+        blockFunding.createNewProject(data);
+    }
+
+    function test_createProjectWithMissingTeamMemberInfo() external {
+        BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
+        data.teamMembers[0].firstName = "";
+
+        vm.expectRevert(abi.encodePacked(BlockFundingProject.MissingInformationForTeamMember.selector));
+        blockFunding.createNewProject(data);
+    }
+
+    function test_createProjectEvent() external {
         vm.expectEmit();
-        emit BlockFunding.NewProjectHasBeenCreated();        
+        emit BlockFunding.NewProjectHasBeenCreated();    
         blockFunding.createNewProject(MockedData.getMockedProjectDatas()[0]);
     }
-*/
 
     function test_blockfundingProjectCloning() external {
         assertEq(blockFunding.getProjectsAddresses().length, 0, "Projects array isn't empty when BlockFunding project is initialized");

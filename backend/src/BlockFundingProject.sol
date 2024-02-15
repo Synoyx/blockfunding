@@ -292,6 +292,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error CantCancelProjectAtTheLastStep();
     error TargetWalletSameAsTeamMember();
     error GivenTargetWalletAddressIsEmpty();
+    error MissingInformationForTeamMember();
+    error ProjectIsntFunded();
 
 
     /* *********************** 
@@ -326,6 +328,13 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     modifier fundingDatePassed {
         if (block.timestamp < data.campaignEndingDateTimestamp) {
             revert FundingIsntEndedYet(block.timestamp, data.campaignEndingDateTimestamp);
+        }
+        _;
+    }
+
+    modifier projectFunded {
+        if (block.timestamp < data.campaignEndingDateTimestamp || !checkIfProjectIsFunded()) {
+            revert ProjectIsntFunded();
         }
         _;
     }
@@ -370,8 +379,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
 
-    //TODO Check if project is funded everywhere needed
-
     /* *********************** 
     *        Methods
     *********************** */
@@ -395,7 +402,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         for (uint i; i < _data.teamMembers.length; i++) {
             if (_data.teamMembers[i].walletAddress == _data.targetWallet) revert TargetWalletSameAsTeamMember();
             if (_data.teamMembers[i].walletAddress == address(0)) revert GivenTargetWalletAddressIsEmpty();
-            //TODO check name
+            if (bytes(_data.teamMembers[i].firstName).length == 0 
+                || bytes(_data.teamMembers[i].lastName).length == 0 
+                || bytes(_data.teamMembers[i].description).length == 0 
+                || bytes(_data.teamMembers[i].photoLink).length == 0 
+                || bytes(_data.teamMembers[i].firstName).length == 0) revert MissingInformationForTeamMember();
+
             data.teamMembers.push(_data.teamMembers[i]);
             teamMembersAddresses[_data.teamMembers[i].walletAddress] = true;
         }
@@ -439,7 +451,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      * @notice Method to call by team members, to withdraw funds for the current project step, once it has been validated by financer's vote
      * This allow to unlock project's finances step by step, a process more secure for financers, to avoid scams
      */
-    function withdrawCurrentStep() external onlyTeamMember fundingDatePassed projectHasntBeenCanceled nonReentrant {
+    function withdrawCurrentStep() external onlyTeamMember projectFunded projectHasntBeenCanceled nonReentrant {
         ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]];
         if(currentStep.isFunded) revert CurrentStepFundsAlreadyWithdrawn();
 
@@ -454,6 +466,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      * @notice Method to call by team members, to withdraw funds left for the project once every step has been done and end project date is passed.
      *
      * @dev We don't test if project is canceled here, as if you can't cancel project after the last step has been validated
+     * We don't check if the project is funded, as we already check current step, and you can't change step without project being funded
      */
     function endProjectWithdraw() onlyTeamMember nonReentrant external {
         if(address(this).balance == 0) revert ProjectBalanceIsEmpty();
@@ -485,6 +498,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     /**
      * @notice Method to call by financers if a vote set the project as cancaled.
      * This allows financers to get their funding back, minus a potential portail consumed for the projet (depending on current step).
+     *
+     * @dev We don't check if project has been funded as a vote for canceling project can't happen if it's not funded
      */
     function withdrawProjectCanceled() external onlyFinancer fundingDatePassed nonReentrant {
        if (!projectGotVoteCanceled) revert ProjectHasntBeenCanceled();
@@ -506,7 +521,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param _to Address that will receive funds
     */
     function _safeWithdraw(uint _amountToWithdraw, address _to) internal {
-        //TODO if fail, transfer in WETH ?
         (bool success, ) = payable(_to).call{value: _amountToWithdraw}("");
         if (!success) revert FailWithdrawTo(_to);
         emit FundsWithdrawn(_to, _amountToWithdraw);
@@ -543,7 +557,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *
     * @param amountAsked The amount asked in wei
     */
-    function askForMoreFunds(uint amountAsked) external onlyTeamMember fundingDatePassed projectHasntBeenCanceled noVoteIsRunning{
+    function askForMoreFunds(uint amountAsked) external onlyTeamMember projectFunded projectHasntBeenCanceled noVoteIsRunning {
         if((address(this).balance < amountAsked) || (address(this).balance < (getSumOfFundsOfLeftSteps() + amountAsked))) revert AmountAskedTooHigh();
 
         Vote storage newVote = votes[currentVoteId];
@@ -560,7 +574,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * 
     * @param voteType The type of vote to start : ValidateStep or WithdrawProjectToFinancers
     */
-    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
+    function startVote(VoteType voteType) external canModifyCurrentVote(voteType) projectFunded projectHasntBeenCanceled noVoteIsRunning {
         if(voteType == VoteType.AddFundsForStep) revert UseDedicatedMethodToStartAskFundsVote();
         if (voteType == VoteType.WithdrawProjectToFinancers 
             && currentProjectStepId == data.projectSteps.length 
@@ -579,9 +593,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * If enough votes are in favor of the proposal, this will be immediatly applied.
     *
     * @dev Don't need to use modifier "projectHasntBeenCanceled" has you can't start a vote if project got canceled
-    * Don't need to test if project is in funding phase as you can't start a vote in funding phase
+    * Don't need to test if project is in funding phase as you can't start a vote in funding phase. Same thing for is project funded
     */
-    function endVote() external voteIsRunning canModifyCurrentVote(votes[currentVoteId].voteType){
+    function endVote() external voteIsRunning canModifyCurrentVote(votes[currentVoteId].voteType){ 
         Vote storage currentVote = votes[currentVoteId];
 
         if ((currentVote.endVoteDate > block.timestamp) 
@@ -611,6 +625,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @notice Method that allow financers to vote, if conditions are OK.
     *
     * @dev Don't need to use modifier "projectHasntBeenCanceled" has you can't start a vote if project got canceled
+    * Same thing for isProjectFunded
     *
     * @param vote Boolean that user fill to say if he approves or not the proposition.
     */
