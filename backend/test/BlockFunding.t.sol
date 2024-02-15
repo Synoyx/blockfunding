@@ -130,9 +130,10 @@ contract BlockFundingTest is Test {
     }
 
     function test_createProjectEvent() external {
+        BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
         vm.expectEmit();
         emit BlockFunding.NewProjectHasBeenCreated();    
-        blockFunding.createNewProject(MockedData.getMockedProjectDatas()[0]);
+        blockFunding.createNewProject(data);
     }
 
     function test_blockfundingProjectCloning() external {
