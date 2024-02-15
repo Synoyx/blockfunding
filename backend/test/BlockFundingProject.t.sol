@@ -847,4 +847,7 @@ contract SuicideContractToFeedUnpayableContract {
     }
 
     receive() external payable {}
+
+    /// @dev I add this line to make forge coverage ignore this class
+    function test() public {}
 }

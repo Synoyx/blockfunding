@@ -153,4 +153,7 @@ library MockedData {
 
         return mockedData;
     }
+
+    /// @dev I add this line to make forge coverage ignore this class
+    function test() public {}
 }

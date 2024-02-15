@@ -28,6 +28,9 @@ contract Deploy is Script {
 
         vm.stopBroadcast();
     }
+
+    /// @dev I add this line to make forge coverage ignore this class
+    function test() public virtual {}
 }
 
 contract DeployDev is Deploy {
@@ -45,6 +48,9 @@ contract DeployDev is Deploy {
             blockFunding.createNewProject(data[i]); // Create a clone for each iteration, with given mocked data
         }
     }
+
+    /// @dev I add this line to make forge coverage ignore this class
+    function test() public override {}
 }
 
 /**
