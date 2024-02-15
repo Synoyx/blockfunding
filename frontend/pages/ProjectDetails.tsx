@@ -43,7 +43,7 @@ const ProjectDetails = () => {
       ) : (
         <Flex direction="column" align="center" maxW="1200px" m="auto" p={5}>
           <Box width="full" overflow="hidden" borderRadius="lg" mb={5}>
-            <Image src={project!.mediasURI[0]} alt="Project banner" width="full" height="auto" />
+            <Image src={project!.mediaURI} alt="Project banner" width="full" height="auto" />
           </Box>
           <Flex direction={{ base: "column", lg: "row" }} width="full" gap={10}>
             <VStack align="start" flex={10} spacing={6} p={4} borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">

@@ -18,7 +18,7 @@ export class Project {
   campaignEndingDateTimestamp: number; // Timestamp en secondes
   estimatedProjectReleaseDateTimestamp: number; // Timestamp en secondes
   projectCategory: ProjectCategory;
-  mediasURI: string; // URLs des médias
+  mediaURI: string; // URLs des médias
 
   constructor(
     id: number,
@@ -33,7 +33,7 @@ export class Project {
     campaignEndingDateTimestamp: number,
     estimatedProjectReleaseDateTimestamp: number,
     projectCategory: ProjectCategory,
-    mediasURI: string
+    mediaURI: string
   ) {
     this.id = id;
     this.owner = owner;
@@ -47,7 +47,7 @@ export class Project {
     this.campaignEndingDateTimestamp = campaignEndingDateTimestamp;
     this.estimatedProjectReleaseDateTimestamp = estimatedProjectReleaseDateTimestamp;
     this.projectCategory = projectCategory;
-    this.mediasURI = mediasURI;
+    this.mediaURI = mediaURI;
   }
 
   describe(): void {
@@ -62,6 +62,6 @@ export class Project {
     console.log(`Date de fin: ${new Date(this.campaignEndingDateTimestamp * 1000).toLocaleString()}`);
     console.log(`Date estimée de réalisation: ${new Date(this.estimatedProjectReleaseDateTimestamp * 1000).toLocaleString()}`);
     console.log(`Catégorie: ${this.projectCategory}`);
-    console.log(`Liens du média: ${this.mediasURI}`);
+    console.log(`Liens du média: ${this.mediaURI}`);
   }
 }

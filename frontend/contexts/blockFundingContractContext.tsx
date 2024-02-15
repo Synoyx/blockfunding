@@ -31,6 +31,11 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
       for (let res of results) {
         console.log("RESULT = ");
         console.log(res);
+        let totalFundingRequested = 0;
+        for (let projectStep of res.projectSteps) {
+          totalFundingRequested += Number(projectStep.amoutNeeded);
+        }
+
         projectsArray.push(
           new Project(
             projectsArray.length,
@@ -39,7 +44,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
             res.subtitle,
             res.description,
             res.targetWallet,
-            res.fundingRequested,
+            totalFundingRequested,
             res.totalFundsHarvested,
             res.campaignStartingDateTimestamp,
             res.campaignEndingDateTimestamp,
