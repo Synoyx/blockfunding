@@ -36,29 +36,30 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
 
     struct Vote {
-        /// @notice Type of vote (see enum comment for more details)
-        VoteType voteType;
-
+        /// @notice Variable only use on VoteType.AddFundsForStep. It's the amount asked by the team to add on current step
+        uint96 askedAmountToAddForStep;
+        
         /// @notice End vote date, in timestamp second format
         uint96 endVoteDate;
 
-        /// @notice Mapping to keep a trace of who has voted
-        mapping (address => bool) hasFinancerVoted;
-
-        /// @notice Variable only use on VoteType.AddFundsForStep. It's the amount asked by the team to add on current step
-        uint96 askedAmountToAddForStep;
-
-        /// @notice Total of vote power voted in favor of current vote
-        uint votePowerInFavorOfProposal;
-
-        /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
-        uint votePowerAgainstProposal;
         
         /// @notice Does the action proposed to vote has been validated
         bool hasVoteBeenValidated;
 
         /// @notice Flag to know if vote is still running. Mostly used in modifiers
         bool isVoteRunning;
+
+        /// @notice Type of vote (see enum comment for more details)
+        VoteType voteType;
+
+        /// @notice Mapping to keep a trace of who has voted
+        mapping (address => bool) hasFinancerVoted;
+
+        /// @notice Total of vote power voted in favor of current vote
+        uint votePowerInFavorOfProposal;
+
+        /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
+        uint votePowerAgainstProposal;
     }
 
     struct TeamMember {
