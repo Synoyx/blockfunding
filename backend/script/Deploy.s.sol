@@ -42,12 +42,10 @@ contract DeployDev is Deploy {
         BlockFundingProject.ProjectData[] memory data = MockedData.getMockedProjectDatas();
 
         for (uint i; i < data.length; i++) {
-            blockFunding.createNewProject(data[i]);
+            blockFunding.createNewProject(data[i]); // Create a clone for each iteration, with given mocked data
         }
     }
 }
-
-//TODO Script pour intéragir avec la blockchain !
 
 /**
 source .env
@@ -55,6 +53,6 @@ forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast -
 forge script script/Deploy.s.sol:DeployDev --rpc-url $ANVIL_RPC_URL --broadcast
 
 Get projects
-cast call 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 "getProjects()(address[])" --rpc-url $ANVIL_RPC_URL
+cast call 0xb7f8bc63bbcad18155201308c8f3540b07f84f5e "getProjects()(address[])" --rpc-url $ANVIL_RPC_URL
 
 */

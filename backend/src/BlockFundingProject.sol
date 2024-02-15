@@ -192,7 +192,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     *********************** */
 
     /// @notice The current project step
-    uint8 currentProjectStep;
+    uint8 currentProjectStepId;
 
     /// @notice Flag for case financers has vote to cancel the project
     bool projectGotVoteCanceled;
@@ -290,6 +290,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     error FailWithdrawTo(address to);
     error AmountAskedTooHigh();
     error CantCancelProjectAtTheLastStep();
+    error TargetWalletSameAsTeamMember();
+    error GivenTargetWalletAddressIsEmpty();
 
 
     /* *********************** 
@@ -391,6 +393,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.mediaURI = _data.mediaURI;
 
         for (uint i; i < _data.teamMembers.length; i++) {
+            if (_data.teamMembers[i].walletAddress == _data.targetWallet) revert TargetWalletSameAsTeamMember();
+            if (_data.teamMembers[i].walletAddress == address(0)) revert GivenTargetWalletAddressIsEmpty();
+            //TODO check name
             data.teamMembers.push(_data.teamMembers[i]);
             teamMembersAddresses[_data.teamMembers[i].walletAddress] = true;
         }
@@ -401,7 +406,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             fundingRequested += _data.projectSteps[i].amountNeeded;
         }
 
-        currentProjectStep = 1;
+        currentProjectStepId = 1;
 
         _transferOwnership(_data.owner);
     }
@@ -435,7 +440,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
      * This allow to unlock project's finances step by step, a process more secure for financers, to avoid scams
      */
     function withdrawCurrentStep() external onlyTeamMember fundingDatePassed projectHasntBeenCanceled nonReentrant {
-        ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStep]];
+        ProjectStep storage currentStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]];
         if(currentStep.isFunded) revert CurrentStepFundsAlreadyWithdrawn();
 
         uint96 amountToWithdraw = currentStep.amountNeeded - currentStep.amountFunded;
@@ -453,8 +458,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function endProjectWithdraw() onlyTeamMember nonReentrant external {
         if(address(this).balance == 0) revert ProjectBalanceIsEmpty();
         if(data.estimatedProjectReleaseDateTimestamp > block.timestamp) revert ProjectIsntEndedYet();
-        if(currentProjectStep != data.projectSteps.length 
-            || (currentProjectStep == data.projectSteps.length && !data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated)) 
+        if(currentProjectStepId != data.projectSteps.length 
+            || (currentProjectStepId == data.projectSteps.length && !data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]].hasBeenValidated)) 
             revert LastStepOfProjectNotValidatedYet();
 
         uint96 amountToWithdraw = uint96(address(this).balance);
@@ -558,8 +563,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function startVote(VoteType voteType) external canModifyCurrentVote(voteType) fundingDatePassed projectHasntBeenCanceled noVoteIsRunning {
         if(voteType == VoteType.AddFundsForStep) revert UseDedicatedMethodToStartAskFundsVote();
         if (voteType == VoteType.WithdrawProjectToFinancers 
-            && currentProjectStep == data.projectSteps.length 
-            && data.projectSteps[currentProjectStep - 1].hasBeenValidated) revert CantCancelProjectAtTheLastStep();
+            && currentProjectStepId == data.projectSteps.length 
+            && data.projectSteps[currentProjectStepId - 1].hasBeenValidated) revert CantCancelProjectAtTheLastStep();
 
         Vote storage newVote = votes[currentVoteId];
         newVote.voteType = voteType;
@@ -584,16 +589,16 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         if (isVoteValidated(currentVote.votePowerInFavorOfProposal, totalVotePower)) {
             currentVote.hasVoteBeenValidated = true;
+            ProjectStep storage curProjectStep = data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]];
 
             if (currentVote.voteType == VoteType.WithdrawProjectToFinancers) { projectGotVoteCanceled = true; }
             else if (currentVote.voteType == VoteType.ValidateStep) {
-                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].hasBeenValidated = true;
-                //TODO when going to the next step, take the funds of the last step not withdrawn and add them to the next step ?
-                if (currentProjectStep < data.projectSteps.length) { currentProjectStep += 1; }
+                curProjectStep.hasBeenValidated = true;
+                if (currentProjectStepId < data.projectSteps.length) { currentProjectStepId += 1;}
             } 
             else if (currentVote.voteType == VoteType.AddFundsForStep) {
-                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].isFunded = false;
-                data.projectSteps[projectStepsOrderedIndex[currentProjectStep]].amountNeeded += currentVote.askedAmountToAddForStep;
+                curProjectStep.isFunded = false;
+                curProjectStep.amountNeeded += currentVote.askedAmountToAddForStep;
             }
         }
 
@@ -668,7 +673,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function getSumOfFundsOfLeftSteps() internal view returns(uint) {
         uint ret;
 
-        for (uint i = currentProjectStep; i < data.projectSteps.length; i++) {
+        for (uint i = currentProjectStepId; i < data.projectSteps.length; i++) {
             ret += (data.projectSteps[i].amountNeeded - data.projectSteps[i].amountFunded);
         }
 
@@ -700,7 +705,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     function getCurrentProjectStepId() external view returns (uint) {
-        return projectStepsOrderedIndex[currentProjectStep];
+        return projectStepsOrderedIndex[currentProjectStepId];
     }
 
     function getCurrentVotePowerAgainstProposal() external view returns (uint) {

@@ -10,7 +10,7 @@ import "../src/BlockFundingProject.sol";
 import "../script/tools/MockedData.sol";
 
 contract BlockFundingProjectTest is Test {
-    address teamMemberAddress = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address teamMemberAddress = 0xF39Fd6E51aAd88f6f4cE6Ab8827279CFfFb92265;
     address financerAddress = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
     address visitorAddress = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
 
@@ -24,9 +24,10 @@ contract BlockFundingProjectTest is Test {
         blockFunding = new BlockFunding();
         unpayableTestContract = new UnpayableTestContract();
 
-        BlockFundingProject.TeamMember[] memory teamMembers = new BlockFundingProject.TeamMember[](2);
+        BlockFundingProject.TeamMember[] memory teamMembers = new BlockFundingProject.TeamMember[](3);
         teamMembers[0] = BlockFundingProject.TeamMember("Theo", "Riz", "Une personne hypothetique", "", "Savant", teamMemberAddress);
-        teamMembers[1] = BlockFundingProject.TeamMember("Jean", "Bonnot", "Amateur de bonne bouffe", "", "Boucher", address(unpayableTestContract));
+        teamMembers[1] = MockedData.getMockedProjectDatas()[0].teamMembers[1];
+        teamMembers[2] = MockedData.getMockedProjectDatas()[0].teamMembers[2];
         BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
         data.teamMembers = teamMembers;
         blockFunding.createNewProject(data);
