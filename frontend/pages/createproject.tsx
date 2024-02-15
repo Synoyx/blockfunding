@@ -20,6 +20,9 @@ import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { ProjectCategory } from "@/ts/objects/Project";
 
+import { ProjectData, ProjectStep } from "@/ts/objects/ProjectData";
+import { TeamMember } from "@/ts/objects/TeamMember";
+
 const CreateProject = () => {
   const { address } = useAccount();
   const minDate = new Date().toISOString().split("T")[0];
@@ -72,16 +75,33 @@ const CreateProject = () => {
     console.log("Project value = ");
     console.log(project);
     await callWriteMethod(BlockFundingFunctions.createNewContract, [
-      [project.name, project.subtitle, project.description],
-      ["http://google.fr"],
-      [
+      new ProjectData(
         new Date(project.startDate).getTime() / 1000,
         new Date(project.endDate).getTime() / 1000,
         new Date(project.estimatedCompletionDate).getTime() / 1000,
-        +project.fundingGoal,
-      ],
-      project.walletAddress,
-      0,
+        project.walletAddress,
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266", //TODO
+        0n,
+        0,
+        project.name,
+        project.subtitle,
+        project.description,
+        "http://google.fr",
+        [
+          new TeamMember(
+            "Theo",
+            "Rieduku",
+            "Une personne hippothetique",
+            "http://google.fr",
+            "Savant",
+            "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+          ),
+        ],
+        [
+          new ProjectStep("Step 1", "Desc of step 1", 1000000n, 0n, false, 1, false),
+          new ProjectStep("Step 2", "Desc of step 2", 1000000n, 0n, false, 2, false),
+        ]
+      ),
     ]);
     console.log("Called finished");
 

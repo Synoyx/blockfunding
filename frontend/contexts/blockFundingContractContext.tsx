@@ -33,7 +33,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
         console.log(res);
         let totalFundingRequested = 0;
         for (let projectStep of res.projectSteps) {
-          totalFundingRequested += Number(projectStep.amoutNeeded);
+          totalFundingRequested += Number(projectStep.amountNeeded);
         }
 
         projectsArray.push(

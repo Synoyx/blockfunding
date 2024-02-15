@@ -413,6 +413,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         }
 
         for (uint i; i < _data.projectSteps.length; i++) {
+            //TODO create a new object and set values manually (name, description, amount needed, orderNumber
             data.projectSteps.push(_data.projectSteps[i]);
             projectStepsOrderedIndex[_data.projectSteps[i].orderNumber] = uint8(i);
             fundingRequested += _data.projectSteps[i].amountNeeded;
