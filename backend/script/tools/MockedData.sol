@@ -37,12 +37,12 @@ library MockedData {
             msg.sender,
             0,
             BlockFunding.ProjectCategory.technology,
-            "Eco drive",
-            "Revolution automobile",
-            "Une approche durable de la mobilite urbaine.",
-            "https://www.shutterstock.com/image-photo/black-modern-car-closeup-on-600nw-2139196215.jpg",
+            unicode"PizzaRenaissance",
+            unicode"PizzaRenaissance est un innovant réhydrateur de pizza transformant une pizza déshydratée en une délicieuse pizza au goût frais et à la texture parfaite en quelques secondes.",
+            unicode"PizzaRenaissance est la concrétisation d'un rêve pour tous les amateurs de pizza. Inspiré par la célèbre scène de 'Retour vers le Futur', notre projet vise à révolutionner la manière dont nous consommons notre plat favori. Le réhydrateur PizzaRenaissance est un appareil révolutionnaire capable de transformer une pizza déshydratée en une pizza chaude, savoureuse et croustillante en seulement quelques secondes, comme si elle sortait tout juste du four.\n\nLe secret de PizzaRenaissance réside dans sa technologie de pointe qui imite le processus de réhydratation rapide vu dans le film, tout en s'assurant que toutes les saveurs et la texture de la pizza soient méticuleusement préservées. Notre équipe de chercheurs et d'ingénieurs a travaillé sans relâche pour mettre au point un système qui utilise un mélange précis de chaleur, d'humidité et de pression pour réactiver les ingrédients déshydratés sans compromettre leur qualité ni leur goût.\n\nLe design de l'appareil PizzaRenaissance est à la fois moderne et compact, permettant de l'intégrer facilement dans n'importe quelle cuisine. Son interface utilisateur intuitive rend le processus de réhydratation accessible à tous, garantissant une expérience utilisateur sans faille. Que vous soyez pressé, que vous souhaitiez réduire le gaspillage alimentaire ou simplement profiter d'une pizza parfaite à tout moment, PizzaRenaissance est la solution idéale.\n\nNotre vision va au-delà de la simple réhydratation de la pizza. Nous envisageons un avenir où PizzaRenaissance jouera un rôle crucial dans la transformation de la manière dont nous appréhendons la conservation et la consommation des aliments. En rendant la déshydratation et la réhydratation des aliments plus efficaces et savoureuses, nous pouvons significativement réduire le gaspillage alimentaire tout en maximisant la commodité et le plaisir de manger.\n\nLe projet PizzaRenaissance se compose de plusieurs phases, allant de la recherche et développement à la production en série, en passant par les tests utilisateurs et le lancement sur le marché. Chaque étape est conçue pour garantir que le produit final soit non seulement innovant, mais aussi sûr, fiable et abordable. Nous nous engageons à utiliser des matériaux durables et à adopter des pratiques de fabrication responsables pour minimiser notre impact environnemental.\n\nEn participant à notre campagne de crowdfunding, vous ne soutenez pas seulement le lancement d'un produit révolutionnaire ; vous contribuez également à une vision plus large visant à changer notre relation avec la nourriture. Ensemble, nous pouvons redéfinir ce qu'il est possible de faire dans la cuisine, tout en prenant soin de notre planète.\n\nRejoignez-nous dans cette aventure culinaire et technologique et soyez parmi les premiers à découvrir le goût authentique de la pizza, réinventé par PizzaRenaissance. Votre soutien est crucial pour transformer cette vision en réalité. Ensemble, faisons revivre le goût et réinventons la pizza pour les générations à venir.",
+            "https://image.noelshack.com/fichiers/2024/07/5/1708097743-dall-e-2024-02-16-16-32-03-genere-une-cuisine-eco-futuriste.jpg",
             getMockedTeamMembers(),
-            getMockedProjectSteps());
+            getMockedStepsForPizzaRenaissance());
 
         mockedData[2] = BlockFundingProject.ProjectData(
             campaignStartingDateTimestamp,
@@ -155,7 +155,7 @@ library MockedData {
     }
 
     function getMockedStepsForAeroDrive() internal pure returns(BlockFundingProject.ProjectStep[] memory) {
-        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](5);
+        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](12);
 
         mockedData[0] = BlockFundingProject.ProjectStep({
             name: "Conceptualisation et Design Initial",
@@ -257,23 +257,99 @@ library MockedData {
             hasBeenValidated: false
         });
 
-        mockedData[0] = BlockFundingProject.ProjectStep({
+        mockedData[10] = BlockFundingProject.ProjectStep({
             name: unicode"Production de Série",
             description: unicode"Début de la production en série et contrôle qualité.",
             amountNeeded: 10000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 11,
+            hasBeenValidated: false
+        });
+
+        mockedData[11] = BlockFundingProject.ProjectStep({
+            name: "Lancement et Commercialisation",
+            description: unicode"Lancement officiel sur le marché et début des livraisons.",
+            amountNeeded: 1000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 12,
+            hasBeenValidated: false
+        });
+
+        return mockedData;
+    }
+
+    function getMockedStepsForPizzaRenaissance() internal pure returns(BlockFundingProject.ProjectStep[] memory) {
+        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](7);
+
+        mockedData[0] = BlockFundingProject.ProjectStep({
+            name: unicode"Conception et Développement ",
+            description: unicode"Fusion des phases de recherche, de développement initial, et de prototypage. Cette étape inclut l'étude de faisabilité, la conception préliminaire, le développement de prototypes pour tester la technologie de réhydratation, et les analyses initiales pour optimiser la performance.",
+            amountNeeded: 1000000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 1,
             hasBeenValidated: false
         });
 
-        mockedData[0] = BlockFundingProject.ProjectStep({
-            name: "Lancement et Commercialisation",
-            description: unicode"Lancement officiel sur le marché et début des livraisons.",
-            amountNeeded: 1000000000000000000000,
+        mockedData[1] = BlockFundingProject.ProjectStep({
+            name: unicode"Tests et Optimisation",
+            description: unicode"Combinaison des tests de laboratoire et du développement logiciel, cette étape se concentre sur les analyses approfondies pour optimiser la performance, la sécurité du dispositif, et la création du logiciel de contrôle, y compris l'interface utilisateur.",
+            amountNeeded: 2000000000000000000000,
             amountFunded: 0,
             isFunded: false,
-            orderNumber: 1,
+            orderNumber: 2,
+            hasBeenValidated: false
+        });
+
+        mockedData[2] = BlockFundingProject.ProjectStep({
+            name: unicode"Finalisation du Design et Certification",
+            description: unicode"Cette étape intègre le design industriel final et l'obtention des certifications nécessaires pour la commercialisation, assurant que le produit respecte toutes les normes et régulations applicables.",
+            amountNeeded: 7000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 3,
+            hasBeenValidated: false
+        });
+
+        mockedData[3] = BlockFundingProject.ProjectStep({
+            name: unicode"Préparation de la Production",
+            description: unicode"Mise en place simultanée de la chaîne de production, incluant l'établissement des lignes de production et des partenariats avec les fournisseurs.",
+            amountNeeded: 10000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 4,
+            hasBeenValidated: false
+        });
+
+        mockedData[4] = BlockFundingProject.ProjectStep({
+            name: "Production de Masse",
+            description: unicode"Début de la fabrication en grande quantité pour répondre à la demande prévue, en utilisant les fonds collectés lors de la campagne de crowdfunding pour financer cette phase.",
+            amountNeeded: 2000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 5,
+            hasBeenValidated: false
+        });
+
+        mockedData[5] = BlockFundingProject.ProjectStep({
+            name: unicode"Marketing et Lancement sur le Marché",
+            description: unicode"Planification et exécution des campagnes de marketing pour promouvoir le produit, suivies du lancement sur le marché, en s'assurant que les stratégies de publicité sont en place pour atteindre le public cible.",
+            amountNeeded: 2000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 6,
+            hasBeenValidated: false
+        });
+
+        mockedData[6] = BlockFundingProject.ProjectStep({
+            name: unicode"Distribution et Ventes",
+            description: unicode"Mise en place de la logistique pour la distribution et gestion des ventes, en s'assurant que le produit est accessible aux consommateurs à travers différents canaux de vente, y compris en ligne et en magasin.",
+            amountNeeded: 3000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 7,
             hasBeenValidated: false
         });
 

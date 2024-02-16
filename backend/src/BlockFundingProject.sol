@@ -721,6 +721,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return votes[currentVoteId].votePowerInFavorOfProposal;
     }
 
+    function getFundingRequested() external view returns (uint) {
+        return fundingRequested;
+    }
+
     function getCurrentProjectStepId() external view returns (uint) {
         return projectStepsOrderedIndex[currentProjectStepId];
     }

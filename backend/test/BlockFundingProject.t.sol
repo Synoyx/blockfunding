@@ -63,22 +63,22 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_withdrawCurrentStep() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
 
-        assertEq(address(defaultProject).balance, 1000000000000000, "Balance of project seems abnormal");
+        assertEq(address(defaultProject).balance, defaultProject.getFundingRequested(), "Balance of project seems abnormal");
 
         uint amountToWithdraw = defaultProject.getData().projectSteps[0].amountNeeded - defaultProject.getData().projectSteps[0].amountFunded;
 
         vm.prank(teamMemberAddress);
         defaultProject.withdrawCurrentStep();
 
-        assertEq(address(defaultProject).balance, 1000000000000000 - amountToWithdraw, "Balance of project seems abnormal");
+        assertEq(address(defaultProject).balance, defaultProject.getFundingRequested() - amountToWithdraw, "Balance of project seems abnormal");
     }
 
     function test_withdrawCurrentStepEvent() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
 
@@ -93,7 +93,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawCurrentStepWithoutBeingTeamMember() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.TeamMemberUnauthorizedAccount.selector, address(this)));
@@ -101,7 +101,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawCurrentStepInFundingPhase() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsntFunded.selector));
         vm.prank(teamMemberAddress);
@@ -109,7 +109,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawCurrentStepWithProjectCanceled() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -122,7 +122,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawCurrentStepTwice() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
 
@@ -140,7 +140,7 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_endProjectWithdraw() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
@@ -155,14 +155,14 @@ contract BlockFundingProjectTest is Test {
 
         vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
 
-        assertEq(address(defaultProject).balance, 1000000000000000, "Balance of project seems abnormal");
+        assertEq(address(defaultProject).balance, defaultProject.getFundingRequested(), "Balance of project seems abnormal");
         vm.prank(teamMemberAddress);
         defaultProject.endProjectWithdraw();
         assertEq(address(defaultProject).balance, 0, "Balance of project seems abnormal");
     }
 
     function test_endProjectWithdrawEvent() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
@@ -178,13 +178,13 @@ contract BlockFundingProjectTest is Test {
         vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
 
         vm.expectEmit();
-        emit BlockFundingProject.FundsWithdrawn(defaultProject.getData().targetWallet, 1000000000000000);   
+        emit BlockFundingProject.FundsWithdrawn(defaultProject.getData().targetWallet, defaultProject.getFundingRequested());   
         vm.prank(teamMemberAddress);
         defaultProject.endProjectWithdraw();
     }
 
     function test_endProjectWithdrawWithoutTeamMemberRights() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
@@ -204,7 +204,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endProjectWithdrawWithEmptyBalance() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
 
@@ -232,7 +232,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endProjectWithdrawBeforeEndProject() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
@@ -251,7 +251,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endProjectWithdrawBeforeValidationOfLastStep() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length - 1; i++) {
@@ -326,7 +326,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_projectNotFundedWithdrawWithProjectFunded() external {
-        defaultProject.fundProject{value: 200000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsFundedYouCantWithdrawNow.selector));
@@ -338,20 +338,20 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_withdrawProjectCanceled() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
         defaultProject.sendVote(true);
         defaultProject.endVote();
 
-        assertEq(address(defaultProject).balance, 10000000, "Balance of project seems abnormal");
+        assertEq(address(defaultProject).balance, defaultProject.getFundingRequested(), "Balance of project seems abnormal");
         defaultProject.withdrawProjectCanceled();
         assertEq(address(defaultProject).balance, 0, "Balance of project seems abnormal");
     }
 
     function test_withdrawProjectCanceledEvent() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -359,12 +359,12 @@ contract BlockFundingProjectTest is Test {
         defaultProject.endVote();
 
         vm.expectEmit();
-        emit BlockFundingProject.FundsWithdrawn(address(this), 10000000);   
+        emit BlockFundingProject.FundsWithdrawn(address(this), defaultProject.getFundingRequested());   
         defaultProject.withdrawProjectCanceled();
     }
 
     function test_withdrawProjectCanceledWithoutBeingFinancer() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -377,7 +377,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawProjectCanceledWhileBeingInFundingPhase() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FundingIsntEndedYet.selector, block.timestamp, defaultProject.getData().campaignEndingDateTimestamp));
         defaultProject.withdrawProjectCanceled();
@@ -385,7 +385,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_withdrawProjectCanceledWithoutProjectBeingCanceled() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectHasntBeenCanceled.selector));
@@ -409,8 +409,8 @@ contract BlockFundingProjectTest is Test {
         defaultProject.fundProject{value: 10000}();
 
         vm.expectEmit();
-        emit BlockFundingProject.ProjectIsFunded(address(this), 1000000000010000);   
-        defaultProject.fundProject{value: 1000000000000000}();
+        emit BlockFundingProject.ProjectIsFunded(address(this), defaultProject.getFundingRequested() + 10000);   
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
     }
 
     function test_fundProjectTwice() external {
@@ -437,7 +437,7 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_askForMoreFunds() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         assertEq(defaultProject.isCurrentVoteRunning(), false, "Abnormal running vote state in init");
@@ -447,7 +447,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_askForMoreFundsEvent() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.startPrank(teamMemberAddress);
@@ -457,7 +457,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_askForMoreFundsWithoutTeamMemberRights() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.TeamMemberUnauthorizedAccount.selector, address(this)));
@@ -465,14 +465,14 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_askForMoreFundsInFundingPhase() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsntFunded.selector));
         vm.prank(teamMemberAddress);
         defaultProject.askForMoreFunds(1000);
     }
 
     function test_askForMoreFundsWhenProjectIsCanceled() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -485,7 +485,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_askForMoreFundsWhenVoteIsRunning() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
 
@@ -495,12 +495,14 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_askForMoreFundsWithTooMuchAmount() external {
-        defaultProject.fundProject{value: 10000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
-        vm.prank(teamMemberAddress);
+        uint valueFunded = defaultProject.getFundingRequested();
+
+        vm.startPrank(teamMemberAddress);
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.AmountAskedTooHigh.selector));
-        defaultProject.askForMoreFunds(10000000);
+        defaultProject.askForMoreFunds(valueFunded + 1);
     }
 
     /**************************
@@ -508,7 +510,7 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_startVote() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         assertEq(defaultProject.isCurrentVoteRunning(), false, "Abnormal running vote state in init");
@@ -517,7 +519,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_startVoteEvent() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectEmit();
@@ -526,7 +528,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_startVoteToCancelOnLastStep() external {
-        defaultProject.fundProject{value: 1000000000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
@@ -558,14 +560,14 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_startVoteInFundingPhase() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.ProjectIsntFunded.selector));
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
     }
 
     function test_startVoteWhenProjectIsCanceled() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -577,7 +579,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_startVoteWhenVoteIsRunning() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
 
@@ -586,7 +588,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_startVoteWithWrongVoteType() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
         
         vm.prank(teamMemberAddress);
@@ -600,7 +602,7 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_endVote() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -613,7 +615,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteEvent() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -627,7 +629,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteWithoutVote() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -641,7 +643,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteOnAddFundsForStep() external {
-        defaultProject.fundProject{value: 1000000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested() + 1000000}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
 
@@ -665,7 +667,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteWithoutFinancersRights() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -678,7 +680,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteWithoutTeamMemberRights() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.prank(teamMemberAddress);
@@ -691,7 +693,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteWhenNoVoteRunning() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.NoVoteRunning.selector));
@@ -700,7 +702,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_endVoteWhenEndDateNotPassed() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
         
         defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
@@ -714,7 +716,7 @@ contract BlockFundingProjectTest is Test {
     ***************************/
 
     function test_sendVote() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -722,12 +724,12 @@ contract BlockFundingProjectTest is Test {
 
         assertEq(defaultProject.getCurrentVotePower(), 0, "Abnormal init vote power");
         defaultProject.sendVote(true);
-        assertEq(defaultProject.getCurrentVotePower(), 10000, "Abnormal vote power"); // 10000 is sqrt(100000000)
+        assertEq(defaultProject.getCurrentVotePower(), Maths.sqrt(defaultProject.getFundingRequested()), "Abnormal vote power");
 
     }
 
     function test_sendVoteEvent() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -740,7 +742,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_sendVoteTotalPowerAdded() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -748,11 +750,11 @@ contract BlockFundingProjectTest is Test {
 
         assertEq(defaultProject.getCurrentVotePowerAgainstProposal(), 0, "Abnormal init vote power");
         defaultProject.sendVote(false);
-        assertEq(defaultProject.getCurrentVotePowerAgainstProposal(), 10000, "Abnormal vote power"); // 10000 is sqrt(100000000)
+        assertEq(defaultProject.getCurrentVotePowerAgainstProposal(), Maths.sqrt(defaultProject.getFundingRequested()), "Abnormal vote power");
     }
 
     function test_sendVoteWithoutBeingFinancer() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -765,7 +767,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_sendVoteWhenNoVoteIsRunning() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -774,7 +776,7 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_sendVoteWhenVoteIsEnded() external {
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
@@ -788,7 +790,7 @@ contract BlockFundingProjectTest is Test {
 
     function test_sendVoteTwice() external {
 
-        defaultProject.fundProject{value: 100000000}();
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
 
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
