@@ -25,24 +25,6 @@ export const Header = () => {
           </Text>
         </Flex>
       </Link>
-      <Menu>
-        <Stack
-          spacing={8}
-          color="white"
-          align="center"
-          justify={["center", "space-between", "flex-end", "flex-end"]}
-          direction={["column", "row", "row", "row"]}
-          pt={[4, 4, 0, 0]}
-        >
-          <Link href="/">
-            <MenuItem>Home</MenuItem>
-          </Link>
-          <Link href="/CreateProject">
-            <MenuItem>Create project</MenuItem>
-          </Link>
-          ...
-        </Stack>
-      </Menu>
 
       <Flex alignItems="inherit">
         {isConnected ? (

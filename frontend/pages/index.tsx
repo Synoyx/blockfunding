@@ -1,19 +1,92 @@
 "use client";
 
-import { Box } from "@chakra-ui/react";
+import { Box, Button, Text, Flex, Select } from "@chakra-ui/react";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from "react-responsive-carousel";
+import Link from "next/link";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
-import ProjectRow from "@/components/projectRow";
+import Loader from "@/components/tools/Loader";
+import { Project } from "@/ts/objects/Project";
 
 export default function HomePage() {
   const { projects, isLoadingProjects } = useBlockFundingContractContext();
 
   return (
-    <Box marginTop="20px">
-      <ProjectRow title="Derniers Projets" projects={projects} />
-    </Box>
+    <Flex as="main" marginTop="20px" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
+      {isLoadingProjects ? <Loader /> : <LastProjectsSection projects={projects} />}
+
+      <MoreProjectsSection
+        projects={projects}
+        categories={["Art", "Automobile"]}
+        selectedCategory={"Art"}
+        onCategoryChange={() => console.log("toto")}
+      />
+    </Flex>
   );
 }
 
-//<ProjectRow title="Se Terminant Bientôt" projects={endingSoonProjects} />
-//<ProjectRow title="Les Plus Financés" projects={mostFundedProjects} />
+interface LastProjectsSectionProps {
+  projects: Project[];
+}
+
+const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
+  return (
+    <Box>
+      <Flex justifyContent="space-between" alignItems="center" mb="15px">
+        <Text fontSize="2xl">Our last projects</Text>
+        <Link href="/CreateProject">
+          <Button bg="green.500" color="white">
+            Create project
+          </Button>
+        </Link>
+      </Flex>
+      <Carousel
+        showArrows={true}
+        autoPlay={true}
+        infiniteLoop={true}
+        showThumbs={false}
+        showStatus={false}
+        showIndicators={true}
+        dynamicHeight={true}
+        emulateTouch={true}
+      >
+        {projects.map((project: Project, index: number) => (
+          <Box key={index}>
+            <img src={project.mediaURI} alt={project.name} />
+            <Box position="absolute" bottom="0" left="0" background="rgba(0, 0, 0, 0.5)" color="white" width="100%">
+              <Text fontSize="lg">{project.name}</Text>
+              <Text fontSize="md">{project.subtitle}</Text>
+              <Text fontSize="sm">{project.description}</Text>
+            </Box>
+          </Box>
+        ))}
+      </Carousel>
+    </Box>
+  );
+};
+
+interface MoreProjectsSectionProps {
+  projects: Project[];
+  categories: string[];
+  selectedCategory: string;
+  onCategoryChange: any;
+}
+
+const MoreProjectsSection = ({ projects, categories, selectedCategory, onCategoryChange }: MoreProjectsSectionProps) => {
+  return (
+    <Box>
+      <Flex alignItems="center" marginBottom="20px">
+        <Text fontSize="2xl">More projects</Text>
+        <Select placeholder="Select category" onChange={onCategoryChange} value={selectedCategory} ml="40px" maxW="300px">
+          {categories.map((category, index) => (
+            <option key={index} value={category}>
+              {category}
+            </option>
+          ))}
+        </Select>
+      </Flex>
+      {/* Ici, vous pouvez intégrer la logique d'affichage des cartes de projets */}
+    </Box>
+  );
+};
