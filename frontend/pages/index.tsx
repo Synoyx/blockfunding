@@ -14,14 +14,19 @@ export default function HomePage() {
 
   return (
     <Flex as="main" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
-      {isLoadingProjects ? <Loader /> : <LastProjectsSection projects={projects} />}
-
-      <MoreProjectsSection
-        projects={projects}
-        categories={["Art", "Automobile"]}
-        selectedCategory={"Art"}
-        onCategoryChange={() => console.log("toto")}
-      />
+      {isLoadingProjects ? (
+        <Loader />
+      ) : (
+        <>
+          <LastProjectsSection projects={projects} />
+          <MoreProjectsSection
+            projects={projects}
+            categories={["Art", "Automobile"]}
+            selectedCategory={"Art"}
+            onCategoryChange={() => console.log("toto")}
+          />
+        </>
+      )}
     </Flex>
   );
 }
@@ -62,7 +67,7 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
               <Box position="relative" width="100%" height="500px">
                 <Image src={project.mediaURI} alt={project.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <Box position="absolute" bottom="50px" left="0" background="rgba(0, 0, 0, 0.5)" color="white" width="100%" p="10px">
-                  <Text fontSize="lg" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
+                  <Text fontWeight="bold" fontSize="lg" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
                     {project.name}
                   </Text>
                   <Text fontSize="md" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
