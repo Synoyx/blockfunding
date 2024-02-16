@@ -40,8 +40,13 @@ const ProjectDetails = () => {
   useEffect(() => {
     if (project !== undefined) {
       setIsUserProjectOwner(address === project!.owner);
+      document.title = project!.name;
     } else setIsUserProjectOwner(false);
   }, [address, project]);
+
+  useEffect(() => {
+    document.title = "Détails du projet";
+  });
 
   return (
     <>
@@ -54,15 +59,16 @@ const ProjectDetails = () => {
           </Box>
           <Flex direction={{ base: "column", lg: "row" }} width="full" gap={5}>
             <VStack align="start" flex={10} spacing={6} p={4} borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
-              <Flex>
-                {["Project", "Timeline", "Team", "Events"].map((tabName) => (
+              <Flex width="100%">
+                {["Project", "Timeline", "Team", "Étapes du projet"].map((tabName) => (
                   <Button
+                    flex="1"
                     key={tabName}
-                    borderRadius="0"
+                    borderRadius="8px 8px 0 0"
                     borderBottom={active === tabName ? "none" : "2px solid grey !important"}
-                    borderTop={active === tabName ? "2px solid grey !important" : "none"}
-                    borderRight={active === tabName ? "2px solid grey !important" : "none"}
-                    borderLeft={active === tabName ? "2px solid grey !important" : "none"}
+                    borderTop={active === tabName ? "2px solid #B5B5B5 !important" : "none"}
+                    borderRight={active === tabName ? "2px solid #B5B5B5 !important" : "none"}
+                    borderLeft={active === tabName ? "2px solid #B5B5B5 !important" : "none"}
                     fontSize="20px"
                     _focus={{ outline: "none" }}
                     padding="10px 60px"
@@ -71,6 +77,7 @@ const ProjectDetails = () => {
                     border="0"
                     outline="0"
                     bg="transparent"
+                    transition="all 1s ease-out"
                     onClick={() => setActive(tabName)}
                   >
                     {tabName}
@@ -126,13 +133,6 @@ const ProjectDetails = () => {
             </VStack>
 
             <Stack direction={{ base: "column" }} spacing={4} flex={1} ml={{ lg: 5 }} maxW="30%">
-              {isUserProjectOwner ? (
-                <Box p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
-                  <Button>Manage project</Button>
-                </Box>
-              ) : (
-                <></>
-              )}
               <Box p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Heading size="md" lineHeight="shorter" mb="10px">
                   Financement
@@ -168,7 +168,23 @@ const ProjectDetails = () => {
                   </Link>
                 </Flex>
               </Box>
-              <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px"></VStack>
+              <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
+                <Flex justifyContent="space-between">
+                  <Heading size="md" lineHeight="shorter" mb="10px">
+                    Vote
+                  </Heading>
+                  <Text>Historique</Text>
+                </Flex>
+                <Text align="center">Il n'y a pas de vote en cours</Text>
+                <Flex display={isUserProjectOwner ? "block" : "none"} alignItems="center">
+                  <Button bg="green.500" color="white">
+                    Start validate current step vote
+                  </Button>
+                  <Button bg="orange" color="white">
+                    State add funds to current step vote
+                  </Button>
+                </Flex>
+              </VStack>
             </Stack>
           </Flex>
         </Flex>
