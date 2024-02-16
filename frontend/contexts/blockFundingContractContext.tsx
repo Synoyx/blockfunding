@@ -50,7 +50,7 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
             res.campaignEndingDateTimestamp,
             res.estimatedProjectReleaseDateTimestamp,
             res.projectCategory,
-            "" // set a media URI
+            res.mediaURI
           )
         );
       }

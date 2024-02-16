@@ -1,10 +1,8 @@
 "use client";
 
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider, Box, Flex } from "@chakra-ui/react";
 import { extendTheme } from "@chakra-ui/react";
 import "@rainbow-me/rainbowkit/styles.css";
-
-import { Flex } from "@chakra-ui/react";
 
 // Importing rainbowkit for connecting wallet from different sources ...
 import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit"; //getDefaultWallets,
@@ -44,9 +42,11 @@ export default function Layout({ children }: any) {
             <BlockFundingContractContextProvider>
               <ContextsLoader>
                 <main>
-                  <Flex direction="column" height="100vh" justifyContent="space-between">
+                  <Flex direction="column" minHeight="100vh">
                     <Header />
-                    <Flex justifyContent="center">{children}</Flex>
+                    <Box flex="1" overflowY="auto">
+                      {children}
+                    </Box>
                     <Footer />
                   </Flex>
                 </main>

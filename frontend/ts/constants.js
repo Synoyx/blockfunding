@@ -1,7 +1,7 @@
 export const NFT_STORAGE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU4MDY4N0Q0QjU4M0M4MDYyYjhGODcwNzQwRDg3MGQ5NUIwRGQ4NUIiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwNzQyODc3NjI0NywibmFtZSI6IlRlc3QifQ.MxIq9_MxyqECzJAzI_Jzpce-jJs_9Sm8vmE5DD9rRN0";
 
-export const contractAddress = "0xb7f8bc63bbcad18155201308c8f3540b07f84f5e";
+export const contractAddress = "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c";
 export const deployBlockNumber = 5433453n; //Put it as a bigint !
 export const abi = [
   { type: "constructor", inputs: [], stateMutability: "nonpayable" },

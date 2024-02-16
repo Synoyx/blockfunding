@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Text, Flex, Select } from "@chakra-ui/react";
+import { Box, Button, Text, Flex, Select, Image } from "@chakra-ui/react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export default function HomePage() {
   const { projects, isLoadingProjects } = useBlockFundingContractContext();
 
   return (
-    <Flex as="main" marginTop="20px" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
+    <Flex as="main" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
       {isLoadingProjects ? <Loader /> : <LastProjectsSection projects={projects} />}
 
       <MoreProjectsSection
@@ -34,7 +34,7 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
   return (
     <Box>
       <Flex justifyContent="space-between" alignItems="center" mb="15px">
-        <Text fontSize="2xl">Our last projects</Text>
+        <Text fontSize="2xl">Most popular projects</Text>
         <Link href="/CreateProject">
           <Button bg="green.500" color="white">
             Create project
@@ -48,18 +48,30 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
         showThumbs={false}
         showStatus={false}
         showIndicators={true}
-        dynamicHeight={true}
+        dynamicHeight={false}
         emulateTouch={true}
       >
         {projects.map((project: Project, index: number) => (
-          <Box key={index}>
-            <img src={project.mediaURI} alt={project.name} />
-            <Box position="absolute" bottom="0" left="0" background="rgba(0, 0, 0, 0.5)" color="white" width="100%">
-              <Text fontSize="lg">{project.name}</Text>
-              <Text fontSize="md">{project.subtitle}</Text>
-              <Text fontSize="sm">{project.description}</Text>
+          <Link
+            href={{
+              pathname: "/ProjectDetails",
+              query: { id: project.id },
+            }}
+          >
+            <Box key={index}>
+              <Box position="relative" width="100%" height="500px">
+                <Image src={project.mediaURI} alt={project.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <Box position="absolute" bottom="50px" left="0" background="rgba(0, 0, 0, 0.5)" color="white" width="100%" p="10px">
+                  <Text fontSize="lg" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
+                    {project.name}
+                  </Text>
+                  <Text fontSize="md" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
+                    {project.subtitle}
+                  </Text>
+                </Box>
+              </Box>
             </Box>
-          </Box>
+          </Link>
         ))}
       </Carousel>
     </Box>
@@ -75,7 +87,7 @@ interface MoreProjectsSectionProps {
 
 const MoreProjectsSection = ({ projects, categories, selectedCategory, onCategoryChange }: MoreProjectsSectionProps) => {
   return (
-    <Box>
+    <Box mt="4vh">
       <Flex alignItems="center" marginBottom="20px">
         <Text fontSize="2xl">More projects</Text>
         <Select placeholder="Select category" onChange={onCategoryChange} value={selectedCategory} ml="40px" maxW="300px">
