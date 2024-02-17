@@ -31,21 +31,9 @@ const CreateProject = () => {
   const [project, setProject] = useState(Project.createEmpty());
   const [mediaLinks, setMediaLinks] = useState([""]);
 
-  const minDate = new Date().toISOString().split("T")[0];
-
   useEffect(() => {
     document.title = "Nouveau projet";
   });
-
-  const handleMediaLinkChange = (index: number, value: string) => {
-    const updatedMediaLinks = [...mediaLinks];
-    updatedMediaLinks[index] = value;
-    setMediaLinks(updatedMediaLinks);
-  };
-
-  const addMediaLink = () => {
-    setMediaLinks([...mediaLinks, ""]);
-  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -58,20 +46,6 @@ const CreateProject = () => {
       duration: 9000,
       isClosable: true,
     });
-  };
-
-  const setStartDate = (startDate: any) => {
-    project.campaignStartingDateTimestamp = new Date(startDate).getTime() / 1000;
-    setEndDate(calculateMinDate(startDate, 7)); // endDate doit être au moins 1 semaine après startDate
-  };
-
-  const setEndDate = (endDate: any) => {
-    project.campaignEndingDateTimestamp = new Date(endDate).getTime() / 1000;
-    setEstimatedCompletionDate(calculateMinDate(endDate, 7)); // estimatedCompletionDate doit être au moins 1 semaine après endDate
-  };
-
-  const setEstimatedCompletionDate = (estimatedCompletionDate: any) => {
-    project.estimatedProjectReleaseDateTimestamp = new Date(estimatedCompletionDate).getTime() / 1000;
   };
 
   // Convertir une date en format YYYY-MM-DD
@@ -88,29 +62,97 @@ const CreateProject = () => {
     return toISODateString(date);
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    setProject((prevProject) => updateProjectField(prevProject, name, value));
+  };
+
+  function updateProjectField(project: Project, fieldName: string, value: string): Project {
+    const updatedProject = new Project(
+      project.campaignStartingDateTimestamp,
+      project.campaignEndingDateTimestamp,
+      project.estimatedProjectReleaseDateTimestamp,
+      project.targetWallet,
+      project.owner,
+      project.totalFundsHarvested,
+      project.projectCategory,
+      project.name,
+      project.subtitle,
+      project.description,
+      project.mediaURI,
+      project.teamMembers,
+      project.projectSteps
+    );
+
+    switch (fieldName) {
+      case "campaignStartingDateTimestamp":
+        updatedProject.campaignStartingDateTimestamp = new Date(value).getTime() / 1000;
+        updatedProject.campaignEndingDateTimestamp = new Date(value).getTime() / 1000 + 7 * 24 * 60 * 60;
+        updatedProject.estimatedProjectReleaseDateTimestamp = new Date(value).getTime() / 1000 + 14 * 24 * 60 * 60;
+        break;
+      case "campaignEndingDateTimestamp":
+        updatedProject.campaignEndingDateTimestamp = new Date(value).getTime() / 1000;
+        updatedProject.estimatedProjectReleaseDateTimestamp = new Date(value).getTime() / 1000 + 7 * 24 * 60 * 60;
+        break;
+      case "estimatedProjectReleaseDateTimestamp":
+        updatedProject.estimatedProjectReleaseDateTimestamp = new Date(value).getTime() / 1000;
+        break;
+      case "targetWallet":
+        updatedProject.targetWallet = value;
+        break;
+      case "owner":
+        updatedProject.owner = value;
+        break;
+      case "totalFundsHarvested":
+        updatedProject.totalFundsHarvested = BigInt(value);
+        break;
+      case "projectCategory":
+        updatedProject.projectCategory = ProjectCategory[value as keyof typeof ProjectCategory];
+        break;
+      case "name":
+        updatedProject.name = value;
+        break;
+        updatedProject.subtitle = value;
+        break;
+      case "description":
+        updatedProject.description = value;
+        break;
+      case "mediaURI":
+        updatedProject.mediaURI = value;
+        break;
+      // Pour teamMembers et projectSteps, vous aurez besoin d'une logique spécifique de mise à jour
+      // car ils sont des tableaux d'objets. Voici un exemple simpliste pour illustrer:
+      case "teamMembers":
+        // Mettez à jour teamMembers ici. Vous aurez probablement besoin d'une logique plus complexe.
+        break;
+      case "projectSteps":
+        // Mettez à jour projectSteps ici. Vous aurez probablement besoin d'une logique plus complexe.
+        break;
+      default:
+        console.warn(`Field ${fieldName} is not recognized or cannot be updated directly.`);
+    }
+
+    return updatedProject;
+  }
+
   return (
     <Box p={8}>
       <form onSubmit={handleSubmit}>
         <Stack spacing={4}>
           <FormControl isRequired>
             <FormLabel>Nom du projet</FormLabel>
-            <Input name="name" value={project.name} onChange={(e: any) => (project.name = e.target.value)} placeholder="Nom du projet" />
+            <Input name="name" value={project.name} onChange={handleInputChange} placeholder="Nom du projet" />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Sous-titre</FormLabel>
-            <Input
-              name="subtitle"
-              value={project.subtitle}
-              onChange={(e: any) => (project.subtitle = e.target.value)}
-              placeholder="Sous-titre"
-            />
+            <Input name="subtitle" value={project.subtitle} onChange={handleInputChange} placeholder="Sous-titre" />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Description</FormLabel>
             <Textarea
               name="description"
               value={project.description}
-              onChange={(e: any) => (project.description = e.target.value)}
+              onChange={handleInputChange}
               placeholder="Description détaillée du projet"
             />
           </FormControl>
@@ -119,11 +161,11 @@ const CreateProject = () => {
             <InputGroup>
               <InputLeftAddon children="ETH" />
               <Input
-                name="walletAddress"
+                name="targetWallet"
                 pattern="^0x[a-fA-F0-9]{40}$"
                 type="text"
                 value={project.targetWallet}
-                onChange={(e: any) => (project.targetWallet = e.target.value)}
+                onChange={handleInputChange}
                 placeholder="0x..."
                 required
               />
@@ -132,12 +174,9 @@ const CreateProject = () => {
           <FormControl isRequired>
             <FormLabel>Catégorie</FormLabel>
             <Select
-              name="category"
+              name="projectCategory"
               value={project.projectCategory}
-              onChange={(e: any) => {
-                console.log(e.target);
-                project.projectCategory = e.target.value;
-              }}
+              onChange={handleInputChange}
               placeholder="Sélectionnez une catégorie"
             >
               {Object.values(ProjectCategory).map((category) => (
@@ -152,9 +191,9 @@ const CreateProject = () => {
             <Input
               type="date"
               min={project.campaignStartingDateTimestamp}
-              name="startDate"
-              value={toISODateString(project.campaignStartingDateTimestamp)}
-              onChange={(e: any) => setStartDate(e.target.value)}
+              name="campaignStartingDateTimestamp"
+              value={toISODateString(project.campaignStartingDateTimestamp * 1000)}
+              onChange={handleInputChange}
             />
           </FormControl>
           <FormControl isRequired>
@@ -162,9 +201,9 @@ const CreateProject = () => {
             <Input
               type="date"
               min={project.campaignEndingDateTimestamp}
-              name="endDate"
-              value={toISODateString(project.campaignEndingDateTimestamp)}
-              onChange={(e: any) => setEndDate(e.target.value)}
+              name="campaignEndingDateTimestamp"
+              value={toISODateString(project.campaignEndingDateTimestamp * 1000)}
+              onChange={handleInputChange}
             />
           </FormControl>
           <FormControl>
@@ -172,31 +211,21 @@ const CreateProject = () => {
             <Input
               type="date"
               min={project.estimatedProjectReleaseDateTimestamp}
-              name="estimatedCompletionDate"
-              value={toISODateString(project.estimatedProjectReleaseDateTimestamp)}
-              onChange={(e: any) => setEstimatedCompletionDate(e.target.value)}
+              name="estimatedProjectReleaseDateTimestamp"
+              value={toISODateString(project.estimatedProjectReleaseDateTimestamp * 1000)}
+              onChange={handleInputChange}
             />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Lien vers la bannière du projet</FormLabel>
-            <Input
-              name="name"
-              value={project.mediaURI}
-              onChange={(e: any) => (project.mediaURI = e.target.value)}
-              placeholder="http://exemple.com/media.jpg"
-            />
+            <Input name="mediaURI" value={project.mediaURI} onChange={handleInputChange} placeholder="http://exemple.com/media.jpg" />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Liens des médias</FormLabel>
             {mediaLinks.map((link, index) => (
-              <Input
-                key={index}
-                value={link}
-                onChange={(e) => handleMediaLinkChange(index, e.target.value)}
-                placeholder="http://exemple.com/media.jpg"
-              />
+              <Input key={index} value={link} onChange={handleInputChange} placeholder="http://exemple.com/media.jpg" />
             ))}
-            <IconButton aria-label="Ajouter un lien média" icon={<AddIcon />} onClick={addMediaLink} mt={2} />
+            <IconButton aria-label="Ajouter un lien média" icon={<AddIcon />} mt={2} />
           </FormControl>
           {address ? (
             <Button mt={4} colorScheme="teal" type="submit">
