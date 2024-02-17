@@ -20,32 +20,22 @@ import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { ProjectCategory } from "@/ts/objects/Project";
 
-import { ProjectData, ProjectStep } from "@/ts/objects/ProjectData";
+import { Project } from "@/ts/objects/Project";
+import { ProjectStep } from "@/ts/objects/ProjectStep";
 import { TeamMember } from "@/ts/objects/TeamMember";
 
 const CreateProject = () => {
   const { address } = useAccount();
+  const toast = useToast();
+
+  const [project, setProject] = useState(Project.createEmpty());
+  const [mediaLinks, setMediaLinks] = useState([""]);
+
   const minDate = new Date().toISOString().split("T")[0];
 
-  const [project, setProject] = useState({
-    name: "",
-    subtitle: "",
-    description: "",
-    walletAddress: "",
-    fundingGoal: "",
-    startDate: minDate,
-    endDate: minDate,
-    estimatedCompletionDate: minDate,
-    category: "",
-    mediaLinks: "",
+  useEffect(() => {
+    document.title = "Nouveau projet";
   });
-
-  const [mediaLinks, setMediaLinks] = useState([""]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [estimatedCompletionDate, setEstimatedCompletionDate] = useState("");
-
-  const toast = useToast();
 
   const handleMediaLinkChange = (index: number, value: string) => {
     const updatedMediaLinks = [...mediaLinks];
@@ -57,53 +47,9 @@ const CreateProject = () => {
     setMediaLinks([...mediaLinks, ""]);
   };
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    if (name === "startDate") {
-      setStartDate(value);
-    } else if (name === "endDate") {
-      setEndDate(value);
-    } else if (name === "estimatedCompletionDate") {
-      setEstimatedCompletionDate(value);
-    }
-    setProject((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log("Calling method");
-    console.log("Project value = ");
-    console.log(project);
-    await callWriteMethod(BlockFundingFunctions.createNewContract, [
-      new ProjectData(
-        new Date(project.startDate).getTime() / 1000,
-        new Date(project.endDate).getTime() / 1000,
-        new Date(project.estimatedCompletionDate).getTime() / 1000,
-        project.walletAddress,
-        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266", //TODO
-        0n,
-        0,
-        project.name,
-        project.subtitle,
-        project.description,
-        "http://google.fr",
-        [
-          new TeamMember(
-            "Theo",
-            "Rieduku",
-            "Une personne hippothetique",
-            "http://google.fr",
-            "Savant",
-            "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
-          ),
-        ],
-        [
-          new ProjectStep("Step 1", "Desc of step 1", 1000000n, 0n, false, 1, false),
-          new ProjectStep("Step 2", "Desc of step 2", 1000000n, 0n, false, 2, false),
-        ]
-      ),
-    ]);
-    console.log("Called finished");
+    await callWriteMethod(BlockFundingFunctions.createNewContract, [project]);
 
     toast({
       title: "Projet créé",
@@ -114,19 +60,24 @@ const CreateProject = () => {
     });
   };
 
-  // Mettre à jour les états pour les dates minimales autorisées
-  useEffect(() => {
-    if (startDate) {
-      setEndDate(calculateMinDate(startDate, 7)); // endDate doit être au moins 1 semaine après startDate
-    }
-    if (endDate) {
-      setEstimatedCompletionDate(calculateMinDate(endDate, 7)); // estimatedCompletionDate doit être au moins 1 semaine après endDate
-    }
-  }, [startDate, endDate]);
+  const setStartDate = (startDate: any) => {
+    project.campaignStartingDateTimestamp = new Date(startDate).getTime() / 1000;
+    setEndDate(calculateMinDate(startDate, 7)); // endDate doit être au moins 1 semaine après startDate
+  };
+
+  const setEndDate = (endDate: any) => {
+    project.campaignEndingDateTimestamp = new Date(endDate).getTime() / 1000;
+    setEstimatedCompletionDate(calculateMinDate(endDate, 7)); // estimatedCompletionDate doit être au moins 1 semaine après endDate
+  };
+
+  const setEstimatedCompletionDate = (estimatedCompletionDate: any) => {
+    project.estimatedProjectReleaseDateTimestamp = new Date(estimatedCompletionDate).getTime() / 1000;
+  };
 
   // Convertir une date en format YYYY-MM-DD
   const toISODateString = (date: any) => {
-    return date.toISOString().split("T")[0];
+    if (typeof date === "number") return new Date(date).toISOString().split("T")[0];
+    else return date.toISOString().split("T")[0];
   };
 
   // Calculer la date minimale pour endDate et estimatedCompletionDate
@@ -143,18 +94,23 @@ const CreateProject = () => {
         <Stack spacing={4}>
           <FormControl isRequired>
             <FormLabel>Nom du projet</FormLabel>
-            <Input name="name" value={project.name} onChange={handleChange} placeholder="Nom du projet" />
+            <Input name="name" value={project.name} onChange={(e: any) => (project.name = e.target.value)} placeholder="Nom du projet" />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Sous-titre</FormLabel>
-            <Input name="subtitle" value={project.subtitle} onChange={handleChange} placeholder="Sous-titre" />
+            <Input
+              name="subtitle"
+              value={project.subtitle}
+              onChange={(e: any) => (project.subtitle = e.target.value)}
+              placeholder="Sous-titre"
+            />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Description</FormLabel>
             <Textarea
               name="description"
               value={project.description}
-              onChange={handleChange}
+              onChange={(e: any) => (project.description = e.target.value)}
               placeholder="Description détaillée du projet"
             />
           </FormControl>
@@ -166,21 +122,24 @@ const CreateProject = () => {
                 name="walletAddress"
                 pattern="^0x[a-fA-F0-9]{40}$"
                 type="text"
-                value={project.walletAddress}
-                onChange={handleChange}
+                value={project.targetWallet}
+                onChange={(e: any) => (project.targetWallet = e.target.value)}
                 placeholder="0x..."
                 required
               />
             </InputGroup>
           </FormControl>
           <FormControl isRequired>
-            <FormLabel>Montant demandé (en Wei)</FormLabel>
-            <Input name="fundingGoal" value={project.fundingGoal} onChange={handleChange} type="number" placeholder="Montant en Wei" />
-          </FormControl>
-          {/* Répétez pour les autres champs, en adaptant selon les besoins */}
-          <FormControl isRequired>
             <FormLabel>Catégorie</FormLabel>
-            <Select name="category" value={project.category} onChange={handleChange} placeholder="Sélectionnez une catégorie">
+            <Select
+              name="category"
+              value={project.projectCategory}
+              onChange={(e: any) => {
+                console.log(e.target);
+                project.projectCategory = e.target.value;
+              }}
+              placeholder="Sélectionnez une catégorie"
+            >
               {Object.values(ProjectCategory).map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -190,20 +149,41 @@ const CreateProject = () => {
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Date de début</FormLabel>
-            <Input type="date" min={calculateMinDate(minDate, 0)} name="startDate" value={project.startDate} onChange={handleChange} />
+            <Input
+              type="date"
+              min={project.campaignStartingDateTimestamp}
+              name="startDate"
+              value={toISODateString(project.campaignStartingDateTimestamp)}
+              onChange={(e: any) => setStartDate(e.target.value)}
+            />
           </FormControl>
           <FormControl isRequired>
             <FormLabel>Date de fin</FormLabel>
-            <Input type="date" min={calculateMinDate(startDate, 7)} name="endDate" value={project.endDate} onChange={handleChange} />
+            <Input
+              type="date"
+              min={project.campaignEndingDateTimestamp}
+              name="endDate"
+              value={toISODateString(project.campaignEndingDateTimestamp)}
+              onChange={(e: any) => setEndDate(e.target.value)}
+            />
           </FormControl>
           <FormControl>
             <FormLabel>Date estimée de réalisation</FormLabel>
             <Input
               type="date"
-              min={calculateMinDate(endDate, 7)}
+              min={project.estimatedProjectReleaseDateTimestamp}
               name="estimatedCompletionDate"
-              value={project.estimatedCompletionDate}
-              onChange={handleChange}
+              value={toISODateString(project.estimatedProjectReleaseDateTimestamp)}
+              onChange={(e: any) => setEstimatedCompletionDate(e.target.value)}
+            />
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Lien vers la bannière du projet</FormLabel>
+            <Input
+              name="name"
+              value={project.mediaURI}
+              onChange={(e: any) => (project.mediaURI = e.target.value)}
+              placeholder="http://exemple.com/media.jpg"
             />
           </FormControl>
           <FormControl isRequired>

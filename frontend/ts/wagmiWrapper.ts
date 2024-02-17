@@ -14,7 +14,7 @@ import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
 export const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
 
 const { connectors } = getDefaultWallets({
-  appName: "Voting contract app",
+  appName: "BlockFunding",
   projectId: "fba081ed7d956cedcbd5453c3fb61423", // We let it clear, as it is easy to get it by looking on network exchanges of the DApp
   chains,
 });

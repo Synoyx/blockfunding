@@ -400,6 +400,8 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         data.targetWallet = _data.targetWallet;
         data.mediaURI = _data.mediaURI;
 
+        // Max nb team members & project steps
+
         for (uint i; i < _data.teamMembers.length; i++) {
             if (_data.teamMembers[i].walletAddress == _data.targetWallet) revert TargetWalletSameAsTeamMember();
             if (_data.teamMembers[i].walletAddress == address(0)) revert GivenTargetWalletAddressIsEmpty();
@@ -649,6 +651,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     * @param ipfsHash The CID of the message content on IPFS
     */
     function addMessage(string calldata ipfsHash) external onlyTeamMemberOrFinancer {
+        // Max X messages par jour pour ce user ? 
         if(bytes(ipfsHash).length == 0) revert EmptyString("ipfsHash");
 
         messages.push(Message(msg.sender, ipfsHash, uint32(block.timestamp)));

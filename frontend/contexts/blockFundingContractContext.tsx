@@ -29,8 +29,6 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
 
       const results: any = await publicRead(BlockFundingFunctions.getProjects);
       for (let res of results) {
-        console.log("RESULT = ");
-        console.log(res);
         let totalFundingRequested = 0;
         for (let projectStep of res.projectSteps) {
           totalFundingRequested += Number(projectStep.amountNeeded);
@@ -38,19 +36,19 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
 
         projectsArray.push(
           new Project(
-            projectsArray.length,
-            res.owner,
-            res.name,
-            res.subtitle,
-            res.description,
-            res.targetWallet,
-            totalFundingRequested,
-            res.totalFundsHarvested,
             res.campaignStartingDateTimestamp,
             res.campaignEndingDateTimestamp,
             res.estimatedProjectReleaseDateTimestamp,
+            res.targetWallet,
+            res.owner,
+            res.totalFundsHarvested,
             res.projectCategory,
-            res.mediaURI
+            res.name,
+            res.subtitle,
+            res.description,
+            res.mediaURI,
+            res.teamMembers,
+            res.projectSteps
           )
         );
       }

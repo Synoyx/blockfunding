@@ -31,6 +31,6 @@ export function getReadableDateFromTimestampSecond(timestamp: number): string {
   return `${formattedDate} ${formattedTime}`;
 }
 
-export const weiToEth = (weiValue: BigInt) => {
-  return Number(weiValue) / 10 ** 18;
+export const weiToEth = (weiValue: any) => {
+  return Number(weiValue / 10n ** 18n);
 };

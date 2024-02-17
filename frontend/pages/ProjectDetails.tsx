@@ -32,9 +32,8 @@ const ProjectDetails = () => {
       const message: string = await getData("bafkreiaerzwc75cplvwyfsawm5qyylpmlj2biwygmerv3wb5iknwgptbuu");
       //alert("Message = " + message);
     }
-
-    setProject(projects[+projectId!]);
-    test();
+    setProject(getProjectFromComputedId());
+    test(); //TODO change handling of messages
   }, [projectId, projects]);
 
   useEffect(() => {
@@ -47,6 +46,13 @@ const ProjectDetails = () => {
   useEffect(() => {
     document.title = "Détails du projet";
   });
+
+  function getProjectFromComputedId(): Project {
+    for (let proj of projects) {
+      if (proj.name == projectId) return proj;
+    }
+    return projects[0];
+  }
 
   return (
     <>
@@ -137,18 +143,18 @@ const ProjectDetails = () => {
                 <Heading size="md" lineHeight="shorter" mb="10px">
                   Financement
                 </Heading>
-                <ProgressBar goal={weiToEth(BigInt(project!.fundingRequested))} current={weiToEth(BigInt(project!.totalFundsHarvested))} />
+                <ProgressBar goal={weiToEth(project!.getTotalFundsRequested())} current={weiToEth(project!.totalFundsHarvested)} />
                 <Flex mt="10px" alignItems="center">
                   <Text fontSize="md" fontWeight="bold" mr="10px">
                     Objectif :
                   </Text>
-                  <Text fontSize="md">{Math.round(weiToEth(BigInt(project!.fundingRequested)))} ETH</Text>
+                  <Text fontSize="md">{Math.round(weiToEth(project!.getTotalFundsRequested()))} ETH</Text>
                 </Flex>
                 <Flex alignItems="center">
                   <Text fontSize="md" fontWeight="bold" mr="10px">
                     Récolté :
                   </Text>
-                  <Text fontSize="md">{Math.round(weiToEth(BigInt(project!.totalFundsHarvested)))} ETH</Text>
+                  <Text fontSize="md">{Math.round(weiToEth(project!.totalFundsHarvested))} ETH</Text>
                 </Flex>
                 <Flex alignItems="center" width="100%">
                   <Text fontSize="md" fontWeight="bold" mr="10px" whiteSpace="nowrap">

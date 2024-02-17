@@ -3,14 +3,19 @@
 import { Box, Button, Text, Flex, Select, Image } from "@chakra-ui/react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
+import { useEffect } from "react";
 import Link from "next/link";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import Loader from "@/components/tools/Loader";
-import { Project } from "@/ts/objects/Project";
+import { Project, ProjectCategory } from "@/ts/objects/Project";
 
 export default function HomePage() {
   const { projects, isLoadingProjects } = useBlockFundingContractContext();
+
+  useEffect(() => {
+    document.title = "Accueil";
+  });
 
   return (
     <Flex as="main" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
@@ -21,7 +26,7 @@ export default function HomePage() {
           <LastProjectsSection projects={projects} />
           <MoreProjectsSection
             projects={projects}
-            categories={["Art", "Automobile"]}
+            categories={Object.keys(ProjectCategory)}
             selectedCategory={"Art"}
             onCategoryChange={() => console.log("toto")}
           />
@@ -60,7 +65,7 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
           <Link
             href={{
               pathname: "/ProjectDetails",
-              query: { id: project.id },
+              query: { id: project.name },
             }}
           >
             <Box key={index}>

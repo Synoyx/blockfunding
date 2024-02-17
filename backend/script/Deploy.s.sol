@@ -27,10 +27,25 @@ contract Deploy is Script {
         runCallback(blockFunding);
 
         vm.stopBroadcast();
+
+        console.log(string.concat("Contract address = ", toString(abi.encodePacked(address(blockFunding)))));
     }
 
     /// @dev I add this line to make forge coverage ignore this class
     function test() public virtual {}
+
+    function toString(bytes memory data) public pure returns(string memory) {
+        bytes memory alphabet = "0123456789abcdef";
+
+        bytes memory str = new bytes(2 + data.length * 2);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint i = 0; i < data.length; i++) {
+            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
+            str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
+        }
+        return string(str);
+    }
 }
 
 contract DeployDev is Deploy {
@@ -59,6 +74,7 @@ forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast -
 forge script script/Deploy.s.sol:DeployDev --rpc-url $ANVIL_RPC_URL --broadcast
 
 Get projects
-cast call 0xb7f8bc63bbcad18155201308c8f3540b07f84f5e "getProjects()(address[])" --rpc-url $ANVIL_RPC_URL
+cast call 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 "getProjects()(BlockFundingProject.ProjectData[])" --rpc-url $ANVIL_RPC_URL
+cast call 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 "getProjectsAddresses()" --rpc-url $ANVIL_RPC_URL
 
 */
