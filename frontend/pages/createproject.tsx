@@ -429,7 +429,7 @@ const CreateProject = () => {
                   </Box>
                 ))}
                 <Flex justify="center" alignItems="center" justifyItems="center">
-                  <Button onClick={addTeamMember} leftIcon={<AddIcon />}>
+                  <Button colorScheme="green" onClick={addTeamMember} leftIcon={<AddIcon />}>
                     Ajouter un membre
                   </Button>
                 </Flex>

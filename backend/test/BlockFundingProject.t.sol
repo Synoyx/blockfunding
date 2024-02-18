@@ -47,7 +47,8 @@ contract BlockFundingProjectTest is Test {
     }
 
     function test_transferOwnerWithoutBeingOwner() external {
-        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OwnableUnauthorizedAccount.selector, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.OwnableUnauthorizedAccount.selector, visitorAddress));
+        vm.prank(visitorAddress);
         defaultProject.transferOwner(visitorAddress);
     }
 

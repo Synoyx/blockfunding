@@ -38,7 +38,7 @@ contract BlockFunding is Ownable {
 
     error AProjectIsAlreadyLiveFromThisOwner();
 
-    modifier validProjectData(BlockFundingProject.ProjectData calldata _data) {
+    modifier validProjectData(BlockFundingProject.ProjectData memory _data) {
         require(bytes(_data.name).length > 0, "Project's name mustn't be empty");
         require(bytes(_data.subtitle).length > 0, "Project's subtitle mustn't be empty");
         require(bytes(_data.description).length > 0, "Project's description mustn't be empty");
@@ -64,7 +64,7 @@ contract BlockFunding is Ownable {
     * Arrays are a way to deal with it, without costing too much in gas to transform datas back, that's why
     * I use multiples array, to keep the types of variables, instead of one big bytes array.
     */
-    function createNewProject(BlockFundingProject.ProjectData calldata _data) public validProjectData(_data) returns(address){
+    function createNewProject(BlockFundingProject.ProjectData memory _data) public validProjectData(_data) returns(address){
         // We check if the use already have a running contract (this is to avoid DoS gas limit attack)
         for (uint i; i < projects.length; i++) {
             BlockFundingProject proj = BlockFundingProject(payable(projects[i]));
@@ -78,6 +78,7 @@ contract BlockFunding is Ownable {
         address newProjectAddress = Clones.clone(address(projectToClone));
 
         BlockFundingProject project = BlockFundingProject(payable(newProjectAddress));
+        _data.owner = msg.sender;
         project.initialize(_data);
         emit NewProjectHasBeenCreated();
 

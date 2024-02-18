@@ -13,6 +13,7 @@ import { useBlockFundingContractContext } from "@/contexts/blockFundingContractC
 import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
 import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
+import { FundProjectModal } from "@/components/modals/FundProjectModal";
 
 import { getData } from "@/ts/nftStorageWrapper";
 
@@ -174,6 +175,22 @@ const ProjectDetails = () => {
                   </Link>
                 </Flex>
               </Box>
+              <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
+                <Heading size="md" lineHeight="shorter" mb="10px">
+                  Votre participation
+                </Heading>
+                {address ? (
+                  <>
+                    <Text align="center">Vous avez donné : XXXXX ETH au projet</Text>
+                    <FundProjectModal />
+                    <Button bg="green.500" color="white">
+                      Participer
+                    </Button>
+                  </>
+                ) : (
+                  <Text align="center">Veuillez vous connecter pour pouvoir participer au projet</Text>
+                )}
+              </VStack>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Flex justifyContent="space-between">
                   <Heading size="md" lineHeight="shorter" mb="10px">

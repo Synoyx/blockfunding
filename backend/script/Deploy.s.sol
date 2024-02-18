@@ -16,7 +16,7 @@ contract Deploy is Script {
         return vm.envUint("PRIVATE_KEY");
     }
 
-    function runCallback(BlockFunding blockFunding) internal virtual {}
+    function runCallback(address blockFundingAddress) internal virtual {}
 
     function run() external {
         uint256 deployerPrivateKey = getPK();
@@ -24,9 +24,10 @@ contract Deploy is Script {
 
         BlockFunding blockFunding = new BlockFunding();
 
-        runCallback(blockFunding);
-
         vm.stopBroadcast();
+
+        runCallback(address(blockFunding));
+
 
         console.log(string.concat("Contract address = ", toString(abi.encodePacked(address(blockFunding)))));
     }
@@ -56,11 +57,16 @@ contract DeployDev is Deploy {
     }
 
     // Here we add some projects to be able to quickly test Blockfunding
-    function runCallback(BlockFunding blockFunding) internal override {
+    function runCallback(address blockFundingAddress) internal override {
+        BlockFunding blockFunding = BlockFunding(blockFundingAddress);
         BlockFundingProject.ProjectData[] memory data = MockedData.getMockedProjectDatas();
+        uint256[3] memory anvilPK = [0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80, 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d, 0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a];
 
-        for (uint i; i < data.length; i++) {
+
+        for (uint i; i < 3; i++) {
+            vm.startBroadcast(anvilPK[i]);
             blockFunding.createNewProject(data[i]); // Create a clone for each iteration, with given mocked data
+             vm.stopBroadcast();
         }
     }
 
