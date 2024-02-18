@@ -837,6 +837,9 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             && data.projectSteps[currentProjectStepId - 1].hasBeenValidated);
     }
 
+    function isFinancer() external view returns (bool) {
+        return financersDonations[msg.sender] > 0;
+    }
 
     /* *********************** 
     *        Payable

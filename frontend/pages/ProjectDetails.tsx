@@ -14,6 +14,7 @@ import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
 import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
 import { Vote, VoteType } from "@/ts/objects/Vote";
+import { AskMoreFundsModal } from "@/components/modals/AskMoreFundsModal";
 import { FundProjectModal } from "@/components/modals/FundProjectModal";
 import { StartVoteModal } from "@/components/modals/StartVoteModal";
 import { SendVoteModal } from "@/components/modals/SendVoteModal";
@@ -23,17 +24,23 @@ import { WaitingForTransactionExecution } from "@/components/modals/WaitingForTr
 import { getData } from "@/ts/nftStorageWrapper";
 
 import "@/assets/css/verticalTimeline.css";
-import { getDonationAmount, getCurrentVote, getProject, isProjectCanceledOrLastStepValidated } from "@/ts/objects/BlockFundingProjectContract";
+import {
+  getDonationAmount,
+  getCurrentVote,
+  getProject,
+  isFinancer,
+  isProjectCanceledOrLastStepValidated,
+} from "@/ts/objects/BlockFundingProjectContract";
 
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
   const [donationAmount, setDonationAmount] = useState<BigInt>(0n);
   const [selectedVoteType, setSelectedVoteType] = useState<VoteType>(VoteType.WithdrawProjectToFinancers);
   const [currentVote, setCurrentVote] = useState<Vote>(Vote.createEmpty());
-  const [leftAmountBalance, setLeftAmountBalance] = useState<BigInt>(0n);
+  const [leftAmountBalance, setLeftAmountBalance] = useState<bigint>(0n);
   const [isProjectCanceledOrLastStepValidatedValue, setIsProjectCanceledOrLastStepValidatedValue] = useState<boolean>(false);
   const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
-  const [isUserFinancer, setIsUserFinancer] = useState<boolean>(false); //TODO
+  const [isUserFinancer, setIsUserFinancer] = useState<boolean>(false);
   const [active, setActive] = useState("Project");
   let { address } = useAccount();
   const params = useSearchParams();
@@ -41,12 +48,13 @@ const ProjectDetails = () => {
 
   const projectId = params!.get("id");
 
+  const askMoreFundsModalDisclosure = useDisclosure();
   const fundProjectModalDisclosure = useDisclosure();
   const waitingForValidatingTransactionlDisclosure = useDisclosure();
   const waitingForTransactionExecutionlDisclosure = useDisclosure();
   const startVoteModalDisclosure = useDisclosure();
-  const sendVoteModalDisclosure = useDisclosure(); //TODO
-  const endVoteModalDisclosure = useDisclosure(); //TODO
+  const sendVoteModalDisclosure = useDisclosure();
+  const endVoteModalDisclosure = useDisclosure();
 
   useEffect(() => {
     async function test() {
@@ -73,10 +81,16 @@ const ProjectDetails = () => {
       if (result != undefined) setIsProjectCanceledOrLastStepValidatedValue(result);
     }
 
+    async function loadIsFinancer(contractAddress: any) {
+      const result: any = await isFinancer(contractAddress);
+      if (result != undefined) setIsUserFinancer(result);
+    }
+
     if (project !== undefined) {
       loadDonationAmount(project!.address);
       loadCurrentVote(project!.address);
       loadIsProjectFinished(project!.address);
+      loadIsFinancer(project!.address);
 
       const amountThatWillBeConsumedInFuture = project!.projectSteps.reduce((acc, step) => {
         if (!step.hasBeenValidated) {
@@ -85,7 +99,7 @@ const ProjectDetails = () => {
         return acc;
       }, 0);
 
-      setLeftAmountBalance(BigInt(project!.totalFundsHarvested - amountThatWillBeConsumedInFuture))
+      setLeftAmountBalance(BigInt(project!.totalFundsHarvested - amountThatWillBeConsumedInFuture));
       setIsUserProjectOwner(address === project!.owner);
       document.title = project!.name;
     } else setIsUserProjectOwner(false);
@@ -281,81 +295,109 @@ const ProjectDetails = () => {
                     <ProgressBar goal={Number(currentVote.totalVotePower)} current={Number(currentVote.votePowerInFavorOfProposal)} />
                   </Flex>
                   <Flex display={isUserFinancer ? "block" : "none"}>
-                    {currentVote.hasFinancerVoted 
-                      ? (<Text align="center">Vous avez déjà voté</Text>)
-                      : (<Button
+                    {currentVote.hasFinancerVoted ? (
+                      <Text align="center">Vous avez déjà voté</Text>
+                    ) : (
+                      <Button
                         colorScheme="green"
                         onClick={() => {
                           sendVoteModalDisclosure.onOpen();
                         }}
-                      >Voter</Button>)
-                    }
+                      >
+                        Voter
+                      </Button>
+                    )}
                   </Flex>
                   <SendVoteModal
-                      isOpen={sendVoteModalDisclosure.isOpen}
-                      onClose={sendVoteModalDisclosure.onClose}
-                      voteType={selectedVoteType}
-                      projectAddress={project!.address}
-                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
-                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
-                      endTXCallback={async () => {
-                        const updatedProject = await getProject(project!.address);
-                        setProject((oldProject) => updatedProject);
-                      }}
+                    isOpen={sendVoteModalDisclosure.isOpen}
+                    onClose={sendVoteModalDisclosure.onClose}
+                    voteType={selectedVoteType}
+                    projectAddress={project!.address}
+                    waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                    waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                    endTXCallback={async () => {
+                      const updatedProject = await getProject(project!.address);
+                      setProject((oldProject) => updatedProject);
+                    }}
                   />
 
-                  <Flex display={currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserProjectOwner, isUserFinancer) ? "block" : "none"}>
+                  <Flex
+                    display={
+                      currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserProjectOwner, isUserFinancer) ? "block" : "none"
+                    }
+                  >
                     <Button
-                        colorScheme="green"
-                        onClick={() => {
-                          endVoteModalDisclosure.onOpen();
-                        }}
-                      >Terminer le vote</Button>
+                      colorScheme="green"
+                      onClick={() => {
+                        endVoteModalDisclosure.onOpen();
+                      }}
+                    >
+                      Terminer le vote
+                    </Button>
                   </Flex>
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
                   <Text align="center">Il n'y a pas de vote en cours</Text>
                   <Flex display={isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
-                      <Button
-                        colorScheme="green"
-                        onClick={() => {
-                          setSelectedVoteType(VoteType.ValidateStep);
-                          startVoteModalDisclosure.onOpen();
-                        }}
-                      >Start validate current step vote</Button>
-                      <Button 
-                        display={isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"}
-                        colorScheme="orange"
-                        onClick={() => {
-                          setSelectedVoteType(VoteType.AddFundsForStep);
-                          startVoteModalDisclosure.onOpen(); //TODOChange this modal to the good one
-                        }}
-                      >State add funds to current step vote</Button>
-                    </Flex>
-                    --> Add vote add funds modal here
+                    <Button
+                      colorScheme="green"
+                      onClick={() => {
+                        setSelectedVoteType(VoteType.ValidateStep);
+                        startVoteModalDisclosure.onOpen();
+                      }}
+                    >
+                      Start validate current step vote
+                    </Button>
+                    <Button
+                      display={
+                        isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
+                      }
+                      colorScheme="orange"
+                      onClick={() => {
+                        setSelectedVoteType(VoteType.AddFundsForStep);
+                        askMoreFundsModalDisclosure.onOpen();
+                      }}
+                    >
+                      State add funds to current step vote
+                    </Button>
+                  </Flex>
+                  <AskMoreFundsModal
+                    isOpen={askMoreFundsModalDisclosure.isOpen}
+                    onClose={askMoreFundsModalDisclosure.onClose}
+                    maxAmountAvailable={leftAmountBalance}
+                    projectAddress={project!.address}
+                    waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                    waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                    endTXCallback={async () => {
+                      const updatedProject = await getProject(project!.address);
+                      setProject((oldProject) => updatedProject);
+                    }}
+                  />
                 </Flex>
                 <Flex display={isUserFinancer && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
                   <Button
-                        colorScheme="red"
-                        onClick={() => {
-                          setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
-                          startVoteModalDisclosure.onOpen();
-                        }}
-                      >Vote for cancelling the project</Button>
+                    colorScheme="red"
+                    onClick={() => {
+                      setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
+                      startVoteModalDisclosure.onOpen();
+                    }}
+                  >
+                    Vote for cancelling the project
+                  </Button>
                 </Flex>
 
                 <StartVoteModal
-                      isOpen={startVoteModalDisclosure.isOpen}
-                      onClose={startVoteModalDisclosure.onClose}
-                      voteType={selectedVoteType}
-                      projectAddress={project!.address}
-                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
-                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
-                      endTXCallback={async () => {
-                        const updatedProject = await getProject(project!.address);
-                        setProject((oldProject) => updatedProject);
-                      }}
-                    />
+                  isOpen={startVoteModalDisclosure.isOpen}
+                  onClose={startVoteModalDisclosure.onClose}
+                  voteType={selectedVoteType}
+                  projectAddress={project!.address}
+                  waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                  waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                  endTXCallback={async () => {
+                    const updatedProject = await getProject(project!.address);
+                    setProject((oldProject) => updatedProject);
+                  }}
+                />
               </VStack>
             </Stack>
           </Flex>

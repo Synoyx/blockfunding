@@ -869,6 +869,39 @@ contract BlockFundingProjectTest is Test {
         assertEq(defaultProject.getFinancerDonationAmount(address(this)), defaultProject.getFundingRequested(), "Wrong donation amount for given financer returned");
     }
 
+    /*****************************************
+    *  isProjectCanceledOrLastStepValidated()
+    *****************************************/
+
+    function test_isProjectCanceledOrLastStepValidated() external {
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        assertEq(defaultProject.isProjectCanceledOrLastStepValidated(), false, "Wrong return for project status");
+
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        assertEq(defaultProject.isProjectCanceledOrLastStepValidated(), true, "Wrong return for project status");
+    }
+
+    /*****************************************
+    *               isFinancer()
+    *****************************************/
+
+    function test_isFinancer() external {
+        assertEq(defaultProject.isFinancer(), false, "Wrong return for financer status");
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        assertEq(defaultProject.isFinancer(), true, "Wrong return for financer status");
+    }
+
     receive() external payable {}
     fallback() external payable {}
 }

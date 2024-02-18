@@ -24,7 +24,7 @@ library MockedData {
     uint32 public constant futurePhaseestimatedProjectReleaseDateTimestamp = 1713404568;
 
 
-    function getMockedProjectDatas() public view returns(BlockFundingProject.ProjectData[] memory) {
+    function getMockedProjectDatas() public pure returns(BlockFundingProject.ProjectData[] memory) {
         BlockFundingProject.ProjectData[] memory mockedData = new BlockFundingProject.ProjectData[](3);
 
         mockedData[0] = BlockFundingProject.ProjectData(

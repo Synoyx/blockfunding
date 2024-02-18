@@ -18,6 +18,19 @@ export const enum BlockFundingProjectFunctions {
   getCurrentVote = "getCurrentVote",
   getData = "getData",
   isProjectCanceledOrLastStepValidated = "isProjectCanceledOrLastStepValidated",
+  isFinancer = "isFinancer",
+}
+
+export async function isFinancer(contractAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isFinancer, contractAddress);
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
 }
 
 export async function getDonationAmount(contractAddress: any, financerAddress: any) {
