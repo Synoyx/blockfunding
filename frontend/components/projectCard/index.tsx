@@ -7,7 +7,7 @@ interface ProjectCardProps {
   project: Project;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const bgColor = useColorModeValue("white", "gray.800"); // Gère le thème clair/sombre
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -45,5 +45,3 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     </Link>
   );
 };
-
-export default ProjectCard;

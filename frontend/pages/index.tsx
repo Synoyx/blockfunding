@@ -10,6 +10,7 @@ import { useAccount } from "wagmi";
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import Loader from "@/components/tools/Loader";
 import { Project, ProjectCategory } from "@/ts/objects/Project";
+import { ProjectCard } from "@/components/projectCard";
 
 export default function HomePage() {
   const { projects, isLoadingProjects } = useBlockFundingContractContext();
@@ -18,8 +19,6 @@ export default function HomePage() {
     document.title = "Accueil";
   });
 
-  //<MoreProjectsSection projects={projects} categories={Object.keys(ProjectCategory)} selectedCategory={"Art"} />
-
   return (
     <Flex as="main" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
       {isLoadingProjects ? (
@@ -27,6 +26,7 @@ export default function HomePage() {
       ) : (
         <>
           <LastProjectsSection projects={projects} />
+          <MoreProjectsSection projects={projects} />
         </>
       )}
     </Flex>
@@ -117,25 +117,19 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
 
 interface MoreProjectsSectionProps {
   projects: Project[];
-  categories: string[];
-  selectedCategory: string;
-  onCategoryChange: any;
 }
 
-const MoreProjectsSection = ({ projects, categories, selectedCategory, onCategoryChange }: MoreProjectsSectionProps) => {
+const MoreProjectsSection = ({ projects }: MoreProjectsSectionProps) => {
   return (
     <Box mt="4vh">
-      <Flex alignItems="center" marginBottom="20px">
+      <Flex alignItems="center" marginBottom="20px" direction="column">
         <Text fontSize="2xl">More projects</Text>
-        <Select placeholder="Select category" onChange={onCategoryChange} value={selectedCategory} ml="40px" maxW="300px">
-          {categories.map((category, index) => (
-            <option key={index} value={category}>
-              {category}
-            </option>
+        <Flex>
+          {projects.map((project) => (
+            <ProjectCard project={project}></ProjectCard>
           ))}
-        </Select>
+        </Flex>
       </Flex>
-      {/* Ici, vous pouvez intégrer la logique d'affichage des cartes de projets */}
     </Box>
   );
 };
