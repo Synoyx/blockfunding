@@ -3,10 +3,11 @@ import { parseAbiItem, decodeEventLog } from "viem";
 import { getPublicClient } from "@wagmi/core";
 
 import { callReadMethod } from "@/ts/wagmiWrapper";
-import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
+import { contractAddress, blockFundingAbi, deployBlockNumber } from "@/ts/constants";
 
-export const enum BlockFundingFunctions {
+export enum BlockFundingFunctions {
   getProjects = "getProjects",
+  getProjectsAddresses = "getProjectsAddresses",
   createNewContract = "createNewProject",
 }
 
@@ -14,7 +15,7 @@ export async function getProjects() {
   try {
     const data = await readContract({
       address: contractAddress,
-      abi: abi,
+      abi: blockFundingAbi,
       functionName: BlockFundingFunctions.getProjects.toString(),
       args: [],
     });

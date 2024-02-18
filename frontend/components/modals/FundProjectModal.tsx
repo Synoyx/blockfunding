@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useDisclosure,
   Modal,
@@ -8,27 +9,67 @@ import {
   ModalCloseButton,
   ModalBody,
   Button,
+  Text,
+  InputGroup,
+  InputRightAddon,
+  Input,
+  useToast,
 } from "@chakra-ui/react";
 
-export const FundProjectModal = () => {
-  let { isOpen, onClose, onToggle } = useDisclosure();
+import { callWriteMethod } from "@/ts/wagmiWrapper";
+import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
+
+export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress }: any) => {
+  const [amount, setAmount] = useState("");
+  const toast = useToast();
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAmount(value);
+  };
+
+  const handleSubmit = async () => {
+    const value = parseInt(amount, 10);
+    if (!Number.isInteger(value) || value <= 999 || amount.includes(".") || amount.includes(",")) {
+      // Afficher un toast d'erreur
+      toast({
+        title: "Erreur de saisie",
+        description: "Veuillez entrer un montant entier positif, de minimum 1000 Wei.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      await callWriteMethod(BlockFundingProjectFunctions.fundProject, [], BigInt(amount), projectAddress);
+    }
+  };
 
   return (
-    <Modal onClose={onClose} isOpen={isOpen} isCentered>
+    <Modal onClose={onClose} isOpen={isOpen} isCentered size="xl">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Participer au projet</ModalHeader>
         <ModalCloseButton />
 
         <ModalBody>
-          Félicitations, Vous avez décidé de participer à un projet d'avenir !\r\n Veuillez saisir le montant de votre participation et
-          cliquer sur le bouton valider pour devenir un financer et participer à la communauté du projet XXXXX
+          <Text>Félicitations, Vous avez décidé de participer à un projet d'avenir !</Text>
+          <br />
+          <Text>
+            Veuillez saisir le montant de votre participation et cliquer sur le bouton valider pour devenir un financer et participer à la
+            communauté du projet {projectName}
+          </Text>
+          <InputGroup mt={4}>
+            <Input placeholder="Montant en Wei" type="number" min="0" step="1" value={amount} onChange={handleAmountChange} />
+            <InputRightAddon children="Wei" />
+          </InputGroup>
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" mr={3} onClick={onClose}>
             Annuler
           </Button>
-          <Button colorScheme="green">Valider</Button>
+          <Button colorScheme="green" onClick={handleSubmit}>
+            Valider
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

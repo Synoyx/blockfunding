@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Heading, Text, Image, Link, Flex, VStack, Stack, Button } from "@chakra-ui/react";
+import { Box, Heading, Text, Image, Link, Flex, VStack, Stack, Button, useDisclosure } from "@chakra-ui/react";
 import { VerticalTimeline, VerticalTimelineElement } from "react-vertical-timeline-component";
 import { CheckCircleIcon, LockIcon, UnlockIcon } from "@chakra-ui/icons";
 
@@ -27,6 +27,7 @@ const ProjectDetails = () => {
   const { projects } = useBlockFundingContractContext();
   const projectId = params!.get("id");
   const [active, setActive] = useState("Project");
+  const fundProjectModalDisclosure = useDisclosure();
 
   useEffect(() => {
     async function test() {
@@ -182,8 +183,13 @@ const ProjectDetails = () => {
                 {address ? (
                   <>
                     <Text align="center">Vous avez donné : XXXXX ETH au projet</Text>
-                    <FundProjectModal />
-                    <Button bg="green.500" color="white">
+                    <FundProjectModal
+                      isOpen={fundProjectModalDisclosure.isOpen}
+                      onClose={fundProjectModalDisclosure.onClose}
+                      projectName={project!.name}
+                      projectAddress={project!.address}
+                    />
+                    <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
                       Participer
                     </Button>
                   </>

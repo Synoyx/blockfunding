@@ -365,7 +365,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         _;
     }
 
-    /// @notice Ensure that the project's campaign functing end date is not passed
+    /// @notice Ensure that the project's campaign funding end date is not passed
     modifier fundingDateNotPassed {
         if (block.timestamp > data.campaignEndingDateTimestamp) {
             revert FundingIsEnded(block.timestamp, data.campaignEndingDateTimestamp);

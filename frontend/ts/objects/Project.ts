@@ -8,6 +8,7 @@ export enum ProjectCategory {
 }
 
 export class Project {
+  address: string;
   campaignStartingDateTimestamp: number; // In timestamp seconds
   campaignEndingDateTimestamp: number; // In timestamp seconds
   estimatedProjectReleaseDateTimestamp: number; // In timestamp seconds
@@ -23,6 +24,7 @@ export class Project {
   projectSteps: ProjectStep[];
 
   constructor(
+    _address: string,
     _campaignStartingDateTimestamp: number,
     _campaignEndingDateTimestamp: number,
     _estimatedProjectReleaseDateTimestamp: number,
@@ -37,6 +39,7 @@ export class Project {
     _teamMembers: TeamMember[],
     _projectSteps: ProjectStep[]
   ) {
+    this.address = _address;
     this.campaignStartingDateTimestamp = _campaignStartingDateTimestamp;
     this.campaignEndingDateTimestamp = _campaignEndingDateTimestamp;
     this.estimatedProjectReleaseDateTimestamp = _estimatedProjectReleaseDateTimestamp;
@@ -54,6 +57,7 @@ export class Project {
 
   static createEmpty(): Project {
     return new Project(
+      "0x0",
       Math.round(new Date().getTime() / 1000 + 1 * 24 * 60 * 60),
       Math.round(new Date().getTime() / 1000 + 8 * 24 * 60 * 60),
       Math.round(new Date().getTime() / 1000 + 15 * 24 * 60 * 60),
@@ -80,7 +84,7 @@ export class Project {
     return ret;
   }
 
-  toJsonTest(): object {
+  toJson(): object {
     return {
       campaignStartingDateTimestamp: this.campaignStartingDateTimestamp,
       campaignEndingDateTimestamp: this.campaignEndingDateTimestamp,
@@ -99,6 +103,7 @@ export class Project {
   }
 
   describe(): void {
+    console.log(`Address: ${this.address}`);
     console.log(`Owner: ${this.owner}`);
     console.log(`Nom: ${this.name}`);
     console.log(`Sous-titre: ${this.subtitle}`);

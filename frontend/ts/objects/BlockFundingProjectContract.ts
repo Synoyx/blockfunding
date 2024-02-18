@@ -12,4 +12,5 @@ export const enum BlockFundingProjectFunctions {
   getFinancerDonationAmount = "getFinancerDonationAmount",
   addMessage = "addMessage", // Pass the IPFS CID as argument
   getCurrentVote = "getCurrentVote",
+  getData = "getData",
 }

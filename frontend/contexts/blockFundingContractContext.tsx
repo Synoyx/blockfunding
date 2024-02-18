@@ -4,7 +4,8 @@ import { useAccount } from "wagmi";
 import { callReadMethod, callWriteMethod, watchEvent } from "@/ts/wagmiWrapper";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { Project } from "@/ts/objects/Project";
-import { publicRead } from "@/ts/viemWrapper";
+import { publicReadToBlockFundingProject, publicReadToBlockFunding } from "@/ts/viemWrapper";
+import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 
 interface BlockFundingContractContextType {
   initBlockFundingContractContext: Function;
@@ -27,28 +28,31 @@ export const BlockFundingContractContextProvider = ({ children }: { children: Re
 
       let projectsArray: Project[] = [];
 
-      const results: any = await publicRead(BlockFundingFunctions.getProjects);
-      for (let res of results) {
+      const projectsAddresses: any = await publicReadToBlockFunding(BlockFundingFunctions.getProjectsAddresses);
+      for (let projectAddress of projectsAddresses) {
+        const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getData, projectAddress);
+
         let totalFundingRequested = 0;
-        for (let projectStep of res.projectSteps) {
+        for (let projectStep of data.projectSteps) {
           totalFundingRequested += Number(projectStep.amountNeeded);
         }
 
         projectsArray.push(
           new Project(
-            res.campaignStartingDateTimestamp,
-            res.campaignEndingDateTimestamp,
-            res.estimatedProjectReleaseDateTimestamp,
-            res.targetWallet,
-            res.owner,
-            res.totalFundsHarvested,
-            res.projectCategory,
-            res.name,
-            res.subtitle,
-            res.description,
-            res.mediaURI,
-            res.teamMembers,
-            res.projectSteps
+            projectAddress,
+            data.campaignStartingDateTimestamp,
+            data.campaignEndingDateTimestamp,
+            data.estimatedProjectReleaseDateTimestamp,
+            data.targetWallet,
+            data.owner,
+            data.totalFundsHarvested,
+            data.projectCategory,
+            data.name,
+            data.subtitle,
+            data.description,
+            data.mediaURI,
+            data.teamMembers,
+            data.projectSteps
           )
         );
       }

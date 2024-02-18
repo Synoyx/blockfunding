@@ -9,7 +9,7 @@ import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
-import { contractAddress, abi, deployBlockNumber } from "@/ts/constants";
+import { contractAddress, blockFundingAbi, blockFundingProjectAbi, deployBlockNumber } from "@/ts/constants";
 
 export const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
 
@@ -27,7 +27,6 @@ export const wagmiConfig = createConfig({
 
 /**
  * Method used to call a "read" method.
- * In the case of voting contract, you can use owner, workflowStatus, winningProposalId, getVoter and getOneProposal.
  * For the last ones, remember to give the appropriated arguments.
  */
 export async function callReadMethod(
@@ -40,6 +39,8 @@ export async function callReadMethod(
   }
 ) {
   try {
+    const temp: any = functionToCall;
+    const abi: any = Object.values(BlockFundingFunctions).includes(temp) ? blockFundingAbi : blockFundingProjectAbi;
     const data = await readContract({
       address: contractAddress,
       account: account,
@@ -58,16 +59,16 @@ export async function callReadMethod(
 
 /**
  * Method used to call a "write" method.
- * In the case of voting contract, you can use addVoter, addProposal, setVote, tallyVotes, and all workflowsStatus change methods.
- * For the first ones, remember to give the appropriated arguments.
  *
  * You can use endTXCallback to call a method once the block containing the method has been validated (like a toast for example)
  */
 export async function callWriteMethod(
   functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions,
   args: any[] = [],
+  payableValue: bigint = 0n,
+  contractToCallAddress: any = "",
   endTXCallback = () => {},
-  errorCallback = (e: any) => {
+  errorCallback: any = (e: any) => {
     throw e;
   },
   handleNewPendingTransaction = (pendingTransaction: any) => {},
@@ -76,14 +77,29 @@ export async function callWriteMethod(
   handleWaitingForMetamaskEndEvent = () => {}
 ) {
   try {
-    console.log("ARG = ");
-    console.log(args);
-    const config = await prepareWriteContract({
-      address: contractAddress,
-      abi: abi,
-      functionName: functionToCall.valueOf(),
-      args: args,
-    });
+    const temp: any = functionToCall;
+    const abi: any = Object.values(BlockFundingFunctions).includes(temp) ? blockFundingAbi : blockFundingProjectAbi;
+    let config: any;
+    console.log("Value = " + payableValue);
+    if (payableValue > 0n) {
+      console.log("totototo");
+      config = await prepareWriteContract({
+        address: contractToCallAddress === "" ? contractAddress : contractToCallAddress,
+        abi: abi,
+        functionName: functionToCall.valueOf(),
+        args: args,
+        value: payableValue,
+      });
+    } else {
+      console.log("oh nononon");
+      config = await prepareWriteContract({
+        address: contractAddress,
+        abi: abi,
+        functionName: functionToCall.valueOf(),
+        args: args,
+      });
+    }
+
     console.log(config);
     handleWaitingForMetamaskEvent();
     const { hash } = await writeContract(config);
@@ -110,23 +126,3 @@ export async function callWriteMethod(
 }
 
 export function watchEvent() {}
-/*
-  VotingEvent,
-  callback = (log) => {},
-  errorCallback = (e: any) => {
-    throw e;
-  }
-) {
-  try {
-    watchContractEvent(
-      {
-        address: contractAddress,
-        abi: abi,
-        eventName: VotingEvent,
-      },
-      callback
-    );
-  } catch (e) {
-    errorCallback(e);
-  }
-  */

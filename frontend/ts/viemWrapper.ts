@@ -3,10 +3,9 @@ import { sepolia, localhost } from "viem/chains";
 
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
-import { contractAddress, abi } from "@/ts/constants";
+import { contractAddress, blockFundingAbi, blockFundingProjectAbi } from "@/ts/constants";
 
-//export async function publicRead(functionToCall: BlockFundingFunctions | BlockFundingProjectFunctions) {
-export async function publicRead(functionToCall: BlockFundingFunctions) {
+export async function publicReadToBlockFunding(functionToCall: BlockFundingFunctions) {
   const publicClient = createPublicClient({
     chain: localhost,
     transport: http(),
@@ -14,7 +13,19 @@ export async function publicRead(functionToCall: BlockFundingFunctions) {
 
   return await publicClient.readContract({
     address: contractAddress,
-    abi: abi,
+    abi: blockFundingAbi,
+    functionName: functionToCall.valueOf(),
+  });
+}
+export async function publicReadToBlockFundingProject(functionToCall: BlockFundingProjectFunctions, projectAddress: any) {
+  const publicClient = createPublicClient({
+    chain: localhost,
+    transport: http(),
+  });
+
+  return await publicClient.readContract({
+    address: projectAddress,
+    abi: blockFundingProjectAbi,
     functionName: functionToCall.valueOf(),
   });
 }

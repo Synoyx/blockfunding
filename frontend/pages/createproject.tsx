@@ -43,6 +43,7 @@ const CreateProject = () => {
   useEffect(() => {
     if (address === undefined) return;
     const updatedProject = new Project(
+      project.address,
       project.campaignStartingDateTimestamp,
       project.campaignEndingDateTimestamp,
       project.estimatedProjectReleaseDateTimestamp,
@@ -78,6 +79,7 @@ const CreateProject = () => {
 
   function updateProjectField(project: Project, fieldName: string, value: string): Project {
     const updatedProject = new Project(
+      project.address,
       project.campaignStartingDateTimestamp,
       project.campaignEndingDateTimestamp,
       project.estimatedProjectReleaseDateTimestamp,
@@ -240,7 +242,7 @@ const CreateProject = () => {
     project.projectSteps = projectSteps;
 
     e.preventDefault();
-    await callWriteMethod(BlockFundingFunctions.createNewContract, [project.toJsonTest()]);
+    await callWriteMethod(BlockFundingFunctions.createNewContract, [project.toJson()]);
 
     toast({
       title: "Projet créé",
