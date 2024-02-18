@@ -9,7 +9,6 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { BellIcon } from "@chakra-ui/icons";
 
 import logo from "@/assets/images/logo.png";
-import CreateProject from "../../pages/CreateProject";
 
 export const Header = () => {
   const router = useRouter();
