@@ -25,15 +25,15 @@ export class ProjectStep {
     this.hasBeenValidated = _hasBeenValidated;
   }
 
-  toJson(): string {
-    return JSON.stringify({
+  toJson(): object {
+    return {
       name: this.name,
       description: this.description,
       amountNeeded: this.amountNeeded,
       amountFunded: this.amountFunded,
       isFunded: this.isFunded,
       orderNumber: this.orderNumber,
-      hasBeenValidated: this.hasBeenValidated
-    });
+      hasBeenValidated: this.hasBeenValidated,
+    };
   }
 }

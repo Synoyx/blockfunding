@@ -80,22 +80,22 @@ export class Project {
     return ret;
   }
 
-  toJson(): string {
-    return JSON.stringify({
+  toJsonTest(): object {
+    return {
       campaignStartingDateTimestamp: this.campaignStartingDateTimestamp,
       campaignEndingDateTimestamp: this.campaignEndingDateTimestamp,
       estimatedProjectReleaseDateTimestamp: this.estimatedProjectReleaseDateTimestamp,
       targetWallet: this.targetWallet,
       owner: this.owner,
       totalFundsHarvested: this.totalFundsHarvested,
-      projectCategory: this.projectCategory,
+      projectCategory: 0,
       name: this.name,
       subtitle: this.subtitle,
       description: this.description,
       mediaURI: this.mediaURI,
-      teamMembers: this.teamMembers.map(member => member.toJson ? member.toJson() : member),
-      projectSteps: this.projectSteps.map(step => step.toJson ? step.toJson() : step)
-    });
+      teamMembers: this.teamMembers.map((member) => member.toJson()),
+      projectSteps: this.projectSteps.map((step) => step.toJson()),
+    };
   }
 
   describe(): void {

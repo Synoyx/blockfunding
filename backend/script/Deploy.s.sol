@@ -74,7 +74,7 @@ forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast -
 forge script script/Deploy.s.sol:DeployDev --rpc-url $ANVIL_RPC_URL --broadcast
 
 Get projects
-cast call 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 "getProjects()(BlockFundingProject.ProjectData[])" --rpc-url $ANVIL_RPC_URL
-cast call 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 "getProjectsAddresses()" --rpc-url $ANVIL_RPC_URL
+cast call 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0 "getProjects()(BlockFundingProject.ProjectData[])" --rpc-url $ANVIL_RPC_URL
+cast call 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0 "getProjectsAddresses()" --rpc-url $ANVIL_RPC_URL
 
 */

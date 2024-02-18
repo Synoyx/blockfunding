@@ -33,7 +33,7 @@ const CreateProject = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [project, setProject] = useState(Project.createEmpty());
   const [teamMembers, setTeamMembers] = useState([new TeamMember("", "", "", "", "", "")]);
-  const [projectSteps, setProjectSteps] = useState([new ProjectStep("", "", 0, 0, false, 0, false)]);
+  const [projectSteps, setProjectSteps] = useState([new ProjectStep("", "", 0, 0, false, 1, false)]);
   const [mediaLinks, setMediaLinks] = useState([""]);
 
   useEffect(() => {
@@ -157,7 +157,7 @@ const CreateProject = () => {
   };
 
   const addProjectStep = () => {
-    setProjectSteps([...projectSteps, new ProjectStep("", "", 0, 0, false, projectSteps.length, false)]);
+    setProjectSteps([...projectSteps, new ProjectStep("", "", 0, 0, false, projectSteps.length + 1, false)]);
   };
 
   const removeProjectStep = (indexToRemove: any) => {
@@ -166,7 +166,14 @@ const CreateProject = () => {
 
   const handleTeamMemberChange = (index: number, field: string, value: string) => {
     const updatedTeamMembers = [...teamMembers];
-    const memberToUpdate = { ...updatedTeamMembers[index] };
+    const memberToUpdate = new TeamMember(
+      updatedTeamMembers[index].firstName,
+      updatedTeamMembers[index].lastName,
+      updatedTeamMembers[index].description,
+      updatedTeamMembers[index].photoLink,
+      updatedTeamMembers[index].role,
+      updatedTeamMembers[index].walletAddress
+    );
 
     switch (field) {
       case "firstName":
@@ -178,15 +185,15 @@ const CreateProject = () => {
       case "description":
         memberToUpdate.description = value;
         break;
-        case "photoLink":
-          memberToUpdate.photoLink = value;
-          break;
-          case "role":
-            memberToUpdate.role = value;
-            break;
-            case "walletAddress":
-              memberToUpdate.walletAddress = value;
-              break;
+      case "photoLink":
+        memberToUpdate.photoLink = value;
+        break;
+      case "role":
+        memberToUpdate.role = value;
+        break;
+      case "walletAddress":
+        memberToUpdate.walletAddress = value;
+        break;
       default:
         break;
     }
@@ -197,7 +204,15 @@ const CreateProject = () => {
 
   const handleProjectStepChange = (index: number, field: string, value: string) => {
     const updatedProjectSteps = [...projectSteps];
-    const stepToUpdate = { ...updatedProjectSteps[index] };
+    const stepToUpdate = new ProjectStep(
+      updatedProjectSteps[index].name,
+      updatedProjectSteps[index].description,
+      updatedProjectSteps[index].amountNeeded,
+      updatedProjectSteps[index].amountFunded,
+      updatedProjectSteps[index].isFunded,
+      updatedProjectSteps[index].orderNumber,
+      updatedProjectSteps[index].hasBeenValidated
+    );
 
     switch (field) {
       case "amountNeeded":
@@ -225,7 +240,7 @@ const CreateProject = () => {
     project.projectSteps = projectSteps;
 
     e.preventDefault();
-    await callWriteMethod(BlockFundingFunctions.createNewContract, [project.toJson()]);
+    await callWriteMethod(BlockFundingFunctions.createNewContract, [project.toJsonTest()]);
 
     toast({
       title: "Projet créé",
