@@ -3,8 +3,9 @@
 import { Box, Button, Text, Flex, Select, Image } from "@chakra-ui/react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 
 import { useBlockFundingContractContext } from "@/contexts/blockFundingContractContext";
 import Loader from "@/components/tools/Loader";
@@ -37,15 +38,44 @@ interface LastProjectsSectionProps {
 }
 
 const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
+  const { address } = useAccount();
+  const [doesUsedAlreadyHaveRunningProject, setDoesUsedAlreadyHaveRunningProject] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (address != undefined) {
+      let ret = false;
+      for (let project of projects) {
+        if (project.owner == address && project.estimatedProjectReleaseDateTimestamp < new Date().getTime() / 1000) {
+          ret = true;
+        }
+      }
+      setDoesUsedAlreadyHaveRunningProject(ret);
+    } else {
+      setDoesUsedAlreadyHaveRunningProject(false);
+    }
+  }, [address]);
+
   return (
     <Box>
       <Flex justifyContent="space-between" alignItems="center" mb="15px">
         <Text fontSize="2xl">Most popular projects</Text>
-        <Link href="/CreateProject">
-          <Button bg="green.500" color="white">
-            Create project
+        {address ? (
+          doesUsedAlreadyHaveRunningProject ? (
+            <Button bg="red.500" isDisabled={true} color="white">
+              You already have a running project
+            </Button>
+          ) : (
+            <Link href="/CreateProject">
+              <Button bg="green.500" color="white">
+                Create project
+              </Button>
+            </Link>
+          )
+        ) : (
+          <Button mt={4} isDisabled={true} colorScheme="teal" type="submit">
+            Please connect to your wallet before creating project
           </Button>
-        </Link>
+        )}
       </Flex>
       <Carousel
         showArrows={true}
