@@ -62,7 +62,7 @@ const CreateProject = () => {
     updatedProject.owner = address.toString();
 
     setProject((prevProject) => updatedProject);
-  }, [address]);
+  }, [address, project]);
 
   const goToNextStep = () => {
     setCurrentStep(currentStep + 1);
@@ -290,7 +290,7 @@ const CreateProject = () => {
               <FormControl isRequired>
                 <FormLabel>Adresse du wallet Ethereum</FormLabel>
                 <InputGroup>
-                  <InputLeftAddon children="ETH" />
+                  <InputLeftAddon>ETH</InputLeftAddon>
                   <Input
                     name="targetWallet"
                     pattern="^0x[a-fA-F0-9]{40}$"
@@ -349,7 +349,7 @@ const CreateProject = () => {
 
           {currentStep === 2 && (
             <>
-              <FormLabel>Membres de l'équipe</FormLabel>
+              <FormLabel>Membres de l&apos;équipe</FormLabel>
               <Flex
                 overflowX="scroll"
                 paddingBottom="20px"

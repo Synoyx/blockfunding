@@ -68,12 +68,7 @@ const ProjectDetails = () => {
   const endVoteModalDisclosure = useDisclosure();
 
   useEffect(() => {
-    async function test() {
-      const message: string = await getData("bafkreiaerzwc75cplvwyfsawm5qyylpmlj2biwygmerv3wb5iknwgptbuu");
-      //alert("Message = " + message);
-    }
     setProject(getProjectFromComputedId());
-    test(); //TODO change handling of messages
   }, [projectId, projects]);
 
   useEffect(() => {
@@ -247,6 +242,7 @@ const ProjectDetails = () => {
                 <VerticalTimeline lineColor="rgb(33, 150, 243)">
                   {project!.projectSteps.map((projectStep) => (
                     <VerticalTimelineElement
+                      key={projectStep.orderNumber + projectStep.amountNeeded}
                       className="vertical-timeline-element--work"
                       contentStyle={{ background: projectStep.hasBeenValidated ? "green" : "rgb(33, 150, 243)", color: "#fff" }}
                       contentArrowStyle={{ borderRight: projectStep.hasBeenValidated ? "7px solid green" : "7px solid rgb(33, 150, 243)" }}
@@ -322,7 +318,7 @@ const ProjectDetails = () => {
                       <Text align="center">La phase de financement est passée, vous ne pouvez plus ajouter de participation</Text>
                     ) : project!.campaignStartingDateTimestamp > new Date().getTime() / 1000 ? (
                       <Text align="center">
-                        La phase de financement n'a pas encore commencé, vous ne pouvez pas ajouter de participation pour le moment
+                        La phase de financement n&apos;a pas encore commencé, vous ne pouvez pas ajouter de participation pour le moment
                       </Text>
                     ) : (
                       <>
@@ -388,7 +384,7 @@ const ProjectDetails = () => {
                         );
                       }}
                     >
-                      Retirer les fonds de l'étape en cours
+                      Retirer les fonds de l&apos;étape en cours
                     </Button>
                   </Flex>
                   <Flex display={isWithdrawEndProjectAvailableValue ? "block" : "none"}>
@@ -493,7 +489,7 @@ const ProjectDetails = () => {
                       : "none"
                   }
                 >
-                  <Text align="center">Aucun retrait n'est possible pour le moment</Text>
+                  <Text align="center">Aucun retrait n&apos;est possible pour le moment</Text>
                 </Flex>
               </VStack>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
@@ -569,7 +565,7 @@ const ProjectDetails = () => {
                   </Flex>
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
-                  <Text align="center">Il n'y a pas de vote en cours</Text>
+                  <Text align="center">Il n&apos;y a pas de vote en cours</Text>
                   <Flex display={isUserTeamMember && !isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
                     <Button
                       colorScheme="green"
@@ -609,6 +605,7 @@ const ProjectDetails = () => {
                     <Button
                       colorScheme="red"
                       onClick={() => {
+                        //TODO
                         setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
                         startVoteModalDisclosure.onOpen();
                       }}
@@ -616,7 +613,6 @@ const ProjectDetails = () => {
                       Vote for cancelling the project
                     </Button>
                   </Flex>
-                  //TODO
                   <StartVoteModal
                     isOpen={startVoteModalDisclosure.isOpen}
                     onClose={startVoteModalDisclosure.onClose}

@@ -1,9 +1,5 @@
 import { readContract } from "@wagmi/core";
-import { parseAbiItem, decodeEventLog } from "viem";
-import { getPublicClient } from "@wagmi/core";
-
-import { callReadMethod } from "@/ts/wagmiWrapper";
-import { contractAddress, blockFundingAbi, deployBlockNumber } from "@/ts/constants";
+import { contractAddress, blockFundingAbi } from "@/ts/constants";
 
 export enum BlockFundingFunctions {
   getProjects = "getProjects",

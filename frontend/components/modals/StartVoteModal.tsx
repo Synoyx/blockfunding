@@ -62,10 +62,10 @@ export const StartVoteModal = ({
 
         <ModalBody>
           <Text mt="20px" align="center">
-            Chaque session de vote dure jusqu'à ce que l'ensemble des participants se soient exprimés, ou que trois jours se sont écoulés
-            après le début du vote.
+            Chaque session de vote dure jusqu&apos;à ce que l&apos;ensemble des participants se soient exprimés, ou que trois jours se sont
+            écoulés après le début du vote.
           </Text>
-          <Text align="center">Êtes-vous sûr de vouloir débuter un vote '{voteTypeString}' ?</Text>
+          <Text align="center">Êtes-vous sûr de vouloir débuter un vote &apos;{voteTypeString}&apos; ?</Text>
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" mr={3} onClick={onClose}>

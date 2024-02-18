@@ -77,13 +77,13 @@ export const AskMoreFundsModal = ({
         <ModalCloseButton />
 
         <ModalBody>
-          <Text>Vous pouvez demander d'allouer plus de fonds à l'étape en cours, en cas de besoin.</Text>
+          <Text>Vous pouvez demander d&apos;allouer plus de fonds à l&apos;étape en cours, en cas de besoin.</Text>
           <Text>Le maximum que vous pouvez demander est de {maxAmountAvailable} wei</Text>
           <br />
           <Text></Text>
           <InputGroup mt={4}>
             <Input placeholder="Montant en Wei" type="number" min="0" step="1" value={amount} onChange={handleAmountChange} />
-            <InputRightAddon children="Wei" />
+            <InputRightAddon>Wei</InputRightAddon>
           </InputGroup>
         </ModalBody>
         <ModalFooter>

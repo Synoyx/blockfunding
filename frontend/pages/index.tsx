@@ -59,6 +59,7 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
       >
         {projects.map((project: Project, index: number) => (
           <Link
+            key={"link" + index}
             href={{
               pathname: "/ProjectDetails",
               query: { id: project.name },

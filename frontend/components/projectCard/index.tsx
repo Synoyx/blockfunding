@@ -15,7 +15,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     <Link
       href={{
         pathname: "/ProjectDetails",
-        query: { id: project.id },
+        query: { id: project.name },
       }}
     >
       <Box

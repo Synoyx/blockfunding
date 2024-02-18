@@ -77,7 +77,7 @@ export const FundProjectModal = ({
         <ModalCloseButton />
 
         <ModalBody>
-          <Text>Félicitations, Vous avez décidé de participer à un projet d'avenir !</Text>
+          <Text>Félicitations, Vous avez décidé de participer à un projet d&apos;avenir !</Text>
           <br />
           <Text>
             Veuillez saisir le montant de votre participation et cliquer sur le bouton valider pour devenir un financer et participer à la
@@ -85,7 +85,7 @@ export const FundProjectModal = ({
           </Text>
           <InputGroup mt={4}>
             <Input placeholder="Montant en Wei" type="number" min="0" step="1" value={amount} onChange={handleAmountChange} />
-            <InputRightAddon children="Wei" />
+            <InputRightAddon>Wei</InputRightAddon>
           </InputGroup>
         </ModalBody>
         <ModalFooter>

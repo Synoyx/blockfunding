@@ -62,7 +62,7 @@ export const SendVoteModal = ({
 
         <ModalBody>
           <Text mt="20px" align="center">
-            Un vote est actuellement en vote, dont le sujet est le suivant : '{voteTypeString}'
+            Un vote est actuellement en vote, dont le sujet est le suivant : &apos;{voteTypeString}&apos;
           </Text>
           <Text align="center">Veuillez choisir si vous être pour ou contre cette motion</Text>
         </ModalBody>

@@ -13,7 +13,7 @@ export function ContextsLoader({ children }: any) {
     }
 
     init();
-  }, []);
+  }, [initBlockFundingContractContext]);
 
   return <>{children}</>;
 }
