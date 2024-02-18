@@ -49,8 +49,8 @@ export const AskMoreFundsModal = ({
       onClose();
       await callWriteMethod(
         BlockFundingProjectFunctions.askForMoreFunds,
-        [],
-        BigInt(amount),
+        [BigInt(amount)],
+        0n,
         projectAddress,
         () => {},
         (e: any) => {

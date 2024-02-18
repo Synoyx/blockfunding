@@ -908,13 +908,13 @@ contract BlockFundingProjectTest is Test {
     *****************************************/
 
     function test_isWithdrawCurrentStepAvailable() external {
-        assertEq(defaultProject.isWithdrawCurrentStepAvailable(address(this)), false, "Wrong return for withdrawflag");
+        assertEq(defaultProject.isWithdrawCurrentStepAvailable(), false, "Wrong return for withdrawflag");
 
         defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
         vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
 
         vm.prank(teamMemberAddress);
-        assertEq(defaultProject.isWithdrawCurrentStepAvailable(teamMemberAddress), true, "Wrong return for withdrawflag");
+        assertEq(defaultProject.isWithdrawCurrentStepAvailable(), true, "Wrong return for withdrawflag");
     }
 
 
@@ -958,7 +958,7 @@ contract BlockFundingProjectTest is Test {
         assertEq(defaultProject.isWithdrawProjectNotFundedAvailable(address(this)), true, "Wrong return for withdrawflag");
     }
 
-     /*****************************************
+    /*****************************************
     *  isWithdrawProjectCanceledAvailable()
     *****************************************/
 
@@ -974,6 +974,21 @@ contract BlockFundingProjectTest is Test {
 
         assertEq(defaultProject.isWithdrawProjectCanceledAvailable(address(this)), true, "Wrong return for withdrawflag");
     }
+
+
+    /*****************************************
+    *         endFundingCampaign()
+    *****************************************/
+
+    function test_endFundingCampaign() external {
+        assertEq(defaultProject.getData().campaignEndingDateTimestamp > block.timestamp, true, "Wrong ending date");
+
+        vm.prank(teamMemberAddress);
+        defaultProject.endFundingCampaign();
+
+        assertEq(defaultProject.getData().campaignEndingDateTimestamp > block.timestamp, false, "EndFundingCampaign doesn't works");
+    }
+    
 
     receive() external payable {}
     fallback() external payable {}

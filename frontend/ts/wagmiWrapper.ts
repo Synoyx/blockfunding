@@ -9,9 +9,12 @@ import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
-import { contractAddress, blockFundingAbi, blockFundingProjectAbi, deployBlockNumber } from "@/ts/constants";
+import { contractAddress, blockFundingAbi, blockFundingProjectAbi } from "@/ts/constants";
 
-export const { chains, publicClient } = configureChains([process.env.NODE_ENV === "development" ? hardhat : sepolia], [publicProvider(), publicProvider()]);
+export const { chains, publicClient } = configureChains(
+  [process.env.NODE_ENV === "development" ? hardhat : sepolia],
+  [publicProvider(), publicProvider()]
+);
 
 const { connectors } = getDefaultWallets({
   appName: "BlockFunding",
@@ -79,6 +82,7 @@ export async function callWriteMethod(
   try {
     const temp: any = functionToCall;
     const abi: any = Object.values(BlockFundingFunctions).includes(temp) ? blockFundingAbi : blockFundingProjectAbi;
+
     let config: any;
     if (payableValue > 0n) {
       config = await prepareWriteContract({
@@ -90,14 +94,13 @@ export async function callWriteMethod(
       });
     } else {
       config = await prepareWriteContract({
-        address: contractAddress,
+        address: contractToCallAddress === "" ? contractAddress : contractToCallAddress,
         abi: abi,
         functionName: functionToCall.valueOf(),
         args: args,
       });
     }
 
-    console.log(config);
     handleWaitingForMetamaskEvent();
     const { hash } = await writeContract(config);
     handleWaitingForMetamaskEndEvent();

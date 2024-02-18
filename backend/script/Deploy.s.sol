@@ -66,7 +66,7 @@ contract DeployDev is Deploy {
         for (uint i; i < 3; i++) {
             vm.startBroadcast(anvilPK[i]);
             blockFunding.createNewProject(data[i]); // Create a clone for each iteration, with given mocked data
-             vm.stopBroadcast();
+            vm.stopBroadcast();
         }
     }
 
@@ -81,6 +81,12 @@ forge script script/Deploy.s.sol:DeployDev --rpc-url $ANVIL_RPC_URL --broadcast
 
 Get projects
 cast call 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0 "getProjects()(BlockFundingProject.ProjectData[])" --rpc-url $ANVIL_RPC_URL
-cast call 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0 "getProjectsAddresses()" --rpc-url $ANVIL_RPC_URL
+cast call 0x0165878a594ca255338adfa4d48449f69242eb8f "getProjectsAddresses()" --rpc-url $ANVIL_RPC_URL
 
+cast send 0x304f769D386c0c787674588D52448EEe6d550b9f "endFundingCampaign()"  --rpc-url $ANVIL_RPC_URL --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+cast call 0x304f769D386c0c787674588D52448EEe6d550b9f "isWithdrawCurrentStepAvailable()"  --rpc-url $ANVIL_RPC_URL --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+cast balance 0xCc63064CAc130515d8Cca1Ba9A2191d07C65227a
+
+500 eth = 500000000000000000000 wei
 */

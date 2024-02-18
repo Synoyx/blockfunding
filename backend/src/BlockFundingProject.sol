@@ -495,6 +495,14 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     /**
+    * @notice This function is mostly added for demo purpose.
+    * It allows to shorten the campaign period, unlocking two scenarios : withdrawProjectNotFunded, if project hasn't been funded, and startVote if project is funded
+    */
+    function endFundingCampaign() external onlyTeamMember {
+        data.campaignEndingDateTimestamp = uint32(block.timestamp -1);
+    }
+
+    /**
      * @notice Method to call by team members, to withdraw funds for the current project step, once it has been validated by financer's vote
      * This allow to unlock project's finances step by step, a process more secure for financers, to avoid scams
      */
@@ -841,13 +849,18 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return financersDonations[userAddress] > 0;
     }
 
-    function isWithdrawCurrentStepAvailable(address userAddress) external view returns (bool) {
-        bool isTeamMember = teamMembersAddresses[userAddress];
+    function isWithdrawCurrentStepAvailable() external view returns (bool) {
+        bool isTeamMember = teamMembersAddresses[msg.sender];
         bool isProjectFunded = block.timestamp > data.campaignEndingDateTimestamp && checkIfProjectIsFunded();
         bool isCurrentStepFunded = data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]].isFunded;
 
         return isTeamMember && isProjectFunded && !projectGotVoteCanceled && !isCurrentStepFunded;
     }
+
+    function isProjectFundedd() external view returns (bool) {
+        return teamMembersAddresses[msg.sender];
+    }
+
 
     function isWithdrawEndProjectAvailable(address userAddress) external view returns (bool) {
         bool isTeamMember = teamMembersAddresses[userAddress];

@@ -32,9 +32,9 @@ export async function isWithdrawProjectCanceledAvailable(contractAddress: any, u
     const data: any = await publicReadToBlockFundingProject(
       BlockFundingProjectFunctions.isWithdrawProjectCanceledAvailable,
       contractAddress,
-      [],
-      userAddress
+      [userAddress]
     );
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -49,9 +49,9 @@ export async function isWithdrawProjectNotFundedAvailable(contractAddress: any, 
     const data: any = await publicReadToBlockFundingProject(
       BlockFundingProjectFunctions.isWithdrawProjectNotFundedAvailable,
       contractAddress,
-      [],
-      userAddress
+      [userAddress]
     );
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -63,12 +63,10 @@ export async function isWithdrawEndProjectAvailable(contractAddress: any, userAd
   let ret: boolean = false;
 
   try {
-    const data: any = await publicReadToBlockFundingProject(
-      BlockFundingProjectFunctions.isWithdrawEndProjectAvailable,
-      contractAddress,
-      [],
-      userAddress
-    );
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isWithdrawEndProjectAvailable, contractAddress, [
+      userAddress,
+    ]);
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -86,6 +84,7 @@ export async function isWithdrawCurrentStepAvailable(contractAddress: any, userA
       [],
       userAddress
     );
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -97,7 +96,8 @@ export async function isFinancer(contractAddress: any, userAddress: any): Promis
   let ret: boolean = false;
 
   try {
-    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isFinancer, contractAddress, [], userAddress);
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isFinancer, contractAddress, [userAddress]);
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -124,6 +124,7 @@ export async function isProjectCanceledOrLastStepValidated(contractAddress: any)
       BlockFundingProjectFunctions.isProjectCanceledOrLastStepValidated,
       contractAddress
     );
+    return data;
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -168,7 +169,7 @@ export async function getCurrentVote(contractAddress: any, userAddress: any): Pr
   let ret: Vote = Vote.createEmpty();
 
   try {
-    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getCurrentVote, contractAddress, [], userAddress);
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getCurrentVote, contractAddress, [userAddress]);
 
     ret = new Vote(
       data.stepNumber,

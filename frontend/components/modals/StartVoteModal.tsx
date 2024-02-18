@@ -28,7 +28,7 @@ export const StartVoteModal = ({
     onClose();
     await callWriteMethod(
       BlockFundingProjectFunctions.startVote,
-      [+voteType],
+      ["" + voteType],
       0n,
       projectAddress,
       () => {},

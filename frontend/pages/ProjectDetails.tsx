@@ -121,11 +121,13 @@ const ProjectDetails = () => {
       loadDonationAmount(project!.address);
       loadCurrentVote(project!.address);
       loadIsProjectFinished(project!.address);
-      loadIsFinancer(project!.address);
-      loadIsWithdrawCurrentStepAvailableValue(project!.address);
-      loadIsWithdrawEndProjectAvailableValue(project!.address);
-      loadIsWithdrawProjectNotFundedAvailableValue(project!.address);
-      loadIsWithdrawProjectCanceledAvailableValue(project!.address);
+      if (address !== undefined) {
+        loadIsFinancer(project!.address);
+        loadIsWithdrawCurrentStepAvailableValue(project!.address);
+        loadIsWithdrawEndProjectAvailableValue(project!.address);
+        loadIsWithdrawProjectNotFundedAvailableValue(project!.address);
+        loadIsWithdrawProjectCanceledAvailableValue(project!.address);
+      }
 
       const amountThatWillBeConsumedInFuture = project!.projectSteps.reduce((acc, step) => {
         if (!step.hasBeenValidated) {
@@ -242,7 +244,6 @@ const ProjectDetails = () => {
                 </VerticalTimeline>
               </Flex>
               <Flex display={active === "Étapes du projet" ? "block" : "none"} width="100%" color="black">
-                
                 <VerticalTimeline lineColor="rgb(33, 150, 243)">
                   {project!.projectSteps.map((projectStep) => (
                     <VerticalTimelineElement
@@ -301,6 +302,12 @@ const ProjectDetails = () => {
                     </Text>
                   </Link>
                 </Flex>
+                <Flex alignItems="center" width="100%">
+                  <Text fontSize="md" fontWeight="bold" mr="10px" whiteSpace="nowrap">
+                    Adresse projet :
+                  </Text>
+                  <Text>{project!.address}</Text>
+                </Flex>
               </Box>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Heading size="md" lineHeight="shorter" mb="10px">
@@ -354,7 +361,7 @@ const ProjectDetails = () => {
                 <Heading size="md" lineHeight="shorter" mb="10px">
                   Retraits
                 </Heading>
-                <Flex display={isUserTeamMember ? "block" : "none"}>
+                <Flex display={isUserTeamMember ? "block" : "none"} alignItems="center">
                   <Flex display={isWithdrawCurrentStepAvailableValue ? "block" : "none"}>
                     <Button
                       colorScheme="green"
@@ -475,6 +482,19 @@ const ProjectDetails = () => {
                     </Button>
                   </Flex>
                 </Flex>
+
+                <Flex
+                  display={
+                    !isWithdrawEndProjectAvailableValue &&
+                    !isWithdrawCurrentStepAvailableValue &&
+                    !isWithdrawProjectNotFundedAvailableValue &&
+                    !isWithdrawProjectCanceledAvailableValue
+                      ? "block"
+                      : "none"
+                  }
+                >
+                  <Text align="center">Aucun retrait n'est possible pour le moment</Text>
+                </Flex>
               </VStack>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Flex justifyContent="space-between">
@@ -521,8 +541,27 @@ const ProjectDetails = () => {
                   >
                     <Button
                       colorScheme="green"
-                      onClick={() => {
-                        endVoteModalDisclosure.onOpen();
+                      onClick={async () => {
+                        await callWriteMethod(
+                          BlockFundingProjectFunctions.endVote,
+                          [],
+                          0n,
+                          project!.address,
+                          () => {},
+                          (e: any) => {
+                            throw e;
+                          },
+                          (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onOpen();
+                          },
+                          async (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onClose();
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          },
+                          () => waitingForValidatingTransactionlDisclosure.onOpen(),
+                          () => waitingForValidatingTransactionlDisclosure.onClose()
+                        );
                       }}
                     >
                       Terminer le vote
@@ -531,7 +570,7 @@ const ProjectDetails = () => {
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
                   <Text align="center">Il n'y a pas de vote en cours</Text>
-                  <Flex display={isUserTeamMember && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Flex display={isUserTeamMember && !isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
                     <Button
                       colorScheme="green"
                       onClick={() => {
@@ -543,7 +582,7 @@ const ProjectDetails = () => {
                     </Button>
                     <Button
                       display={
-                        isUserTeamMember && isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
+                        isUserTeamMember && !isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
                       }
                       colorScheme="orange"
                       onClick={() => {
@@ -566,31 +605,31 @@ const ProjectDetails = () => {
                       setProject((oldProject) => updatedProject);
                     }}
                   />
-                </Flex>
-                <Flex display={isUserFinancer && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
-                  <Button
-                    colorScheme="red"
-                    onClick={() => {
-                      setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
-                      startVoteModalDisclosure.onOpen();
+                  <Flex display={isUserFinancer && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                    <Button
+                      colorScheme="red"
+                      onClick={() => {
+                        setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
+                        startVoteModalDisclosure.onOpen();
+                      }}
+                    >
+                      Vote for cancelling the project
+                    </Button>
+                  </Flex>
+                  //TODO
+                  <StartVoteModal
+                    isOpen={startVoteModalDisclosure.isOpen}
+                    onClose={startVoteModalDisclosure.onClose}
+                    voteType={selectedVoteType}
+                    projectAddress={project!.address}
+                    waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                    waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                    endTXCallback={async () => {
+                      const updatedProject = await getProject(project!.address);
+                      setProject((oldProject) => updatedProject);
                     }}
-                  >
-                    Vote for cancelling the project
-                  </Button>
+                  />
                 </Flex>
-
-                <StartVoteModal
-                  isOpen={startVoteModalDisclosure.isOpen}
-                  onClose={startVoteModalDisclosure.onClose}
-                  voteType={selectedVoteType}
-                  projectAddress={project!.address}
-                  waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
-                  waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
-                  endTXCallback={async () => {
-                    const updatedProject = await getProject(project!.address);
-                    setProject((oldProject) => updatedProject);
-                  }}
-                />
               </VStack>
             </Stack>
           </Flex>

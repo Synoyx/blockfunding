@@ -1,7 +1,7 @@
 export const NFT_STORAGE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU4MDY4N0Q0QjU4M0M4MDYyYjhGODcwNzQwRDg3MGQ5NUIwRGQ4NUIiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwNzQyODc3NjI0NywibmFtZSI6IlRlc3QifQ.MxIq9_MxyqECzJAzI_Jzpce-jJs_9Sm8vmE5DD9rRN0";
 
-export const contractAddress = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0";
+export const contractAddress = "0xcbeaf3bde82155f56486fb5a1072cb8baaf547cc";
 export const blockFundingAbi = [
   { type: "constructor", inputs: [], stateMutability: "nonpayable" },
   {
@@ -189,6 +189,7 @@ export const blockFundingProjectAbi = [
     ],
     stateMutability: "view",
   },
+  { type: "function", name: "endFundingCampaign", inputs: [], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "endProjectWithdraw", inputs: [], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "endVote", inputs: [], outputs: [], stateMutability: "nonpayable" },
   {
@@ -462,8 +463,15 @@ export const blockFundingProjectAbi = [
   },
   {
     type: "function",
+    name: "isProjectFundedd",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isWithdrawCurrentStepAvailable",
-    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
+    inputs: [],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },

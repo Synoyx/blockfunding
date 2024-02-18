@@ -173,7 +173,7 @@ library MockedData {
         mockedData[0] = BlockFundingProject.ProjectStep({
             name: "Conceptualisation et Design Initial",
             description: unicode"Élaboration du concept, études de faisabilité, et design préliminaire.",
-            amountNeeded: 1000000000000000000000,
+            amountNeeded: 10000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 1,
@@ -183,7 +183,7 @@ library MockedData {
         mockedData[1] = BlockFundingProject.ProjectStep({
             name: unicode"Modélisation et Simulation",
             description: unicode"Modélisation numérique et simulation des performances de vol et de lévitation.",
-            amountNeeded: 2000000000000000000000,
+            amountNeeded: 200000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 2,
@@ -193,7 +193,7 @@ library MockedData {
         mockedData[2] = BlockFundingProject.ProjectStep({
             name: unicode"Développement des Réacteurs",
             description: unicode"Conception et prototype des réacteurs de propulsion.",
-            amountNeeded: 7000000000000000000000,
+            amountNeeded: 70000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 3,
@@ -203,7 +203,7 @@ library MockedData {
         mockedData[3] = BlockFundingProject.ProjectStep({
             name: unicode"Système de Lévitation Magnétique",
             description: unicode"Développement et test du système de lévitation.",
-            amountNeeded: 10000000000000000000000,
+            amountNeeded: 100000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 4,
@@ -213,7 +213,7 @@ library MockedData {
         mockedData[4] = BlockFundingProject.ProjectStep({
             name: "Prototype Initial",
             description: unicode"Construction du premier prototype fonctionnel.",
-            amountNeeded: 2000000000000000000000,
+            amountNeeded: 20000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 5,
@@ -223,7 +223,7 @@ library MockedData {
         mockedData[5] = BlockFundingProject.ProjectStep({
             name: "Essais en Vol",
             description: unicode"Premiers tests de vol et ajustements basés sur les résultats.",
-            amountNeeded: 2000000000000000000000,
+            amountNeeded: 20000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 6,
@@ -233,7 +233,7 @@ library MockedData {
         mockedData[6] = BlockFundingProject.ProjectStep({
             name: unicode"Sécurité et Conformité",
             description: unicode"Vérification de la sécurité et démarches pour la conformité réglementaire.",
-            amountNeeded: 3000000000000000000000,
+            amountNeeded: 30000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 7,
@@ -243,7 +243,7 @@ library MockedData {
         mockedData[7] = BlockFundingProject.ProjectStep({
             name: unicode"Optimisation et Révisions",
             description: unicode"Amélioration du design et des systèmes en fonction des tests.",
-            amountNeeded: 3000000000000000000000,
+            amountNeeded: 30000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 8,
@@ -253,7 +253,7 @@ library MockedData {
         mockedData[8] = BlockFundingProject.ProjectStep({
             name: unicode"Pré-Production",
             description: unicode"Mise en place des lignes de production et préparation pour la fabrication.",
-            amountNeeded: 5000000000000000000000,
+            amountNeeded: 50000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 9,
@@ -263,7 +263,7 @@ library MockedData {
         mockedData[9] = BlockFundingProject.ProjectStep({
             name: "Campagne de Marketing",
             description: unicode"Lancement d'une campagne pour sensibiliser et attirer les premiers acheteurs.",
-            amountNeeded: 4000000000000000000000,
+            amountNeeded: 40000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 10,
@@ -273,7 +273,7 @@ library MockedData {
         mockedData[10] = BlockFundingProject.ProjectStep({
             name: unicode"Production de Série",
             description: unicode"Début de la production en série et contrôle qualité.",
-            amountNeeded: 10000000000000000000000,
+            amountNeeded: 100000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 11,
@@ -283,7 +283,7 @@ library MockedData {
         mockedData[11] = BlockFundingProject.ProjectStep({
             name: "Lancement et Commercialisation",
             description: unicode"Lancement officiel sur le marché et début des livraisons.",
-            amountNeeded: 1000000000000000000000,
+            amountNeeded: 10000000000000000000,
             amountFunded: 0,
             isFunded: false,
             orderNumber: 12,
