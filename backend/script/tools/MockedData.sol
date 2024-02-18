@@ -370,7 +370,7 @@ library MockedData {
     }
 
     function getMockedStepsForHoverSol() internal pure returns(BlockFundingProject.ProjectStep[] memory) {
-        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](7);
+        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](9);
 
         mockedData[0] = BlockFundingProject.ProjectStep({
             name: unicode"Étude de Faisabilité et Recherche Initiale",
