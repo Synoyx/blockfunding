@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  useDisclosure,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -19,7 +18,15 @@ import {
 import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 
-export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress, waitingTXValidationDisclosure }: any) => {
+export const FundProjectModal = ({
+  isOpen,
+  onClose,
+  projectName,
+  projectAddress,
+  waitingTXValidationDisclosure,
+  waitingTXExecutionDisclosure,
+  endTXCallback
+}: any) => {
   const [amount, setAmount] = useState("");
   const toast = useToast();
 
@@ -62,8 +69,13 @@ export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress,
         (e: any) => {
           throw e;
         },
-        () => {},
-        () => {},
+        (pendingTransaction: any) => {
+          waitingTXExecutionDisclosure.onOpen();
+        },
+        (pendingTransaction: any) => {
+          waitingTXExecutionDisclosure.onClose();
+          endTXCallback(BigInt(amount));
+        },
         () => waitingTXValidationDisclosure.onOpen(),
         () => waitingTXValidationDisclosure.onClose()
       );

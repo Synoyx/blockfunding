@@ -109,11 +109,11 @@ export async function callWriteMethod(
       args: args,
     };
 
-    //handleNewPendingTransaction(pendingTX);
+    handleNewPendingTransaction(pendingTX);
 
     await waitForTransaction({ hash: hash });
 
-    //handlePendingTransactionDone(pendingTX);
+    handlePendingTransactionDone(pendingTX);
 
     endTXCallback();
   } catch (e) {

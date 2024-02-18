@@ -15,11 +15,12 @@ import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
 import { FundProjectModal } from "@/components/modals/FundProjectModal";
 import { WaitingForValidatingTransaction } from "@/components/modals/WaitingForValidatingTransaction";
+import { WaitingForTransactionExecution } from "@/components/modals/WaitingForTransactionExecution";
 
 import { getData } from "@/ts/nftStorageWrapper";
 
 import "@/assets/css/verticalTimeline.css";
-import { getDonationAmount } from "@/ts/objects/BlockFundingProjectContract";
+import { getDonationAmount, getProject } from "@/ts/objects/BlockFundingProjectContract";
 
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
@@ -32,6 +33,7 @@ const ProjectDetails = () => {
   const [active, setActive] = useState("Project");
   const fundProjectModalDisclosure = useDisclosure();
   const waitingForValidatingTransactionlDisclosure = useDisclosure();
+  const waitingForTransactionExecutionlDisclosure = useDisclosure();
 
   useEffect(() => {
     async function test() {
@@ -201,11 +203,19 @@ const ProjectDetails = () => {
                       projectName={project!.name}
                       projectAddress={project!.address}
                       waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
-                      waitingTXExecutionDisclosure={waitingForValidatingTransactionlDisclosure} // TODO
+                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                      endTXCallback={async (amountAdded: any) => {
+                        const updatedProject = await getProject(project!.address);
+                        setProject((oldProject) => updatedProject);
+                      }}
                     />
                     <WaitingForValidatingTransaction
                       isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
                       onClose={waitingForValidatingTransactionlDisclosure.onClose}
+                    />
+                    <WaitingForTransactionExecution
+                      isOpen={waitingForTransactionExecutionlDisclosure.isOpen}
+                      onClose={waitingForTransactionExecutionlDisclosure.onClose}
                     />
                     <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
                       Participer
