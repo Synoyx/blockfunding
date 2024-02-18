@@ -126,7 +126,7 @@ const MoreProjectsSection = ({ projects }: MoreProjectsSectionProps) => {
         <Text fontSize="2xl">More projects</Text>
         <Flex>
           {projects.map((project) => (
-            <ProjectCard project={project}></ProjectCard>
+            <ProjectCard key={project.name} project={project}></ProjectCard>
           ))}
         </Flex>
       </Flex>
