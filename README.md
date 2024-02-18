@@ -11,16 +11,18 @@ BlockFunding allows you to create crowdfunding campaigns who establish confidenc
 
 [Video link]() //TODO
 
-[DApp link]() //TODO
+[DApp link](blockfunding-one.vercel.app)
 
-//TODO parler de la start date abaissée volontairement pour rendre possible la démo
-//TODO parler de la méthode endCampaign rajoutée pour rendre possible la démo
-
-The smart contract is deployed on Sepolia network
+The smart contract is deployed on Sepolia network [Etherscan link](https://sepolia.etherscan.io/address/0xeed7b2565a5a89f6bfc80fa3688777fcea507dc3)
 
 ## Must read before continuing
 
-Before using the DApp, you must know that smart contracts of this project are highly secured, and one of the main security mecanism is time. This implies that you won't be able to quickly execute all the differents functionnalities of the app (See security part for more details)
+Before using the DApp, you must know that smart contracts of this project are highly secured, and one of the main security mecanism is time. This implies that you won't be able to quickly execute all the differents functionnalities of the app (See security part for more details).
+In fact, to be able to realize a meanigful demo for you, I had to make two modification, that I'd not let on a real production deployment :
+
+- I added a method to manually change the endFundingCampaignDate to now(), otherwise I'd need to wait at least 7 days to be able to show you methods like vote & withdraw
+- I removed a limitation around the startFundingCampaignDate. This date can (for the demo) be in the past, so I can easily inject projects in different status
+  The two modification should now be taken in account security wise, because as I said I added this only for the demo, and I know that theese methods bring a potential DoS security breach
 
 ## Getting started
 
