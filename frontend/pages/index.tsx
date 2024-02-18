@@ -65,7 +65,7 @@ const LastProjectsSection = ({ projects }: LastProjectsSectionProps) => {
               You already have a running project
             </Button>
           ) : (
-            <Link href="/CreateProject">
+            <Link href={process.env.NODE_ENV === "development" ? "/CreateProject" : "/createproject"}>
               <Button bg="green.500" color="white">
                 Create project
               </Button>
