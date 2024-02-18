@@ -36,13 +36,15 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
 
     struct Vote {
+        /// @notice Step number the amount has been asked for
+        uint96 stepNumber;
+
         /// @notice Variable only use on VoteType.AddFundsForStep. It's the amount asked by the team to add on current step
         uint96 askedAmountToAddForStep;
         
         /// @notice End vote date, in timestamp second format
         uint96 endVoteDate;
 
-        
         /// @notice Does the action proposed to vote has been validated
         bool hasVoteBeenValidated;
 
@@ -53,13 +55,36 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         VoteType voteType;
 
         /// @notice Mapping to keep a trace of who has voted
-        mapping (address => bool) hasFinancerVoted;
+        mapping (address => bool) hasFinancersVoted;
 
         /// @notice Total of vote power voted in favor of current vote
         uint votePowerInFavorOfProposal;
 
         /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
         uint votePowerAgainstProposal;
+    }
+
+    struct SimplifiedVote {
+        /// @notice Step number the amount has been asked for
+        uint96 stepNumber;
+
+        /// @notice Variable only use on VoteType.AddFundsForStep. It's the amount asked by the team to add on current step
+        uint96 askedAmountToAddForStep;
+        
+        /// @notice End vote date, in timestamp second format
+        uint96 endVoteDate;
+
+        /// @notice Does the action proposed to vote has been validated
+        bool hasVoteBeenValidated;
+
+        /// @notice Flag to know if vote is still running. Mostly used in modifiers
+        bool isVoteRunning;
+
+        /// @notice Type of vote (see enum comment for more details)
+        VoteType voteType;
+
+        /// @notice Does the used has voted
+        bool hasFinancerVoted;
     }
 
     struct TeamMember {
@@ -416,8 +441,17 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         }
 
         for (uint i; i < _data.projectSteps.length; i++) {
-            //TODO create a new object and set values manually (name, description, amount needed, orderNumber
-            data.projectSteps.push(_data.projectSteps[i]);
+            ProjectStep memory step = ProjectStep(
+                 _data.projectSteps[i].name,
+                 _data.projectSteps[i].description,
+                 _data.projectSteps[i].amountNeeded,
+                 0,
+                 false,
+                 _data.projectSteps[i].orderNumber,
+                 false
+            );
+
+            data.projectSteps.push(step);
             projectStepsOrderedIndex[_data.projectSteps[i].orderNumber] = uint8(i);
             fundingRequested += _data.projectSteps[i].amountNeeded;
         }
@@ -568,6 +602,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         newVote.voteType = VoteType.AddFundsForStep;
         newVote.endVoteDate = computeVoteEndDate(uint96(block.timestamp));
         newVote.askedAmountToAddForStep = uint96(amountAsked);
+        newVote.stepNumber = currentProjectStepId;
         newVote.isVoteRunning = true;
 
         emit VoteStarted(currentVoteId, VoteType.AddFundsForStep);
@@ -636,12 +671,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     function sendVote(bool vote) external onlyFinancer voteIsRunning {
         Vote storage currentVote = votes[currentVoteId];
         if(currentVote.endVoteDate < block.timestamp) revert VoteTimeEnded(currentVote.endVoteDate);
-        if(currentVote.hasFinancerVoted[msg.sender]) revert AlreadyVoted(msg.sender);
+        if(currentVote.hasFinancersVoted[msg.sender]) revert AlreadyVoted(msg.sender);
 
         currentVote.votePowerInFavorOfProposal += vote ? Maths.sqrt(financersDonations[msg.sender]) : 0;
         currentVote.votePowerAgainstProposal += vote ? 0 : Maths.sqrt(financersDonations[msg.sender]);
 
-        currentVote.hasFinancerVoted[msg.sender] = true;
+        currentVote.hasFinancersVoted[msg.sender] = true;
         emit HasVoted(msg.sender, currentVoteId, vote);
     }
 
@@ -729,6 +764,10 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
     }
 
     function getCurrentProjectStepId() external view returns (uint) {
+        return currentProjectStepId;
+    }
+
+    function getCurrentProjectStepIndex() external view returns (uint) {
         return projectStepsOrderedIndex[currentProjectStepId];
     }
 
@@ -755,6 +794,30 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function getTotalVotePower() external view returns (uint) {
         return totalVotePower;
+    }
+
+    function getCurrentVote() external view returns (SimplifiedVote memory) {
+        Vote storage currentVote = votes[currentVoteId];
+
+        SimplifiedVote memory ret = SimplifiedVote(
+            currentVote.stepNumber,
+            currentVote.askedAmountToAddForStep,
+            currentVote.endVoteDate,
+            currentVote.hasVoteBeenValidated,
+            currentVote.isVoteRunning,
+            currentVote.voteType,
+            currentVote.hasFinancersVoted[msg.sender]
+        );
+        
+        return ret;
+    }
+
+    function getFinancerDonationAmount(address financerAddress) external view returns (uint) {
+        return financersDonations[financerAddress];
+    }
+
+    function isProjectCanceled() external view returns (bool) {
+        return projectGotVoteCanceled;
     }
 
 

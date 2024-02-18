@@ -655,14 +655,14 @@ contract BlockFundingProjectTest is Test {
 
         defaultProject.sendVote(true);
 
-        uint oldAmountNeeded = defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].amountNeeded;
+        uint oldAmountNeeded = defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepIndex()].amountNeeded;
 
-        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].isFunded, true, "Project step is already funded on init");
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepIndex()].isFunded, true, "Project step is already funded on init");
         vm.prank(teamMemberAddress);
         defaultProject.endVote();
 
-        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].isFunded, false, "Project step isfunded hasn't changed");
-        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepId()].amountNeeded, oldAmountNeeded + 1000, "Project step amount needed hasn't changed");
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepIndex()].isFunded, false, "Project step isfunded hasn't changed");
+        assertEq(defaultProject.getData().projectSteps[defaultProject.getCurrentProjectStepIndex()].amountNeeded, oldAmountNeeded + 1000, "Project step amount needed hasn't changed");
         assertEq(defaultProject.isLastVoteValidated(), true, "Vote hasn't been validated");
     }
 
@@ -835,6 +835,37 @@ contract BlockFundingProjectTest is Test {
         vm.startPrank(visitorAddress);
         vm.expectRevert(abi.encodeWithSelector(BlockFundingProject.FinancerOrTeamMemberUnauthorizedAccount.selector, visitorAddress));
         defaultProject.addMessage(messageCID);
+    }
+
+
+    /**************************
+    *     getCurrentVote()
+    ***************************/
+
+    function test_getCurrentVote() external {
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.prank(teamMemberAddress);
+        defaultProject.askForMoreFunds(1000);
+
+        defaultProject.sendVote(true);
+
+        BlockFundingProject.SimplifiedVote memory vote = defaultProject.getCurrentVote();
+        assertEq(vote.stepNumber, 1, "Wrong step number returned in currentVote getter");
+        assertEq(vote.askedAmountToAddForStep, 1000, "Wrong asked amount returned in currentVote getter");
+        assertEq(vote.hasVoteBeenValidated, false, "Wrong flag returned in currentVote getter");
+        assertEq(vote.isVoteRunning, true, "Wrong is vote running flag returned in currentVote getter");
+        assertEq(vote.hasFinancerVoted, true, "Wrong has voted flag returned in currentVote getter");
+    }
+
+    /******************************
+    *  getFinancerDonationAmount()
+    ******************************/
+
+    function test_getFinancerDonationAmount() external {
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        assertEq(defaultProject.getFinancerDonationAmount(address(this)), defaultProject.getFundingRequested(), "Wrong donation amount for given financer returned");
     }
 
     receive() external payable {}

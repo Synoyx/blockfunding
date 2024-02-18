@@ -165,15 +165,19 @@ contract BlockFundingTest is Test {
         assertEq(blockFunding.getProjectsAddresses().length, 0, "Projects array isn't empty when BlockFunding project is initialized");
 
         for (uint i; i < 100; i++) {
+            vm.startPrank(vm.addr(i+1));
             blockFunding.createNewProject(MockedData.getMockedProjectDatas()[0]);
+            vm.stopPrank();
         }
 
         assertEq(blockFunding.getProjectsAddresses().length, 100, "Projects array isn't empty when BlockFunding project is initialized");
     }
 
     function test_projectsList() external {
-        for (uint i; i < 3; i++) {
+        for (uint256 i; i < 3; i++) {
+            vm.startPrank(vm.addr(i+1));
             blockFunding.createNewProject(MockedData.getMockedProjectDatas()[i]);
+            vm.stopPrank();
         }
 
         assertEq(blockFunding.getProjects()[0].name, MockedData.getMockedProjectDatas()[0].name, "Name seems to not be assigned correcctly !");
@@ -185,10 +189,21 @@ contract BlockFundingTest is Test {
         address[] memory clonesAddresses = new address[](3);
 
         for (uint i; i < 3; i++) {
+            vm.startPrank(vm.addr(i+1));
             blockFunding.createNewProject(MockedData.getMockedProjectDatas()[i]);
+            vm.stopPrank();
             clonesAddresses[i] = blockFunding.projects(i);
 
             assertEq(arrayContainsOnlyOnce(blockFunding.projects(i), clonesAddresses), true, "Clones have the same addresses !");
+        }
+    }
+
+    function test_twoLiveProjectsOnSameUser() external {
+        BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
+        data.owner = address(this);
+        for (uint i; i < 2; i++) {
+            if (i == 1) vm.expectRevert(abi.encodeWithSelector(BlockFunding.AProjectIsAlreadyLiveFromThisOwner.selector));
+            blockFunding.createNewProject(data);
         }
     }
 
