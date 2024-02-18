@@ -13,7 +13,7 @@ export class Project {
   estimatedProjectReleaseDateTimestamp: number; // In timestamp seconds
   targetWallet: string;
   owner: string;
-  totalFundsHarvested: BigInt; //Stored in Wei
+  totalFundsHarvested: number; //Stored in Wei
   projectCategory: ProjectCategory;
   name: string;
   subtitle: string;
@@ -28,7 +28,7 @@ export class Project {
     _estimatedProjectReleaseDateTimestamp: number,
     _targetWallet: string,
     _owner: string,
-    _totalFundsHarvested: BigInt,
+    _totalFundsHarvested: number,
     _projectCategory: ProjectCategory,
     _name: string,
     _subtitle: string,
@@ -54,12 +54,12 @@ export class Project {
 
   static createEmpty(): Project {
     return new Project(
-      new Date().getTime() / 1000 + 1 * 24 * 60 * 60,
-      new Date().getTime() / 1000 + 8 * 24 * 60 * 60,
-      new Date().getTime() / 1000 + 15 * 24 * 60 * 60,
+      Math.round(new Date().getTime() / 1000 + 1 * 24 * 60 * 60),
+      Math.round(new Date().getTime() / 1000 + 8 * 24 * 60 * 60),
+      Math.round(new Date().getTime() / 1000 + 15 * 24 * 60 * 60),
       "",
       "",
-      BigInt(0),
+      0,
       ProjectCategory.Art,
       "",
       "",
@@ -70,7 +70,7 @@ export class Project {
     );
   }
 
-  getTotalFundsRequested(): BigInt {
+  getTotalFundsRequested(): bigint {
     let ret: any = 0n;
 
     for (let projectStep of this.projectSteps) {
@@ -78,6 +78,24 @@ export class Project {
     }
 
     return ret;
+  }
+
+  toJson(): string {
+    return JSON.stringify({
+      campaignStartingDateTimestamp: this.campaignStartingDateTimestamp,
+      campaignEndingDateTimestamp: this.campaignEndingDateTimestamp,
+      estimatedProjectReleaseDateTimestamp: this.estimatedProjectReleaseDateTimestamp,
+      targetWallet: this.targetWallet,
+      owner: this.owner,
+      totalFundsHarvested: this.totalFundsHarvested,
+      projectCategory: this.projectCategory,
+      name: this.name,
+      subtitle: this.subtitle,
+      description: this.description,
+      mediaURI: this.mediaURI,
+      teamMembers: this.teamMembers.map(member => member.toJson ? member.toJson() : member),
+      projectSteps: this.projectSteps.map(step => step.toJson ? step.toJson() : step)
+    });
   }
 
   describe(): void {

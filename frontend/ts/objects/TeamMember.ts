@@ -14,4 +14,15 @@ export class TeamMember {
     this.role = _role;
     this.walletAddress = _walletAddress;
   }
+
+  toJson(): string {
+    return JSON.stringify({
+      firstName: this.firstName,
+      lastName: this.lastName,
+      description: this.description,
+      photoLink: this.photoLink,
+      role: this.role,
+      walletAddress: this.walletAddress,
+    });
+  }
 }
