@@ -77,7 +77,8 @@ export const AskMoreFundsModal = ({
         <ModalCloseButton />
 
         <ModalBody>
-          <Text>Félicitations, Vous avez décidé de participer à un projet d'avenir !</Text>
+          <Text>Vous pouvez demander d'allouer plus de fonds à l'étape en cours, en cas de besoin.</Text>
+          <Text>Le maximum que vous pouvez demander est de {maxAmountAvailable} wei</Text>
           <br />
           <Text></Text>
           <InputGroup mt={4}>

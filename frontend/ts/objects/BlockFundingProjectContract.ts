@@ -19,13 +19,85 @@ export const enum BlockFundingProjectFunctions {
   getData = "getData",
   isProjectCanceledOrLastStepValidated = "isProjectCanceledOrLastStepValidated",
   isFinancer = "isFinancer",
+  isWithdrawCurrentStepAvailable = "isWithdrawCurrentStepAvailable",
+  isWithdrawEndProjectAvailable = "isWithdrawEndProjectAvailable",
+  isWithdrawProjectNotFundedAvailable = "isWithdrawProjectNotFundedAvailable",
+  isWithdrawProjectCanceledAvailable = "isWithdrawProjectCanceledAvailable",
 }
 
-export async function isFinancer(contractAddress: any): Promise<boolean> {
+export async function isWithdrawProjectCanceledAvailable(contractAddress: any, userAddress: any): Promise<boolean> {
   let ret: boolean = false;
 
   try {
-    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isFinancer, contractAddress);
+    const data: any = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.isWithdrawProjectCanceledAvailable,
+      contractAddress,
+      [],
+      userAddress
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
+}
+
+export async function isWithdrawProjectNotFundedAvailable(contractAddress: any, userAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.isWithdrawProjectNotFundedAvailable,
+      contractAddress,
+      [],
+      userAddress
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
+}
+
+export async function isWithdrawEndProjectAvailable(contractAddress: any, userAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.isWithdrawEndProjectAvailable,
+      contractAddress,
+      [],
+      userAddress
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
+}
+
+export async function isWithdrawCurrentStepAvailable(contractAddress: any, userAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.isWithdrawCurrentStepAvailable,
+      contractAddress,
+      [],
+      userAddress
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
+}
+
+export async function isFinancer(contractAddress: any, userAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.isFinancer, contractAddress, [], userAddress);
   } catch (e) {
     console.log("Error :" + e);
   }
@@ -92,11 +164,11 @@ export async function getProject(contractAddress: any): Promise<Project> {
   return ret;
 }
 
-export async function getCurrentVote(contractAddress: any): Promise<Vote> {
+export async function getCurrentVote(contractAddress: any, userAddress: any): Promise<Vote> {
   let ret: Vote = Vote.createEmpty();
 
   try {
-    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getCurrentVote, contractAddress);
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getCurrentVote, contractAddress, [], userAddress);
 
     ret = new Vote(
       data.stepNumber,

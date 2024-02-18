@@ -12,7 +12,7 @@ import "../script/tools/MockedData.sol";
 contract BlockFundingProjectTest is Test {
     address teamMemberAddress = 0xF39Fd6E51aAd88f6f4cE6Ab8827279CFfFb92265;
     address financerAddress = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
-    address visitorAddress = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
+    address visitorAddress = 0x3C44CdDDb6A900fA2B585dD299E03D12fa4233Bc;
 
     string messageCID = "bafkreih55oo2cdfvqzq46ttwfrosckgxv4xrvq3p5rdwgme5r6ngfuflty";
 
@@ -852,7 +852,7 @@ contract BlockFundingProjectTest is Test {
 
         defaultProject.sendVote(true);
 
-        BlockFundingProject.SimplifiedVote memory vote = defaultProject.getCurrentVote();
+        BlockFundingProject.SimplifiedVote memory vote = defaultProject.getCurrentVote(address(this));
         assertEq(vote.stepNumber, 1, "Wrong step number returned in currentVote getter");
         assertEq(vote.askedAmountToAddForStep, 1000, "Wrong asked amount returned in currentVote getter");
         assertEq(vote.hasVoteBeenValidated, false, "Wrong flag returned in currentVote getter");
@@ -897,9 +897,82 @@ contract BlockFundingProjectTest is Test {
     *****************************************/
 
     function test_isFinancer() external {
-        assertEq(defaultProject.isFinancer(), false, "Wrong return for financer status");
+        assertEq(defaultProject.isFinancer(address(this)), false, "Wrong return for financer status");
         defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
-        assertEq(defaultProject.isFinancer(), true, "Wrong return for financer status");
+        assertEq(defaultProject.isFinancer(address(this)), true, "Wrong return for financer status");
+    }
+
+
+    /*****************************************
+    *    isWithdrawCurrentStepAvailable()
+    *****************************************/
+
+    function test_isWithdrawCurrentStepAvailable() external {
+        assertEq(defaultProject.isWithdrawCurrentStepAvailable(address(this)), false, "Wrong return for withdrawflag");
+
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        vm.prank(teamMemberAddress);
+        assertEq(defaultProject.isWithdrawCurrentStepAvailable(teamMemberAddress), true, "Wrong return for withdrawflag");
+    }
+
+
+    /*****************************************
+    *    isWithdrawEndProjectAvailable()
+    *****************************************/
+
+    function test_isWithdrawEndProjectAvailable() external {
+        assertEq(defaultProject.isWithdrawEndProjectAvailable(address(this)), false, "Wrong return for withdrawflag");
+
+        defaultProject.fundProject{value: defaultProject.getFundingRequested() + 1}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        for (uint i; i < defaultProject.getData().projectSteps.length; i++) {
+            vm.prank(teamMemberAddress);
+            defaultProject.startVote(BlockFundingProject.VoteType.ValidateStep);
+
+            defaultProject.sendVote(true);
+
+            vm.prank(teamMemberAddress);
+            defaultProject.endVote();
+        }
+
+        vm.warp(defaultProject.getData().estimatedProjectReleaseDateTimestamp + 1);
+
+        vm.prank(teamMemberAddress);
+        assertEq(defaultProject.isWithdrawEndProjectAvailable(teamMemberAddress), true, "Wrong return for withdrawflag");
+    }
+
+
+    /*****************************************
+    *  isWithdrawProjectNotFundedAvailable()
+    *****************************************/
+
+    function test_isWithdrawProjectNotFundedAvailable() external {
+        assertEq(defaultProject.isWithdrawProjectNotFundedAvailable(address(this)), false, "Wrong return for withdrawflag");
+
+        defaultProject.fundProject{value: 2000}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        assertEq(defaultProject.isWithdrawProjectNotFundedAvailable(address(this)), true, "Wrong return for withdrawflag");
+    }
+
+     /*****************************************
+    *  isWithdrawProjectCanceledAvailable()
+    *****************************************/
+
+    function test_isWithdrawProjectCanceledAvailable() external {
+        assertEq(defaultProject.isWithdrawProjectCanceledAvailable(address(this)), false, "Wrong return for withdrawflag");
+
+        defaultProject.fundProject{value: defaultProject.getFundingRequested()}();
+        vm.warp(defaultProject.getData().campaignEndingDateTimestamp + 1);
+
+        defaultProject.startVote(BlockFundingProject.VoteType.WithdrawProjectToFinancers);
+        defaultProject.sendVote(true);
+        defaultProject.endVote();
+
+        assertEq(defaultProject.isWithdrawProjectCanceledAvailable(address(this)), true, "Wrong return for withdrawflag");
     }
 
     receive() external payable {}

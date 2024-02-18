@@ -805,7 +805,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return totalVotePower;
     }
 
-    function getCurrentVote() external view returns (SimplifiedVote memory) {
+    function getCurrentVote(address userAddress) external view returns (SimplifiedVote memory) {
         Vote storage currentVote = votes[currentVoteId];
 
         SimplifiedVote memory ret = SimplifiedVote(
@@ -815,7 +815,7 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             currentVote.hasVoteBeenValidated,
             currentVote.isVoteRunning,
             currentVote.voteType,
-            currentVote.hasFinancersVoted[msg.sender],
+            currentVote.hasFinancersVoted[userAddress],
             currentVote.votePowerInFavorOfProposal,
             currentVote.votePowerAgainstProposal,
             totalVotePower
@@ -837,8 +837,40 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             && data.projectSteps[currentProjectStepId - 1].hasBeenValidated);
     }
 
-    function isFinancer() external view returns (bool) {
-        return financersDonations[msg.sender] > 0;
+    function isFinancer(address userAddress) external view returns (bool) {
+        return financersDonations[userAddress] > 0;
+    }
+
+    function isWithdrawCurrentStepAvailable(address userAddress) external view returns (bool) {
+        bool isTeamMember = teamMembersAddresses[userAddress];
+        bool isProjectFunded = block.timestamp > data.campaignEndingDateTimestamp && checkIfProjectIsFunded();
+        bool isCurrentStepFunded = data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]].isFunded;
+
+        return isTeamMember && isProjectFunded && !projectGotVoteCanceled && !isCurrentStepFunded;
+    }
+
+    function isWithdrawEndProjectAvailable(address userAddress) external view returns (bool) {
+        bool isTeamMember = teamMembersAddresses[userAddress];
+        bool isBalancePositive = address(this).balance > 0;
+        bool isProjectEnded = block.timestamp > data.estimatedProjectReleaseDateTimestamp;
+        bool isLastStepValidated = currentProjectStepId == data.projectSteps.length && data.projectSteps[projectStepsOrderedIndex[currentProjectStepId]].hasBeenValidated;
+
+        return isTeamMember && isBalancePositive && isProjectEnded && isLastStepValidated;
+    }
+
+    function isWithdrawProjectNotFundedAvailable(address userAddress) external view returns (bool) {
+        bool isUserFinancer = financersDonations[userAddress] > 0;
+        bool isProjectFunded = checkIfProjectIsFunded();
+        bool isCampaignEnded = block.timestamp > data.campaignEndingDateTimestamp;
+
+        return isUserFinancer && !isProjectFunded && isCampaignEnded;
+    }
+
+    function isWithdrawProjectCanceledAvailable(address userAddress) external view returns (bool) {
+        bool isUserFinancer = financersDonations[userAddress] > 0;
+        bool isCampaignEnded = block.timestamp > data.campaignEndingDateTimestamp;
+
+        return isUserFinancer && isCampaignEnded && projectGotVoteCanceled;
     }
 
     /* *********************** 

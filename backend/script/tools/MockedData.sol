@@ -6,7 +6,7 @@ import "../../src/BlockFunding.sol";
 import "../../src/BlockFundingProject.sol";
 
 library MockedData {
-    address public constant targetWallet = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address public constant targetWallet = 0xf39Fd6E51aAD48f6f4cE6Ab8827279CfffB92266;
 
     // For project in funding phase
     uint32 public constant inFundingPhaseCampaignStartingDateTimestamp = 1708220568;
@@ -85,7 +85,7 @@ library MockedData {
             description: "Lead Developer with extensive experience in blockchain technology.",
             photoLink: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1200",
             role: "Lead Developer",
-            walletAddress: 0x0B89257b0ee39f7B60E97b1304fd8a4fC031B395 
+            walletAddress: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 
         });
 
         // Deuxième membre de l'équipe
@@ -95,7 +95,7 @@ library MockedData {
             description: "Project Manager with a decade of industry experience.",
             photoLink: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1200",
             role: "Project Manager",
-            walletAddress: 0x01beB3F1727Ca50a55ee8875c8178b59362E5E21
+            walletAddress: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
         });
 
         // Troisième membre de l'équipe
@@ -105,7 +105,7 @@ library MockedData {
             description: "Creative Director with a keen eye for design.",
             photoLink: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1200",
             role: "Creative Director",
-            walletAddress: 0x9cc62Fa77F34b7EB235cBA358E6177e8868512c3
+            walletAddress: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
         });
 
         return mockedData;

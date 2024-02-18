@@ -17,16 +17,31 @@ export async function publicReadToBlockFunding(functionToCall: BlockFundingFunct
     functionName: functionToCall.valueOf(),
   });
 }
-export async function publicReadToBlockFundingProject(functionToCall: BlockFundingProjectFunctions, projectAddress: any, args: any = []) {
+export async function publicReadToBlockFundingProject(
+  functionToCall: BlockFundingProjectFunctions,
+  projectAddress: any,
+  args: any = [],
+  account: any = undefined
+) {
   const publicClient = createPublicClient({
     chain: process.env.NODE_ENV === "development" ? localhost : sepolia,
     transport: http(),
   });
 
-  return await publicClient.readContract({
-    address: projectAddress,
-    abi: blockFundingProjectAbi,
-    functionName: functionToCall.valueOf(),
-    args: args,
-  });
+  if (account != undefined) {
+    return await publicClient.readContract({
+      address: projectAddress,
+      abi: blockFundingProjectAbi,
+      functionName: functionToCall.valueOf(),
+      args: args,
+      account: account,
+    });
+  } else {
+    return await publicClient.readContract({
+      address: projectAddress,
+      abi: blockFundingProjectAbi,
+      functionName: functionToCall.valueOf(),
+      args: args,
+    });
+  }
 }

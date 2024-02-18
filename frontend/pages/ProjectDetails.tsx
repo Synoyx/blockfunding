@@ -21,6 +21,9 @@ import { SendVoteModal } from "@/components/modals/SendVoteModal";
 import { WaitingForValidatingTransaction } from "@/components/modals/WaitingForValidatingTransaction";
 import { WaitingForTransactionExecution } from "@/components/modals/WaitingForTransactionExecution";
 
+import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
+import { callWriteMethod } from "@/ts/wagmiWrapper";
+
 import { getData } from "@/ts/nftStorageWrapper";
 
 import "@/assets/css/verticalTimeline.css";
@@ -30,6 +33,10 @@ import {
   getProject,
   isFinancer,
   isProjectCanceledOrLastStepValidated,
+  isWithdrawCurrentStepAvailable,
+  isWithdrawEndProjectAvailable,
+  isWithdrawProjectNotFundedAvailable,
+  isWithdrawProjectCanceledAvailable,
 } from "@/ts/objects/BlockFundingProjectContract";
 
 const ProjectDetails = () => {
@@ -39,7 +46,11 @@ const ProjectDetails = () => {
   const [currentVote, setCurrentVote] = useState<Vote>(Vote.createEmpty());
   const [leftAmountBalance, setLeftAmountBalance] = useState<bigint>(0n);
   const [isProjectCanceledOrLastStepValidatedValue, setIsProjectCanceledOrLastStepValidatedValue] = useState<boolean>(false);
-  const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
+  const [isWithdrawCurrentStepAvailableValue, setIsWithdrawCurrentStepAvailableValue] = useState<boolean>(false);
+  const [isWithdrawEndProjectAvailableValue, setIsWithdrawEndProjectAvailableValue] = useState<boolean>(false);
+  const [isWithdrawProjectNotFundedAvailableValue, setIsWithdrawProjectNotFundedAvailableValue] = useState<boolean>(false);
+  const [isWithdrawProjectCanceledAvailableValue, setIsWithdrawProjectCanceledAvailableValue] = useState<boolean>(false);
+  const [isUserTeamMember, setIsUserTeamMember] = useState<boolean>(false);
   const [isUserFinancer, setIsUserFinancer] = useState<boolean>(false);
   const [active, setActive] = useState("Project");
   let { address } = useAccount();
@@ -72,7 +83,7 @@ const ProjectDetails = () => {
     }
 
     async function loadCurrentVote(contractAddress: any) {
-      const result: any = await getCurrentVote(contractAddress);
+      const result: any = await getCurrentVote(contractAddress, address);
       if (result != undefined) setCurrentVote(result);
     }
 
@@ -82,8 +93,28 @@ const ProjectDetails = () => {
     }
 
     async function loadIsFinancer(contractAddress: any) {
-      const result: any = await isFinancer(contractAddress);
+      const result: any = await isFinancer(contractAddress, address);
       if (result != undefined) setIsUserFinancer(result);
+    }
+
+    async function loadIsWithdrawCurrentStepAvailableValue(contractAddress: any) {
+      const result: any = await isWithdrawCurrentStepAvailable(contractAddress, address);
+      if (result != undefined) setIsWithdrawCurrentStepAvailableValue(result);
+    }
+
+    async function loadIsWithdrawEndProjectAvailableValue(contractAddress: any) {
+      const result: any = await isWithdrawEndProjectAvailable(contractAddress, address);
+      if (result != undefined) setIsWithdrawEndProjectAvailableValue(result);
+    }
+
+    async function loadIsWithdrawProjectNotFundedAvailableValue(contractAddress: any) {
+      const result: any = await isWithdrawProjectNotFundedAvailable(contractAddress, address);
+      if (result != undefined) setIsWithdrawProjectNotFundedAvailableValue(result);
+    }
+
+    async function loadIsWithdrawProjectCanceledAvailableValue(contractAddress: any) {
+      const result: any = await isWithdrawProjectCanceledAvailable(contractAddress, address);
+      if (result != undefined) setIsWithdrawProjectCanceledAvailableValue(result);
     }
 
     if (project !== undefined) {
@@ -91,6 +122,10 @@ const ProjectDetails = () => {
       loadCurrentVote(project!.address);
       loadIsProjectFinished(project!.address);
       loadIsFinancer(project!.address);
+      loadIsWithdrawCurrentStepAvailableValue(project!.address);
+      loadIsWithdrawEndProjectAvailableValue(project!.address);
+      loadIsWithdrawProjectNotFundedAvailableValue(project!.address);
+      loadIsWithdrawProjectCanceledAvailableValue(project!.address);
 
       const amountThatWillBeConsumedInFuture = project!.projectSteps.reduce((acc, step) => {
         if (!step.hasBeenValidated) {
@@ -100,9 +135,9 @@ const ProjectDetails = () => {
       }, 0);
 
       setLeftAmountBalance(BigInt(project!.totalFundsHarvested - amountThatWillBeConsumedInFuture));
-      setIsUserProjectOwner(address === project!.owner);
+      setIsUserTeamMember(project!.teamMembers.some((teamMember) => teamMember.walletAddress === address));
       document.title = project!.name;
-    } else setIsUserProjectOwner(false);
+    } else setIsUserTeamMember(false);
   }, [address, project]);
 
   useEffect(() => {
@@ -283,6 +318,141 @@ const ProjectDetails = () => {
                   <Text align="center">Veuillez vous connecter pour pouvoir participer au projet</Text>
                 )}
               </VStack>
+              <VStack
+                display={isUserFinancer || isUserTeamMember ? "block" : "none"}
+                align="stretch"
+                p={4}
+                boxShadow="md"
+                borderRadius="md"
+                bg="white"
+                borderColor="gray.200"
+                borderWidth="1px"
+              >
+                <Heading size="md" lineHeight="shorter" mb="10px">
+                  Retraits
+                </Heading>
+                <Flex display={isUserTeamMember ? "block" : "none"}>
+                  <Flex display={isWithdrawCurrentStepAvailableValue ? "block" : "none"}>
+                    <Button
+                      colorScheme="green"
+                      onClick={async () => {
+                        await callWriteMethod(
+                          BlockFundingProjectFunctions.withdrawCurrentStep,
+                          [],
+                          0n,
+                          project!.address,
+                          () => {},
+                          (e: any) => {
+                            throw e;
+                          },
+                          (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onOpen();
+                          },
+                          async (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onClose();
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          },
+                          () => waitingForValidatingTransactionlDisclosure.onOpen(),
+                          () => waitingForValidatingTransactionlDisclosure.onClose()
+                        );
+                      }}
+                    >
+                      Retirer les fonds de l'étape en cours
+                    </Button>
+                  </Flex>
+                  <Flex display={isWithdrawEndProjectAvailableValue ? "block" : "none"}>
+                    <Button
+                      colorScheme="green"
+                      onClick={async () => {
+                        await callWriteMethod(
+                          BlockFundingProjectFunctions.endProjectWithdraw,
+                          [],
+                          0n,
+                          project!.address,
+                          () => {},
+                          (e: any) => {
+                            throw e;
+                          },
+                          (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onOpen();
+                          },
+                          async (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onClose();
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          },
+                          () => waitingForValidatingTransactionlDisclosure.onOpen(),
+                          () => waitingForValidatingTransactionlDisclosure.onClose()
+                        );
+                      }}
+                    >
+                      Retirer les fonds restants
+                    </Button>
+                  </Flex>
+                </Flex>
+
+                <Flex display={isUserFinancer ? "block" : "none"}>
+                  <Flex display={isWithdrawProjectNotFundedAvailableValue ? "block" : "none"}>
+                    <Button
+                      colorScheme="green"
+                      onClick={async () => {
+                        await callWriteMethod(
+                          BlockFundingProjectFunctions.projectNotFundedWithdraw,
+                          [],
+                          0n,
+                          project!.address,
+                          () => {},
+                          (e: any) => {
+                            throw e;
+                          },
+                          (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onOpen();
+                          },
+                          async (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onClose();
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          },
+                          () => waitingForValidatingTransactionlDisclosure.onOpen(),
+                          () => waitingForValidatingTransactionlDisclosure.onClose()
+                        );
+                      }}
+                    >
+                      Retirer les fonds - Projet non financé
+                    </Button>
+                  </Flex>
+                  <Flex display={isWithdrawProjectCanceledAvailableValue ? "block" : "none"}>
+                    <Button
+                      colorScheme="green"
+                      onClick={async () => {
+                        await callWriteMethod(
+                          BlockFundingProjectFunctions.withdrawProjectCanceled,
+                          [],
+                          0n,
+                          project!.address,
+                          () => {},
+                          (e: any) => {
+                            throw e;
+                          },
+                          (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onOpen();
+                          },
+                          async (pendingTransaction: any) => {
+                            waitingForTransactionExecutionlDisclosure.onClose();
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          },
+                          () => waitingForValidatingTransactionlDisclosure.onOpen(),
+                          () => waitingForValidatingTransactionlDisclosure.onClose()
+                        );
+                      }}
+                    >
+                      Retirer les fonds - Projet annulé
+                    </Button>
+                  </Flex>
+                </Flex>
+              </VStack>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
                 <Flex justifyContent="space-between">
                   <Heading size="md" lineHeight="shorter" mb="10px">
@@ -323,7 +493,7 @@ const ProjectDetails = () => {
 
                   <Flex
                     display={
-                      currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserProjectOwner, isUserFinancer) ? "block" : "none"
+                      currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserTeamMember, isUserFinancer) ? "block" : "none"
                     }
                   >
                     <Button
@@ -338,7 +508,7 @@ const ProjectDetails = () => {
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
                   <Text align="center">Il n'y a pas de vote en cours</Text>
-                  <Flex display={isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Flex display={isUserTeamMember && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
                     <Button
                       colorScheme="green"
                       onClick={() => {
@@ -350,7 +520,7 @@ const ProjectDetails = () => {
                     </Button>
                     <Button
                       display={
-                        isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
+                        isUserTeamMember && isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
                       }
                       colorScheme="orange"
                       onClick={() => {
