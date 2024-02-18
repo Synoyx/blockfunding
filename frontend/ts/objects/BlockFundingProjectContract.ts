@@ -1,5 +1,6 @@
 import { publicReadToBlockFundingProject } from "@/ts/viemWrapper";
 import { Project } from "@/ts/objects/Project";
+import { Vote } from "@/ts/objects/Vote";
 
 export const enum BlockFundingProjectFunctions {
   transferOwner = "transferOwner",
@@ -16,6 +17,7 @@ export const enum BlockFundingProjectFunctions {
   addMessage = "addMessage", // Pass the IPFS CID as argument
   getCurrentVote = "getCurrentVote",
   getData = "getData",
+  isProjectCanceledOrLastStepValidated = "isProjectCanceledOrLastStepValidated",
 }
 
 export async function getDonationAmount(contractAddress: any, financerAddress: any) {
@@ -27,6 +29,21 @@ export async function getDonationAmount(contractAddress: any, financerAddress: a
   } catch (e) {
     console.log("Error :" + e);
   }
+}
+
+export async function isProjectCanceledOrLastStepValidated(contractAddress: any): Promise<boolean> {
+  let ret: boolean = false;
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.isProjectCanceledOrLastStepValidated,
+      contractAddress
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
 }
 
 export async function getProject(contractAddress: any): Promise<Project> {
@@ -54,6 +71,31 @@ export async function getProject(contractAddress: any): Promise<Project> {
       data.mediaURI,
       data.teamMembers,
       data.projectSteps
+    );
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+
+  return ret;
+}
+
+export async function getCurrentVote(contractAddress: any): Promise<Vote> {
+  let ret: Vote = Vote.createEmpty();
+
+  try {
+    const data: any = await publicReadToBlockFundingProject(BlockFundingProjectFunctions.getCurrentVote, contractAddress);
+
+    ret = new Vote(
+      data.stepNumber,
+      data.askedAmountToAddForStep,
+      data.endVoteDate,
+      data.hasVoteBeenValidated,
+      data.isVoteRunning,
+      data.voteType,
+      data.hasFinancerVoted,
+      data.votePowerInFavorOfProposal,
+      data.votePowerAgainstProposal,
+      data.totalVotePower
     );
   } catch (e) {
     console.log("Error :" + e);

@@ -13,27 +13,38 @@ import { useBlockFundingContractContext } from "@/contexts/blockFundingContractC
 import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
 import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
+import { Vote, VoteType } from "@/ts/objects/Vote";
 import { FundProjectModal } from "@/components/modals/FundProjectModal";
+import { StartVoteModal } from "@/components/modals/StartVoteModal";
 import { WaitingForValidatingTransaction } from "@/components/modals/WaitingForValidatingTransaction";
 import { WaitingForTransactionExecution } from "@/components/modals/WaitingForTransactionExecution";
 
 import { getData } from "@/ts/nftStorageWrapper";
 
 import "@/assets/css/verticalTimeline.css";
-import { getDonationAmount, getProject } from "@/ts/objects/BlockFundingProjectContract";
+import { getDonationAmount, getCurrentVote, getProject, isProjectCanceledOrLastStepValidated } from "@/ts/objects/BlockFundingProjectContract";
 
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
   const [donationAmount, setDonationAmount] = useState<BigInt>(0n);
+  const [selectedVoteType, setSelectedVoteType] = useState<VoteType>(VoteType.WithdrawProjectToFinancers);
+  const [currentVote, setCurrentVote] = useState<Vote>(Vote.createEmpty());
+  const [isProjectCanceledOrLastStepValidatedValue, setIsProjectCanceledOrLastStepValidatedValue] = useState<boolean>(false);
   const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
+  const [isUserFinancer, setIsUserFinancer] = useState<boolean>(false); //TODO
+  const [active, setActive] = useState("Project");
   let { address } = useAccount();
   const params = useSearchParams();
   const { projects } = useBlockFundingContractContext();
+
   const projectId = params!.get("id");
-  const [active, setActive] = useState("Project");
+
   const fundProjectModalDisclosure = useDisclosure();
   const waitingForValidatingTransactionlDisclosure = useDisclosure();
   const waitingForTransactionExecutionlDisclosure = useDisclosure();
+  const startVoteModalDisclosure = useDisclosure();
+  const sendVoteModalDisclosure = useDisclosure(); //TODO
+  const endVoteModalDisclosure = useDisclosure(); //TODO
 
   useEffect(() => {
     async function test() {
@@ -50,8 +61,20 @@ const ProjectDetails = () => {
       if (result != undefined) setDonationAmount(result);
     }
 
+    async function loadCurrentVote(contractAddress: any) {
+      const result: any = await getCurrentVote(contractAddress);
+      if (result != undefined) setCurrentVote(result);
+    }
+
+    async function loadIsProjectFinished(contractAddress: any) {
+      const result: any = await isProjectCanceledOrLastStepValidated(contractAddress);
+      if (result != undefined) setIsProjectCanceledOrLastStepValidatedValue(result);
+    }
+    
     if (project !== undefined) {
       loadDonationAmount(project!.address);
+      loadCurrentVote(project!.address);
+      loadIsProjectFinished(project!.address);
       setIsUserProjectOwner(address === project!.owner);
       document.title = project!.name;
     } else setIsUserProjectOwner(false);
@@ -240,17 +263,77 @@ const ProjectDetails = () => {
                   <Heading size="md" lineHeight="shorter" mb="10px">
                     Vote
                   </Heading>
-                  <Text>Historique</Text>
+                  <Text></Text>
                 </Flex>
-                <Text align="center">Il n'y a pas de vote en cours</Text>
-                <Flex display={isUserProjectOwner ? "block" : "none"} alignItems="center">
-                  <Button bg="green.500" color="white">
-                    Start validate current step vote
-                  </Button>
-                  <Button bg="orange" color="white">
-                    State add funds to current step vote
-                  </Button>
+                <Flex display={currentVote.isVoteRunning ? "block" : "none"}>
+                  <Flex display={isUserFinancer ? "block" : "none"}>
+                    {currentVote.hasFinancerVoted 
+                      ? (<Text align="center">Vous avez déjà voté</Text>)
+                      : (<Button
+                        colorScheme="green"
+                        onClick={() => {
+                          sendVoteModalDisclosure.onOpen();
+                        }}
+                      >Voter</Button>)
+                    }
+                  </Flex>
+                  --> Add modal here
+
+                  <Flex display={currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserProjectOwner, isUserFinancer) ? "block" : "none"}>
+                    <Button
+                        colorScheme="green"
+                        onClick={() => {
+                          endVoteModalDisclosure.onOpen();
+                        }}
+                      >Terminer le vote</Button>
+                  </Flex>
+
+                  <Flex>
+                    --> Afficher les résultats du vote ici
+                  </Flex>
                 </Flex>
+                <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
+                  <Text align="center">Il n'y a pas de vote en cours</Text>
+                  <Flex display={isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                      <Button
+                        colorScheme="green"
+                        onClick={() => {
+                          setSelectedVoteType(VoteType.ValidateStep);
+                          startVoteModalDisclosure.onOpen();
+                        }}
+                      >Start validate current step vote</Button>
+                      <Button
+                        colorScheme="orange"
+                        onClick={() => {
+                          setSelectedVoteType(VoteType.AddFundsForStep);
+                          startVoteModalDisclosure.onOpen(); //TODOChange this modal to the good one
+                        }}
+                      >State add funds to current step vote</Button>
+                    </Flex>
+                    --> Add vote add funds modal here
+                </Flex>
+                <Flex display={isUserFinancer && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Button
+                        colorScheme="red"
+                        onClick={() => {
+                          setSelectedVoteType(VoteType.WithdrawProjectToFinancers);
+                          startVoteModalDisclosure.onOpen();
+                        }}
+                      >Vote for cancelling the project</Button>
+                </Flex>
+
+                <StartVoteModal
+                      isOpen={startVoteModalDisclosure.isOpen}
+                      onClose={startVoteModalDisclosure.onClose}
+                      voteType={selectedVoteType}
+                      projectAddress={project!.address}
+                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                      endTXCallback={async () => {
+                        const updatedProject = await getProject(project!.address);
+                        setProject((oldProject) => updatedProject);
+                      }}
+                    />
               </VStack>
             </Stack>
           </Flex>

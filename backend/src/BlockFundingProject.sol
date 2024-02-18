@@ -85,6 +85,15 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
         /// @notice Does the used has voted
         bool hasFinancerVoted;
+
+        /// @notice Total of vote power voted in favor of current vote
+        uint votePowerInFavorOfProposal;
+
+        /// @notice Total of vote power voted against current vote. This variable is not needed for computation, but used in frontend.
+        uint votePowerAgainstProposal;
+
+        /// @notice Total vote power (of the contract)
+        uint totalVotePower;
     }
 
     struct TeamMember {
@@ -806,9 +815,12 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
             currentVote.hasVoteBeenValidated,
             currentVote.isVoteRunning,
             currentVote.voteType,
-            currentVote.hasFinancersVoted[msg.sender]
+            currentVote.hasFinancersVoted[msg.sender],
+            currentVote.votePowerInFavorOfProposal,
+            currentVote.votePowerAgainstProposal,
+            totalVotePower
         );
-        
+
         return ret;
     }
 
@@ -818,6 +830,11 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
 
     function isProjectCanceled() external view returns (bool) {
         return projectGotVoteCanceled;
+    }
+
+    function isProjectCanceledOrLastStepValidated() external view returns (bool) {
+        return projectGotVoteCanceled || (currentProjectStepId == data.projectSteps.length 
+            && data.projectSteps[currentProjectStepId - 1].hasBeenValidated);
     }
 
 

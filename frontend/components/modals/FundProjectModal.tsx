@@ -25,7 +25,7 @@ export const FundProjectModal = ({
   projectAddress,
   waitingTXValidationDisclosure,
   waitingTXExecutionDisclosure,
-  endTXCallback
+  endTXCallback,
 }: any) => {
   const [amount, setAmount] = useState("");
   const toast = useToast();
@@ -34,19 +34,6 @@ export const FundProjectModal = ({
     const value = e.target.value;
     setAmount(value);
   };
-
-  /*
-
-  contractToCallAddress: any = "",
-  endTXCallback = () => {},
-  errorCallback: any = (e: any) => {
-    throw e;
-  },
-  handleNewPendingTransaction = (pendingTransaction: any) => {},
-  handlePendingTransactionDone = (pendingTransaction: any) => {},
-  handleWaitingForMetamaskEvent = () => {},
-  handleWaitingForMetamaskEndEvent = () => {}
-  */
 
   const handleSubmit = async () => {
     const value = parseInt(amount, 10);
