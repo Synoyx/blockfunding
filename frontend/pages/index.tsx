@@ -17,6 +17,8 @@ export default function HomePage() {
     document.title = "Accueil";
   });
 
+  //<MoreProjectsSection projects={projects} categories={Object.keys(ProjectCategory)} selectedCategory={"Art"} />
+
   return (
     <Flex as="main" width="100%" flexDirection="column" p="20px" justifyContent="space-evenly">
       {isLoadingProjects ? (
@@ -24,11 +26,6 @@ export default function HomePage() {
       ) : (
         <>
           <LastProjectsSection projects={projects} />
-          <MoreProjectsSection
-            projects={projects}
-            categories={Object.keys(ProjectCategory)}
-            selectedCategory={"Art"}
-          />
         </>
       )}
     </Flex>

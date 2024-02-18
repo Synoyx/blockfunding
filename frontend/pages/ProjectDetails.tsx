@@ -16,6 +16,7 @@ import { Project } from "@/ts/objects/Project";
 import { Vote, VoteType } from "@/ts/objects/Vote";
 import { FundProjectModal } from "@/components/modals/FundProjectModal";
 import { StartVoteModal } from "@/components/modals/StartVoteModal";
+import { SendVoteModal } from "@/components/modals/SendVoteModal";
 import { WaitingForValidatingTransaction } from "@/components/modals/WaitingForValidatingTransaction";
 import { WaitingForTransactionExecution } from "@/components/modals/WaitingForTransactionExecution";
 
@@ -29,6 +30,7 @@ const ProjectDetails = () => {
   const [donationAmount, setDonationAmount] = useState<BigInt>(0n);
   const [selectedVoteType, setSelectedVoteType] = useState<VoteType>(VoteType.WithdrawProjectToFinancers);
   const [currentVote, setCurrentVote] = useState<Vote>(Vote.createEmpty());
+  const [leftAmountBalance, setLeftAmountBalance] = useState<BigInt>(0n);
   const [isProjectCanceledOrLastStepValidatedValue, setIsProjectCanceledOrLastStepValidatedValue] = useState<boolean>(false);
   const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
   const [isUserFinancer, setIsUserFinancer] = useState<boolean>(false); //TODO
@@ -70,11 +72,20 @@ const ProjectDetails = () => {
       const result: any = await isProjectCanceledOrLastStepValidated(contractAddress);
       if (result != undefined) setIsProjectCanceledOrLastStepValidatedValue(result);
     }
-    
+
     if (project !== undefined) {
       loadDonationAmount(project!.address);
       loadCurrentVote(project!.address);
       loadIsProjectFinished(project!.address);
+
+      const amountThatWillBeConsumedInFuture = project!.projectSteps.reduce((acc, step) => {
+        if (!step.hasBeenValidated) {
+          return acc + (step.amountNeeded - step.amountFunded);
+        }
+        return acc;
+      }, 0);
+
+      setLeftAmountBalance(BigInt(project!.totalFundsHarvested - amountThatWillBeConsumedInFuture))
       setIsUserProjectOwner(address === project!.owner);
       document.title = project!.name;
     } else setIsUserProjectOwner(false);
@@ -97,6 +108,14 @@ const ProjectDetails = () => {
         <Loader />
       ) : (
         <Flex direction="column" align="center" maxW="80vw" m="auto" p={5}>
+          <WaitingForValidatingTransaction
+            isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
+            onClose={waitingForValidatingTransactionlDisclosure.onClose}
+          />
+          <WaitingForTransactionExecution
+            isOpen={waitingForTransactionExecutionlDisclosure.isOpen}
+            onClose={waitingForTransactionExecutionlDisclosure.onClose}
+          />
           <Box width="full" overflow="hidden" borderRadius="lg" mb={5}>
             <Image src={project!.mediaURI} alt="Project banner" width="full" height="auto" />
           </Box>
@@ -240,14 +259,6 @@ const ProjectDetails = () => {
                             setProject((oldProject) => updatedProject);
                           }}
                         />
-                        <WaitingForValidatingTransaction
-                          isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
-                          onClose={waitingForValidatingTransactionlDisclosure.onClose}
-                        />
-                        <WaitingForTransactionExecution
-                          isOpen={waitingForTransactionExecutionlDisclosure.isOpen}
-                          onClose={waitingForTransactionExecutionlDisclosure.onClose}
-                        />
                         <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
                           Participer
                         </Button>
@@ -266,6 +277,9 @@ const ProjectDetails = () => {
                   <Text></Text>
                 </Flex>
                 <Flex display={currentVote.isVoteRunning ? "block" : "none"}>
+                  <Flex>
+                    <ProgressBar goal={Number(currentVote.totalVotePower)} current={Number(currentVote.votePowerInFavorOfProposal)} />
+                  </Flex>
                   <Flex display={isUserFinancer ? "block" : "none"}>
                     {currentVote.hasFinancerVoted 
                       ? (<Text align="center">Vous avez déjà voté</Text>)
@@ -277,7 +291,18 @@ const ProjectDetails = () => {
                       >Voter</Button>)
                     }
                   </Flex>
-                  --> Add modal here
+                  <SendVoteModal
+                      isOpen={sendVoteModalDisclosure.isOpen}
+                      onClose={sendVoteModalDisclosure.onClose}
+                      voteType={selectedVoteType}
+                      projectAddress={project!.address}
+                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                      endTXCallback={async () => {
+                        const updatedProject = await getProject(project!.address);
+                        setProject((oldProject) => updatedProject);
+                      }}
+                  />
 
                   <Flex display={currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserProjectOwner, isUserFinancer) ? "block" : "none"}>
                     <Button
@@ -286,10 +311,6 @@ const ProjectDetails = () => {
                           endVoteModalDisclosure.onOpen();
                         }}
                       >Terminer le vote</Button>
-                  </Flex>
-
-                  <Flex>
-                    --> Afficher les résultats du vote ici
                   </Flex>
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
@@ -302,7 +323,8 @@ const ProjectDetails = () => {
                           startVoteModalDisclosure.onOpen();
                         }}
                       >Start validate current step vote</Button>
-                      <Button
+                      <Button 
+                        display={isUserProjectOwner && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"}
                         colorScheme="orange"
                         onClick={() => {
                           setSelectedVoteType(VoteType.AddFundsForStep);

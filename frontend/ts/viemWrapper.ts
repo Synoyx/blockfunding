@@ -7,7 +7,7 @@ import { contractAddress, blockFundingAbi, blockFundingProjectAbi } from "@/ts/c
 
 export async function publicReadToBlockFunding(functionToCall: BlockFundingFunctions) {
   const publicClient = createPublicClient({
-    chain: localhost,
+    chain: process.env.NODE_ENV === "development" ? localhost : sepolia,
     transport: http(),
   });
 
@@ -19,7 +19,7 @@ export async function publicReadToBlockFunding(functionToCall: BlockFundingFunct
 }
 export async function publicReadToBlockFundingProject(functionToCall: BlockFundingProjectFunctions, projectAddress: any, args: any = []) {
   const publicClient = createPublicClient({
-    chain: localhost,
+    chain: process.env.NODE_ENV === "development" ? localhost : sepolia,
     transport: http(),
   });
 

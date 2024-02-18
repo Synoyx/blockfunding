@@ -15,7 +15,7 @@ import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 import { VoteType } from "@/ts/objects/Vote";
 
-export const StartVoteModal = ({
+export const SendVoteModal = ({
   isOpen,
   onClose,
   voteType,
@@ -24,11 +24,11 @@ export const StartVoteModal = ({
   waitingTXExecutionDisclosure,
   endTXCallback,
 }: any) => {
-  const handleSubmit = async () => {
+  const handleSubmit = async (vote: boolean) => {
     onClose();
     await callWriteMethod(
-      BlockFundingProjectFunctions.startVote,
-      [+voteType],
+      BlockFundingProjectFunctions.sendVote,
+      [vote],
       0n,
       projectAddress,
       () => {},
@@ -58,21 +58,23 @@ export const StartVoteModal = ({
     <Modal onClose={onClose} isOpen={isOpen} isCentered size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Démarrer une session de vote</ModalHeader>
+        <ModalHeader>Voter</ModalHeader>
 
         <ModalBody>
           <Text mt="20px" align="center">
-            Chaque session de vote dure jusqu'à ce que l'ensemble des participants se soient exprimés, ou que trois jours se sont écoulés
-            après le début du vote.
+            Un vote est actuellement en vote, dont le sujet est le suivant : '{voteTypeString}'
           </Text>
-          <Text align="center">Êtes-vous sûr de vouloir débuter un vote '{voteTypeString}' ?</Text>
+          <Text align="center">Veuillez choisir si vous être pour ou contre cette motion</Text>
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" mr={3} onClick={onClose}>
             Annuler
           </Button>
-          <Button colorScheme="green" onClick={handleSubmit}>
-            Lancer le vote
+          <Button colorScheme="red" onClick={() => handleSubmit(false)}>
+            Contre
+          </Button>
+          <Button colorScheme="green" onClick={() => handleSubmit(true)}>
+            Pour
           </Button>
         </ModalFooter>
       </ModalContent>

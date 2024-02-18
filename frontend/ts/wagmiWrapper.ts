@@ -11,7 +11,7 @@ import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectCo
 import { BlockFundingFunctions } from "@/ts/objects/BlockFundingContract";
 import { contractAddress, blockFundingAbi, blockFundingProjectAbi, deployBlockNumber } from "@/ts/constants";
 
-export const { chains, publicClient } = configureChains([sepolia, hardhat], [publicProvider(), publicProvider()]);
+export const { chains, publicClient } = configureChains([process.env.NODE_ENV === "development" ? hardhat : sepolia], [publicProvider(), publicProvider()]);
 
 const { connectors } = getDefaultWallets({
   appName: "BlockFunding",
