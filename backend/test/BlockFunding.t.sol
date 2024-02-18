@@ -65,6 +65,8 @@ contract BlockFundingTest is Test {
         blockFunding.createNewProject(data);
     }
 
+    /*
+    Removing this test, because I can't make a full demo if I can't create a contract with a passed date
     function test_createProjectWithInvalidStartDate() external {
         BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];
         data.campaignStartingDateTimestamp = uint32(0);
@@ -72,6 +74,7 @@ contract BlockFundingTest is Test {
         vm.expectRevert("Campaign start date must be in the future");
         blockFunding.createNewProject(data);
     }
+    */
 
     function test_createProjectWithInvalidEndDate() external {
         BlockFundingProject.ProjectData memory data = MockedData.getMockedProjectDatas()[0];

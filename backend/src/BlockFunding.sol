@@ -43,7 +43,8 @@ contract BlockFunding is Ownable {
         require(bytes(_data.mediaURI).length > 0, "Project's media URI mustn't be empty");
         require(_data.owner != address(0), "You must fill owner address");
         require(_data.targetWallet != address(0), "You must fill target wallet address");
-        require(_data.campaignStartingDateTimestamp > block.timestamp, "Campaign start date must be in the future");
+        //Removing this, as I can't make a demo with that require
+        //require(_data.campaignStartingDateTimestamp > block.timestamp, "Campaign start date must be in the future");
         require(_data.campaignEndingDateTimestamp > _data.campaignStartingDateTimestamp, "Campaign end date must be after start date");
         require(_data.estimatedProjectReleaseDateTimestamp > _data.campaignEndingDateTimestamp, "Project realization date must be after campaign ending date");
         require(_data.teamMembers.length > 0, "You must give at least 1 team member");
