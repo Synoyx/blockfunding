@@ -197,29 +197,39 @@ const ProjectDetails = () => {
                     <Text align="center">
                       Vous avez donné : {donationAmount != undefined ? weiToEth(donationAmount).toString() : <Spinner />} ETH au projet
                     </Text>
-                    <FundProjectModal
-                      isOpen={fundProjectModalDisclosure.isOpen}
-                      onClose={fundProjectModalDisclosure.onClose}
-                      projectName={project!.name}
-                      projectAddress={project!.address}
-                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
-                      waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
-                      endTXCallback={async (amountAdded: any) => {
-                        const updatedProject = await getProject(project!.address);
-                        setProject((oldProject) => updatedProject);
-                      }}
-                    />
-                    <WaitingForValidatingTransaction
-                      isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
-                      onClose={waitingForValidatingTransactionlDisclosure.onClose}
-                    />
-                    <WaitingForTransactionExecution
-                      isOpen={waitingForTransactionExecutionlDisclosure.isOpen}
-                      onClose={waitingForTransactionExecutionlDisclosure.onClose}
-                    />
-                    <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
-                      Participer
-                    </Button>
+                    {project!.campaignEndingDateTimestamp < new Date().getTime() / 1000 ? (
+                      <Text align="center">La phase de financement est passée, vous ne pouvez plus ajouter de participation</Text>
+                    ) : project!.campaignStartingDateTimestamp > new Date().getTime() / 1000 ? (
+                      <Text align="center">
+                        La phase de financement n'a pas encore commencé, vous ne pouvez pas ajouter de participation pour le moment
+                      </Text>
+                    ) : (
+                      <>
+                        <FundProjectModal
+                          isOpen={fundProjectModalDisclosure.isOpen}
+                          onClose={fundProjectModalDisclosure.onClose}
+                          projectName={project!.name}
+                          projectAddress={project!.address}
+                          waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                          waitingTXExecutionDisclosure={waitingForTransactionExecutionlDisclosure}
+                          endTXCallback={async (amountAdded: any) => {
+                            const updatedProject = await getProject(project!.address);
+                            setProject((oldProject) => updatedProject);
+                          }}
+                        />
+                        <WaitingForValidatingTransaction
+                          isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
+                          onClose={waitingForValidatingTransactionlDisclosure.onClose}
+                        />
+                        <WaitingForTransactionExecution
+                          isOpen={waitingForTransactionExecutionlDisclosure.isOpen}
+                          onClose={waitingForTransactionExecutionlDisclosure.onClose}
+                        />
+                        <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
+                          Participer
+                        </Button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <Text align="center">Veuillez vous connecter pour pouvoir participer au projet</Text>
