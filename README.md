@@ -11,7 +11,7 @@ BlockFunding allows you to create crowdfunding campaigns who establish confidenc
 
 [Video link]() //TODO
 
-[DApp link](blockfunding-one.vercel.app)
+[DApp link](http://blockfunding-one.vercel.app)
 
 The smart contract is deployed on Sepolia network [Etherscan link](https://sepolia.etherscan.io/address/0xeed7b2565a5a89f6bfc80fa3688777fcea507dc3)
 
