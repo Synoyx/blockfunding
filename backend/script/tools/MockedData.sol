@@ -7,17 +7,30 @@ import "../../src/BlockFundingProject.sol";
 
 library MockedData {
     address public constant targetWallet = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-    uint32 public constant campaignStartingDateTimestamp = 1717901384;
-    uint32 public constant campaignEndingDateTimestamp = 1718001384;
-    uint32 public constant estimatedProjectReleaseDateTimestamp = 1719001384;
+
+    // For project in funding phase
+    uint32 public constant inFundingPhaseCampaignStartingDateTimestamp = 1708220568;
+    uint32 public constant inFundingPhaseCampaignEndingDateTimestamp = 1709084568;
+    uint32 public constant inFundingPhaseEstimatedProjectReleaseDateTimestamp = 1711676568;
+
+    // For project in realisation phase
+    uint32 public constant inProgressCampaignStartingDateTimestamp = 1706924867;
+    uint32 public constant inProgressCampaignEndingDateTimestamp = 1707788867;
+    uint32 public constant inProgressEstimatedProjectReleaseDateTimestamp = 1712972867;
+
+    // For futur project
+    uint32 public constant futureCampaignStartingDateTimestamp = 1709948568;
+    uint32 public constant futurecampaignEndingDateTimestamp = 1710812568;
+    uint32 public constant futurePhaseestimatedProjectReleaseDateTimestamp = 1713404568;
+
 
     function getMockedProjectDatas() public view returns(BlockFundingProject.ProjectData[] memory) {
         BlockFundingProject.ProjectData[] memory mockedData = new BlockFundingProject.ProjectData[](3);
 
         mockedData[0] = BlockFundingProject.ProjectData(
-            campaignStartingDateTimestamp,
-            campaignEndingDateTimestamp,
-            estimatedProjectReleaseDateTimestamp,
+            inFundingPhaseCampaignStartingDateTimestamp,
+            inFundingPhaseCampaignEndingDateTimestamp,
+            inFundingPhaseEstimatedProjectReleaseDateTimestamp,
             targetWallet,
             msg.sender,
             0,
@@ -30,9 +43,9 @@ library MockedData {
             getMockedStepsForAeroDrive());
 
         mockedData[1] = BlockFundingProject.ProjectData(
-            campaignStartingDateTimestamp,
-            campaignEndingDateTimestamp,
-            estimatedProjectReleaseDateTimestamp,
+            inProgressCampaignStartingDateTimestamp,
+            inProgressCampaignEndingDateTimestamp,
+            futurePhaseestimatedProjectReleaseDateTimestamp,
             targetWallet,
             msg.sender,
             0,
@@ -45,19 +58,19 @@ library MockedData {
             getMockedStepsForPizzaRenaissance());
 
         mockedData[2] = BlockFundingProject.ProjectData(
-            campaignStartingDateTimestamp,
-            campaignEndingDateTimestamp,
-            estimatedProjectReleaseDateTimestamp,
+            futureCampaignStartingDateTimestamp,
+            futurecampaignEndingDateTimestamp,
+            futurePhaseestimatedProjectReleaseDateTimestamp,
             targetWallet,
             msg.sender,
             0,
-            BlockFunding.ProjectCategory.art,
-            "Tech innovate",
-            "Avancee en informatique",
-            "Developpement d'un nouveau systeme d'exploration base sur la securite.",
-            "https://i.pinimg.com/736x/d2/dc/d4/d2dcd4e515f401cc834e6ae5ba0dbd1a.jpg",
+            BlockFunding.ProjectCategory.technology,
+            "HoverSol",
+            unicode"HoverSol est un hoverboard révolutionnaire qui flotte à 20 cm du sol, utilisant une combinaison d'énergie solaire, magnétisme terrestre, et énergie cinétique, pour une mobilité durable sans batterie.",
+            unicode"Le projet HoverSol représente une avancée spectaculaire dans le domaine du transport personnel, inspiré par la vision futuriste du célèbre film 'Retour vers le Futur'. Conçu pour flotter à environ 20 cm au-dessus de n'importe quel type de sol, HoverSol marque le début d'une nouvelle ère de mobilité urbaine, où l'efficacité énergétique et le respect de l'environnement sont à l'avant-garde.\n\nInnovation et Technologie\n\nHoverSol intègre des technologies de pointe pour réaliser ce qui était autrefois considéré comme de la science-fiction. En exploitant l'énergie solaire, le magnétisme terrestre, et l'énergie cinétique, HoverSol fonctionne entièrement sans batteries traditionnelles, éliminant le besoin de recharge électrique et réduisant significativement l'impact environnemental associé à la production et au recyclage des batteries.\n\nLes panneaux solaires ultra-efficaces couvrent la surface du hoverboard, captant l'énergie solaire qui est convertie en électricité. Cette électricité alimente un système de lévitation magnétique innovant, qui utilise les propriétés du magnétisme terrestre pour créer une force répulsive stable, permettant à HoverSol de léviter au-dessus du sol. L'énergie cinétique générée par le mouvement de l'hoverboard est également récupérée, fournissant une source d'énergie supplémentaire pour le système.\n\nDéveloppement Durable\n\nHoverSol est conçu avec un engagement profond envers le développement durable. En plus de son fonctionnement sans batterie, l'utilisation de matériaux écologiques et recyclables pour sa construction minimise davantage son empreinte écologique. Ce projet incarne l'idéal d'une technologie qui non seulement avance les possibilités humaines mais le fait de manière responsable.\n\nDesign et Fonctionnalités\n\nLe design de HoverSol est à la fois moderne et fonctionnel, offrant une expérience utilisateur intuitive et agréable. Sa plateforme robuste assure une stabilité et une sécurité maximales, tandis que son système de contrôle facile à utiliser rend la navigation fluide et réactive, adaptée à tous les âges et niveaux d'expérience.\n\nSécurité\n\nLa sécurité est une priorité absolue pour HoverSol. Des capteurs avancés et un système de contrôle automatisé surveillent en permanence la stabilité et l'altitude, ajustant dynamiquement la force magnétique pour garantir une lévitation sûre et stable, même sur des surfaces irrégulières.\n\nImpact Social et Urbain\n\nHoverSol a le potentiel de transformer radicalement les paysages urbains en offrant une alternative propre et efficace aux modes de transport conventionnels. En réduisant la dépendance aux véhicules motorisés, HoverSol contribue à diminuer la congestion urbaine et la pollution atmosphérique, favorisant un environnement urbain plus sain et plus agréable.",
+            "https://image.noelshack.com/fichiers/2024/07/7/1708222390-dall-e-2024-02-18-03-11-51-genere-une-ville-futuriste.jpg",
             getMockedTeamMembers(),
-            getMockedProjectSteps());
+            getMockedStepsForHoverSol());
 
         return mockedData;
     }
@@ -350,6 +363,102 @@ library MockedData {
             amountFunded: 0,
             isFunded: false,
             orderNumber: 7,
+            hasBeenValidated: false
+        });
+
+        return mockedData;
+    }
+
+    function getMockedStepsForHoverSol() internal pure returns(BlockFundingProject.ProjectStep[] memory) {
+        BlockFundingProject.ProjectStep[] memory mockedData = new BlockFundingProject.ProjectStep[](7);
+
+        mockedData[0] = BlockFundingProject.ProjectStep({
+            name: unicode"Étude de Faisabilité et Recherche Initiale",
+            description: unicode"Analyse approfondie des technologies existantes. Exploration des innovations en matière d'énergie solaire, magnétisme et récupération d'énergie cinétique",
+            amountNeeded: 100000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 1,
+            hasBeenValidated: false
+        });
+
+        mockedData[1] = BlockFundingProject.ProjectStep({
+            name: unicode"Conception et Développement de Prototypes",
+            description: unicode"Création de designs préliminaires. Fabrication et test de plusieurs prototypes pour évaluer différentes configurations.",
+            amountNeeded: 150000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 2,
+            hasBeenValidated: false
+        });
+
+        mockedData[2] = BlockFundingProject.ProjectStep({
+            name: unicode"Tests de Sécurité et Optimisation",
+            description: unicode"Évaluation rigoureuse de la sécurité. Optimisation de la technologie de lévitation et des systèmes d'énergie",
+            amountNeeded: 100000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 3,
+            hasBeenValidated: false
+        });
+
+        mockedData[3] = BlockFundingProject.ProjectStep({
+            name: unicode"Développement de Logiciels et d'Interface Utilisateur",
+            description: unicode"    Création d'une interface utilisateur intuitive. Développement de logiciels pour le contrôle de la stabilité et de la navigation",
+            amountNeeded: 5000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 4,
+            hasBeenValidated: false
+        });
+
+        mockedData[4] = BlockFundingProject.ProjectStep({
+            name: unicode"Production de Pré-série et Tests du Marché",
+            description: unicode"Fabrication d'une petite série pour des tests utilisateur étendus. Collecte de feedback et ajustements basés sur les retours des utilisateurs",
+            amountNeeded: 100000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 5,
+            hasBeenValidated: false
+        });
+
+        mockedData[5] = BlockFundingProject.ProjectStep({
+            name: unicode"Campagne de Marketing et de Crowdfunding",
+            description: unicode"Préparation et exécution d'une campagne de crowdfunding pour financer la production de masse",
+            amountNeeded: 8000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 6,
+            hasBeenValidated: false
+        });
+
+        mockedData[6] = BlockFundingProject.ProjectStep({
+            name: unicode"Mise en Place de la Ligne de Production",
+            description: unicode"Installation des équipements de production. Formation de l'équipe de production",
+            amountNeeded: 120000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 7,
+            hasBeenValidated: false
+        });
+
+        mockedData[7] = BlockFundingProject.ProjectStep({
+            name: unicode"Lancement Commercial",
+            description: unicode"Production en masse. Distribution et vente aux premiers adopteurs",
+            amountNeeded: 5000000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 8,
+            hasBeenValidated: false
+        });
+
+        mockedData[8] = BlockFundingProject.ProjectStep({
+            name: unicode"Suivi et Amélioration Continue",
+            description: unicode"Évaluation continue du produit sur le marché. Recherche et développement pour des améliorations futures et des innovations additionnelles",
+            amountNeeded: 100000000000000000000,
+            amountFunded: 0,
+            isFunded: false,
+            orderNumber: 9,
             hasBeenValidated: false
         });
 
