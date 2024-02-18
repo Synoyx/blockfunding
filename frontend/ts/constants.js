@@ -1,7 +1,7 @@
 export const NFT_STORAGE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU4MDY4N0Q0QjU4M0M4MDYyYjhGODcwNzQwRDg3MGQ5NUIwRGQ4NUIiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwNzQyODc3NjI0NywibmFtZSI6IlRlc3QifQ.MxIq9_MxyqECzJAzI_Jzpce-jJs_9Sm8vmE5DD9rRN0";
 
-export const contractAddress = "0x9a9f2ccfde556a7e9ff0848998aa4a0cfd8863ae";
+export const contractAddress = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0";
 export const blockFundingAbi = [
   { type: "constructor", inputs: [], stateMutability: "nonpayable" },
   {
@@ -216,7 +216,7 @@ export const blockFundingProjectAbi = [
   {
     type: "function",
     name: "getCurrentVote",
-    inputs: [],
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
     outputs: [
       {
         name: "",
@@ -230,6 +230,9 @@ export const blockFundingProjectAbi = [
           { name: "isVoteRunning", type: "bool", internalType: "bool" },
           { name: "voteType", type: "uint8", internalType: "enum BlockFundingProject.VoteType" },
           { name: "hasFinancerVoted", type: "bool", internalType: "bool" },
+          { name: "votePowerInFavorOfProposal", type: "uint256", internalType: "uint256" },
+          { name: "votePowerAgainstProposal", type: "uint256", internalType: "uint256" },
+          { name: "totalVotePower", type: "uint256", internalType: "uint256" },
         ],
       },
     ],
@@ -431,6 +434,13 @@ export const blockFundingProjectAbi = [
   },
   {
     type: "function",
+    name: "isFinancer",
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isLastVoteValidated",
     inputs: [],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
@@ -440,6 +450,41 @@ export const blockFundingProjectAbi = [
     type: "function",
     name: "isProjectCanceled",
     inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isProjectCanceledOrLastStepValidated",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isWithdrawCurrentStepAvailable",
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isWithdrawEndProjectAvailable",
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isWithdrawProjectCanceledAvailable",
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isWithdrawProjectNotFundedAvailable",
+    inputs: [{ name: "userAddress", type: "address", internalType: "address" }],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },

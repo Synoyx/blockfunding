@@ -4,7 +4,18 @@ import { ProjectStep } from "@/ts/objects/ProjectStep";
 export enum ProjectCategory {
   Art = "Art",
   Automobile = "Automobile",
+  Comics = "Comics",
+  Dance = "Dance",
+  Design = "Design",
+  Faschion = "Fashion",
+  Film = "Film",
+  Nourriture = "Nourriture",
+  Jeux = "Jeux",
+  Journalisme = "Journalisme",
+  Musique = "Musique",
+  Journaux = "Journaux",
   Informatique = "Informatique",
+  Theatre = "Theatre",
 }
 
 export class Project {
@@ -92,7 +103,7 @@ export class Project {
       targetWallet: this.targetWallet,
       owner: this.owner,
       totalFundsHarvested: this.totalFundsHarvested,
-      projectCategory: 0,
+      projectCategory: projectCategoryToInt(this.projectCategory),
       name: this.name,
       subtitle: this.subtitle,
       description: this.description,
@@ -115,4 +126,25 @@ export class Project {
     console.log(`Catégorie: ${this.projectCategory}`);
     console.log(`Liens du média: ${this.mediaURI}`);
   }
+}
+
+function projectCategoryToInt(projectCategory: ProjectCategory): number {
+  let ret = 0;
+
+  if (projectCategory == ProjectCategory.Art) ret = 0;
+  if (projectCategory == ProjectCategory.Automobile) ret = 1;
+  if (projectCategory == ProjectCategory.Comics) ret = 2;
+  if (projectCategory == ProjectCategory.Dance) ret = 3;
+  if (projectCategory == ProjectCategory.Design) ret = 4;
+  if (projectCategory == ProjectCategory.Faschion) ret = 5;
+  if (projectCategory == ProjectCategory.Film) ret = 6;
+  if (projectCategory == ProjectCategory.Nourriture) ret = 7;
+  if (projectCategory == ProjectCategory.Jeux) ret = 8;
+  if (projectCategory == ProjectCategory.Journalisme) ret = 9;
+  if (projectCategory == ProjectCategory.Musique) ret = 10;
+  if (projectCategory == ProjectCategory.Journaux) ret = 11;
+  if (projectCategory == ProjectCategory.Informatique) ret = 12;
+  if (projectCategory == ProjectCategory.Theatre) ret = 13;
+
+  return ret;
 }

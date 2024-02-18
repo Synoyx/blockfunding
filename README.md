@@ -13,6 +13,8 @@ BlockFunding allows you to create crowdfunding campaigns who establish confidenc
 
 [DApp link]() //TODO
 
+//TODO parler de la start date abaissée volontairement pour rendre possible la démo
+
 The smart contract is deployed on Sepolia network
 
 ## Must read before continuing

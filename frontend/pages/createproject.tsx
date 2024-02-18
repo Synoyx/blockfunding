@@ -132,12 +132,6 @@ const CreateProject = () => {
       case "mediaURI":
         updatedProject.mediaURI = value;
         break;
-      case "teamMembers":
-        //TODO
-        break;
-      case "projectSteps":
-        //TODO
-        break;
       default:
         console.warn(`Field ${fieldName} is not recognized or cannot be updated directly.`);
     }

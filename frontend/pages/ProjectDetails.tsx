@@ -129,12 +129,12 @@ const ProjectDetails = () => {
 
       const amountThatWillBeConsumedInFuture = project!.projectSteps.reduce((acc, step) => {
         if (!step.hasBeenValidated) {
-          return acc + (step.amountNeeded - step.amountFunded);
+          return acc + Number(step.amountNeeded - step.amountFunded);
         }
         return acc;
       }, 0);
 
-      setLeftAmountBalance(BigInt(project!.totalFundsHarvested - amountThatWillBeConsumedInFuture));
+      setLeftAmountBalance(BigInt(project!.totalFundsHarvested) - BigInt(amountThatWillBeConsumedInFuture));
       setIsUserTeamMember(project!.teamMembers.some((teamMember) => teamMember.walletAddress === address));
       document.title = project!.name;
     } else setIsUserTeamMember(false);
@@ -239,6 +239,29 @@ const ProjectDetails = () => {
                   >
                     <h3 className="vertical-timeline-element-title">Date de fin du projet (estimée)</h3>
                   </VerticalTimelineElement>
+                </VerticalTimeline>
+              </Flex>
+              <Flex display={active === "Étapes du projet" ? "block" : "none"} width="100%" color="black">
+                
+                <VerticalTimeline lineColor="rgb(33, 150, 243)">
+                  {project!.projectSteps.map((projectStep) => (
+                    <VerticalTimelineElement
+                      className="vertical-timeline-element--work"
+                      contentStyle={{ background: projectStep.hasBeenValidated ? "green" : "rgb(33, 150, 243)", color: "#fff" }}
+                      contentArrowStyle={{ borderRight: projectStep.hasBeenValidated ? "7px solid green" : "7px solid rgb(33, 150, 243)" }}
+                      iconStyle={{ background: projectStep.hasBeenValidated ? "green" : "rgb(33, 150, 243)", color: "#fff" }}
+                      icon={
+                        <Flex height="100%" justify="center" alignItems="center">
+                          <Text fontWeight="bold" align="center">
+                            {projectStep.orderNumber}
+                          </Text>
+                        </Flex>
+                      }
+                    >
+                      <h3 className="vertical-timeline-element-title">{projectStep.name}</h3>
+                      <p>{projectStep.description}</p>
+                    </VerticalTimelineElement>
+                  ))}
                 </VerticalTimeline>
               </Flex>
             </VStack>
