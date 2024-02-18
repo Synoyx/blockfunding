@@ -6,7 +6,7 @@ import "../../src/BlockFunding.sol";
 import "../../src/BlockFundingProject.sol";
 
 library MockedData {
-    address public constant targetWallet = 0xf39Fd6E51aAD48f6f4cE6Ab8827279CfffB92266;
+    address public constant targetWallet = 0xCc63064CAc130515d8Cca1Ba9A2191d07C65227a;
 
     // For project in funding phase
     uint32 public constant inFundingPhaseCampaignStartingDateTimestamp = 1708220568;
