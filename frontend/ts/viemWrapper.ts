@@ -17,7 +17,7 @@ export async function publicReadToBlockFunding(functionToCall: BlockFundingFunct
     functionName: functionToCall.valueOf(),
   });
 }
-export async function publicReadToBlockFundingProject(functionToCall: BlockFundingProjectFunctions, projectAddress: any) {
+export async function publicReadToBlockFundingProject(functionToCall: BlockFundingProjectFunctions, projectAddress: any, args: any = []) {
   const publicClient = createPublicClient({
     chain: localhost,
     transport: http(),
@@ -27,5 +27,6 @@ export async function publicReadToBlockFundingProject(functionToCall: BlockFundi
     address: projectAddress,
     abi: blockFundingProjectAbi,
     functionName: functionToCall.valueOf(),
+    args: args,
   });
 }

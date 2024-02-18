@@ -28,7 +28,6 @@ export default function HomePage() {
             projects={projects}
             categories={Object.keys(ProjectCategory)}
             selectedCategory={"Art"}
-            onCategoryChange={() => console.log("toto")}
           />
         </>
       )}

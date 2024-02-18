@@ -19,7 +19,7 @@ import {
 import { callWriteMethod } from "@/ts/wagmiWrapper";
 import { BlockFundingProjectFunctions } from "@/ts/objects/BlockFundingProjectContract";
 
-export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress }: any) => {
+export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress, waitingTXValidationDisclosure }: any) => {
   const [amount, setAmount] = useState("");
   const toast = useToast();
 
@@ -28,10 +28,22 @@ export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress 
     setAmount(value);
   };
 
+  /*
+
+  contractToCallAddress: any = "",
+  endTXCallback = () => {},
+  errorCallback: any = (e: any) => {
+    throw e;
+  },
+  handleNewPendingTransaction = (pendingTransaction: any) => {},
+  handlePendingTransactionDone = (pendingTransaction: any) => {},
+  handleWaitingForMetamaskEvent = () => {},
+  handleWaitingForMetamaskEndEvent = () => {}
+  */
+
   const handleSubmit = async () => {
     const value = parseInt(amount, 10);
     if (!Number.isInteger(value) || value <= 999 || amount.includes(".") || amount.includes(",")) {
-      // Afficher un toast d'erreur
       toast({
         title: "Erreur de saisie",
         description: "Veuillez entrer un montant entier positif, de minimum 1000 Wei.",
@@ -40,7 +52,21 @@ export const FundProjectModal = ({ isOpen, onClose, projectName, projectAddress 
         isClosable: true,
       });
     } else {
-      await callWriteMethod(BlockFundingProjectFunctions.fundProject, [], BigInt(amount), projectAddress);
+      onClose();
+      await callWriteMethod(
+        BlockFundingProjectFunctions.fundProject,
+        [],
+        BigInt(amount),
+        projectAddress,
+        () => {},
+        (e: any) => {
+          throw e;
+        },
+        () => {},
+        () => {},
+        () => waitingTXValidationDisclosure.onOpen(),
+        () => waitingTXValidationDisclosure.onClose()
+      );
     }
   };
 

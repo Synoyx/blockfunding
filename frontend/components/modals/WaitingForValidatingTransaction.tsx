@@ -10,14 +10,9 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 
-const WaitingForValidatingTransaction = () => {
-  let { isOpen, onToggle } = useDisclosure();
-  isOpen = true;
-
-  //<ModalCloseButton /> seems to not work properly, so removed it
-
+export const WaitingForValidatingTransaction = ({ isOpen, onClose }: any) => {
   return (
-    <Modal onClose={onToggle} isOpen={isOpen} isCentered>
+    <Modal onClose={onClose} isOpen={isOpen} isCentered>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Waiting for transaction validation</ModalHeader>
@@ -30,5 +25,3 @@ const WaitingForValidatingTransaction = () => {
     </Modal>
   );
 };
-
-export default WaitingForValidatingTransaction;

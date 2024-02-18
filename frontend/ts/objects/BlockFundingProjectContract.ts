@@ -1,3 +1,6 @@
+import { publicReadToBlockFundingProject } from "@/ts/viemWrapper";
+import { blockFundingProjectAbi } from "@/ts/constants";
+
 export const enum BlockFundingProjectFunctions {
   transferOwner = "transferOwner",
   withdrawCurrentStep = "withdrawCurrentStep",
@@ -14,3 +17,18 @@ export const enum BlockFundingProjectFunctions {
   getCurrentVote = "getCurrentVote",
   getData = "getData",
 }
+
+export async function getDonationAmount(contractAddress: any, financerAddress: any) {
+  try {
+    const data = await publicReadToBlockFundingProject(
+      BlockFundingProjectFunctions.getFinancerDonationAmount,
+      contractAddress,
+      [financerAddress],
+    );
+    return data;
+  } catch (e) {
+    console.log("Error :" + e);
+  }
+}
+
+export async function getOldsEvents() {}

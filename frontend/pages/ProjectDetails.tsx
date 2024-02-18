@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Heading, Text, Image, Link, Flex, VStack, Stack, Button, useDisclosure } from "@chakra-ui/react";
+import { Box, Heading, Text, Image, Link, Flex, VStack, Stack, Button, useDisclosure, Spinner } from "@chakra-ui/react";
 import { VerticalTimeline, VerticalTimelineElement } from "react-vertical-timeline-component";
 import { CheckCircleIcon, LockIcon, UnlockIcon } from "@chakra-ui/icons";
 
@@ -14,13 +14,16 @@ import { weiToEth, getReadableDateFromTimestampSecond } from "@/ts/tools";
 import Loader from "@/components/tools/Loader";
 import { Project } from "@/ts/objects/Project";
 import { FundProjectModal } from "@/components/modals/FundProjectModal";
+import { WaitingForValidatingTransaction } from "@/components/modals/WaitingForValidatingTransaction";
 
 import { getData } from "@/ts/nftStorageWrapper";
 
 import "@/assets/css/verticalTimeline.css";
+import { getDonationAmount } from "@/ts/objects/BlockFundingProjectContract";
 
 const ProjectDetails = () => {
   const [project, setProject] = useState<Project | undefined>(undefined);
+  const [donationAmount, setDonationAmount] = useState<BigInt>(0n);
   const [isUserProjectOwner, setIsUserProjectOwner] = useState<boolean>(false);
   let { address } = useAccount();
   const params = useSearchParams();
@@ -28,6 +31,7 @@ const ProjectDetails = () => {
   const projectId = params!.get("id");
   const [active, setActive] = useState("Project");
   const fundProjectModalDisclosure = useDisclosure();
+  const waitingForValidatingTransactionlDisclosure = useDisclosure();
 
   useEffect(() => {
     async function test() {
@@ -39,7 +43,13 @@ const ProjectDetails = () => {
   }, [projectId, projects]);
 
   useEffect(() => {
+    async function loadDonationAmount(contractAddress: any) {
+      const result: any = await getDonationAmount(contractAddress, address);
+      if (result != undefined) setDonationAmount(result);
+    }
+
     if (project !== undefined) {
+      loadDonationAmount(project!.address);
       setIsUserProjectOwner(address === project!.owner);
       document.title = project!.name;
     } else setIsUserProjectOwner(false);
@@ -182,12 +192,20 @@ const ProjectDetails = () => {
                 </Heading>
                 {address ? (
                   <>
-                    <Text align="center">Vous avez donné : XXXXX ETH au projet</Text>
+                    <Text align="center">
+                      Vous avez donné : {donationAmount != undefined ? weiToEth(donationAmount).toString() : <Spinner />} ETH au projet
+                    </Text>
                     <FundProjectModal
                       isOpen={fundProjectModalDisclosure.isOpen}
                       onClose={fundProjectModalDisclosure.onClose}
                       projectName={project!.name}
                       projectAddress={project!.address}
+                      waitingTXValidationDisclosure={waitingForValidatingTransactionlDisclosure}
+                      waitingTXExecutionDisclosure={waitingForValidatingTransactionlDisclosure} // TODO
+                    />
+                    <WaitingForValidatingTransaction
+                      isOpen={waitingForValidatingTransactionlDisclosure.isOpen}
+                      onClose={waitingForValidatingTransactionlDisclosure.onClose}
                     />
                     <Button colorScheme="green" onClick={fundProjectModalDisclosure.onOpen}>
                       Participer

@@ -80,9 +80,7 @@ export async function callWriteMethod(
     const temp: any = functionToCall;
     const abi: any = Object.values(BlockFundingFunctions).includes(temp) ? blockFundingAbi : blockFundingProjectAbi;
     let config: any;
-    console.log("Value = " + payableValue);
     if (payableValue > 0n) {
-      console.log("totototo");
       config = await prepareWriteContract({
         address: contractToCallAddress === "" ? contractAddress : contractToCallAddress,
         abi: abi,
@@ -91,7 +89,6 @@ export async function callWriteMethod(
         value: payableValue,
       });
     } else {
-      console.log("oh nononon");
       config = await prepareWriteContract({
         address: contractAddress,
         abi: abi,
@@ -112,11 +109,11 @@ export async function callWriteMethod(
       args: args,
     };
 
-    handleNewPendingTransaction(pendingTX);
+    //handleNewPendingTransaction(pendingTX);
 
     await waitForTransaction({ hash: hash });
 
-    handlePendingTransactionDone(pendingTX);
+    //handlePendingTransactionDone(pendingTX);
 
     endTXCallback();
   } catch (e) {
