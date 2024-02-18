@@ -1,7 +1,7 @@
 export const NFT_STORAGE_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDU4MDY4N0Q0QjU4M0M4MDYyYjhGODcwNzQwRDg3MGQ5NUIwRGQ4NUIiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTcwNzQyODc3NjI0NywibmFtZSI6IlRlc3QifQ.MxIq9_MxyqECzJAzI_Jzpce-jJs_9Sm8vmE5DD9rRN0";
 
-export const contractAddress = "0xcbeaf3bde82155f56486fb5a1072cb8baaf547cc";
+export const contractAddress = "0xeed7b2565a5a89f6bfc80fa3688777fcea507dc3";
 export const blockFundingAbi = [
   { type: "constructor", inputs: [], stateMutability: "nonpayable" },
   {
