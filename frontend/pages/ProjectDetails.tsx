@@ -242,7 +242,7 @@ const ProjectDetails = () => {
                 <VerticalTimeline lineColor="rgb(33, 150, 243)">
                   {project!.projectSteps.map((projectStep) => (
                     <VerticalTimelineElement
-                      key={projectStep.orderNumber + projectStep.amountNeeded}
+                      key={projectStep.orderNumber}
                       className="vertical-timeline-element--work"
                       contentStyle={{ background: projectStep.hasBeenValidated ? "green" : "rgb(33, 150, 243)", color: "#fff" }}
                       contentArrowStyle={{ borderRight: projectStep.hasBeenValidated ? "7px solid green" : "7px solid rgb(33, 150, 243)" }}
