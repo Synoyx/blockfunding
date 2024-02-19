@@ -9,7 +9,7 @@ BlockFunding allows you to create crowdfunding campaigns who establish confidenc
 
 ## Access links
 
-[Video link]() //TODO
+[Video link](https://www.loom.com/share/1c630936fede4aca9e80ed7f221c7584?sid=8d39024c-8249-4397-9102-84cde62bcbfd)
 
 [DApp link](http://blockfunding-one.vercel.app)
 

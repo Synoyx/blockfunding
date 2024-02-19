@@ -302,7 +302,9 @@ const ProjectDetails = () => {
                   <Text fontSize="md" fontWeight="bold" mr="10px" whiteSpace="nowrap">
                     Adresse projet :
                   </Text>
-                  <Text>{project!.address}</Text>
+                  <Text fontSize="md" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis" style={{ minWidth: 0 }}>
+                    {project!.address}
+                  </Text>
                 </Flex>
               </Box>
               <VStack align="stretch" p={4} boxShadow="md" borderRadius="md" bg="white" borderColor="gray.200" borderWidth="1px">
@@ -358,8 +360,15 @@ const ProjectDetails = () => {
                   Retraits
                 </Heading>
                 <Flex display={isUserTeamMember ? "block" : "none"} alignItems="center">
-                  <Flex display={isWithdrawCurrentStepAvailableValue ? "block" : "none"}>
+                  <Flex
+                    display={isWithdrawCurrentStepAvailableValue ? "flex" : "none"}
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={async () => {
                         await callWriteMethod(
@@ -387,8 +396,15 @@ const ProjectDetails = () => {
                       Retirer les fonds de l&apos;étape en cours
                     </Button>
                   </Flex>
-                  <Flex display={isWithdrawEndProjectAvailableValue ? "block" : "none"}>
+                  <Flex
+                    display={isWithdrawEndProjectAvailableValue ? "flex" : "none"}
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={async () => {
                         await callWriteMethod(
@@ -419,8 +435,15 @@ const ProjectDetails = () => {
                 </Flex>
 
                 <Flex display={isUserFinancer ? "block" : "none"}>
-                  <Flex display={isWithdrawProjectNotFundedAvailableValue ? "block" : "none"}>
+                  <Flex
+                    display={isWithdrawProjectNotFundedAvailableValue ? "flex" : "none"}
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={async () => {
                         await callWriteMethod(
@@ -448,8 +471,15 @@ const ProjectDetails = () => {
                       Retirer les fonds - Projet non financé
                     </Button>
                   </Flex>
-                  <Flex display={isWithdrawProjectCanceledAvailableValue ? "block" : "none"}>
+                  <Flex
+                    display={isWithdrawProjectCanceledAvailableValue ? "flex" : "none"}
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={async () => {
                         await callWriteMethod(
@@ -499,8 +529,14 @@ const ProjectDetails = () => {
                   </Heading>
                   <Text></Text>
                 </Flex>
-                <Flex display={currentVote.isVoteRunning ? "block" : "none"}>
-                  <Flex>
+                <Flex
+                  display={currentVote.isVoteRunning ? "flex" : "none"}
+                  alignItems="center"
+                  justify="center"
+                  width="100%"
+                  direction="column"
+                >
+                  <Flex width="100%" mt="5px" mb="15px">
                     <ProgressBar goal={Number(currentVote.totalVotePower)} current={Number(currentVote.votePowerInFavorOfProposal)} />
                   </Flex>
                   <Flex display={isUserFinancer ? "block" : "none"}>
@@ -508,6 +544,7 @@ const ProjectDetails = () => {
                       <Text align="center">Vous avez déjà voté</Text>
                     ) : (
                       <Button
+                        mt="5px"
                         colorScheme="green"
                         onClick={() => {
                           sendVoteModalDisclosure.onOpen();
@@ -531,11 +568,14 @@ const ProjectDetails = () => {
                   />
 
                   <Flex
-                    display={
-                      currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserTeamMember, isUserFinancer) ? "block" : "none"
-                    }
+                    display={currentVote.canVoteBeEnded() && currentVote.canUserEndVote(isUserTeamMember, isUserFinancer) ? "flex" : "none"}
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
                   >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={async () => {
                         await callWriteMethod(
@@ -566,8 +606,22 @@ const ProjectDetails = () => {
                 </Flex>
                 <Flex display={!currentVote.isVoteRunning ? "block" : "none"}>
                   <Text align="center">Il n&apos;y a pas de vote en cours</Text>
-                  <Flex display={isUserTeamMember && !isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Flex
+                    display={
+                      isUserTeamMember &&
+                      !isProjectCanceledOrLastStepValidatedValue &&
+                      leftAmountBalance > 1n &&
+                      project!.campaignEndingDateTimestamp < new Date().getTime() / 1000
+                        ? "flex"
+                        : "none"
+                    }
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="green"
                       onClick={() => {
                         setSelectedVoteType(VoteType.ValidateStep);
@@ -577,6 +631,7 @@ const ProjectDetails = () => {
                       Start validate current step vote
                     </Button>
                     <Button
+                      mt="5px"
                       display={
                         isUserTeamMember && !isProjectCanceledOrLastStepValidatedValue && leftAmountBalance > 1000n ? "block" : "none"
                       }
@@ -601,8 +656,21 @@ const ProjectDetails = () => {
                       setProject((oldProject) => updatedProject);
                     }}
                   />
-                  <Flex display={isUserFinancer && !isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Flex
+                    display={
+                      isUserFinancer &&
+                      !isProjectCanceledOrLastStepValidatedValue &&
+                      project!.campaignEndingDateTimestamp < new Date().getTime() / 1000
+                        ? "flex"
+                        : "none"
+                    }
+                    alignItems="center"
+                    justify="center"
+                    width="100%"
+                    direction="column"
+                  >
                     <Button
+                      mt="5px"
                       colorScheme="red"
                       onClick={() => {
                         //TODO
@@ -610,7 +678,7 @@ const ProjectDetails = () => {
                         startVoteModalDisclosure.onOpen();
                       }}
                     >
-                      Vote for cancelling the project
+                      Vote for canceling the project
                     </Button>
                   </Flex>
                   <StartVoteModal

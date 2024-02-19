@@ -67,15 +67,19 @@ export const SendVoteModal = ({
           <Text align="center">Veuillez choisir si vous être pour ou contre cette motion</Text>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
-            Annuler
-          </Button>
-          <Button colorScheme="red" onClick={() => handleSubmit(false)}>
-            Contre
-          </Button>
-          <Button colorScheme="green" onClick={() => handleSubmit(true)}>
-            Pour
-          </Button>
+          <Flex justify="space-between" width="100%">
+            <Button colorScheme="blue" mr={3} onClick={onClose}>
+              Annuler
+            </Button>
+            <Flex justify="end">
+              <Button colorScheme="red" onClick={() => handleSubmit(false)}>
+                Contre
+              </Button>
+              <Button colorScheme="green" onClick={() => handleSubmit(true)} ml="10px">
+                Pour
+              </Button>
+            </Flex>
+          </Flex>
         </ModalFooter>
       </ModalContent>
     </Modal>
