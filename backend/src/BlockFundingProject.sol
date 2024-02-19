@@ -857,10 +857,6 @@ contract BlockFundingProject is Initializable, ReentrancyGuard {
         return isTeamMember && isProjectFunded && !projectGotVoteCanceled && !isCurrentStepFunded;
     }
 
-    function isProjectFundedd() external view returns (bool) {
-        return teamMembersAddresses[msg.sender];
-    }
-
 
     function isWithdrawEndProjectAvailable(address userAddress) external view returns (bool) {
         bool isTeamMember = teamMembersAddresses[userAddress];
