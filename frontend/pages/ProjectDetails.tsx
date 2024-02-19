@@ -601,7 +601,7 @@ const ProjectDetails = () => {
                       setProject((oldProject) => updatedProject);
                     }}
                   />
-                  <Flex display={isUserFinancer && isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
+                  <Flex display={isUserFinancer && !isProjectCanceledOrLastStepValidatedValue ? "block" : "none"} alignItems="center">
                     <Button
                       colorScheme="red"
                       onClick={() => {
