@@ -36,7 +36,7 @@ A deploy script is available in `backend/script/Deploy.s.sol`. Before using it, 
 - Create a file `.env` in backend folder
 - Add this line : `SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY` to be able to deploy on sepolia
 - Add this line `ANVIL_RPC_URL=http://127.0.0.1:8545`to deploy on local node
-- If you want to verify the contract, when you deploy on sepolia, get an etherscan api key, and add this line to the file : "ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY"
+- If you want to verify the contract, when you deploy on sepolia, get an etherscan api key, and add this line to the file : `ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY`
 - Deploy script will use a seperate private key depending if you deploy for dev purpose or production. For production, add this line : `PRIVATE_KEY=YOUR_WALLET_PK_STARTING_WITH_0x`. For dev purpose, add this line `PRIVATE_KEY_DEV=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`. You can use this PK, it's one of the default one of anvil
 
 #### Deploy commands
