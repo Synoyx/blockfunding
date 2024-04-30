@@ -2,8 +2,6 @@
 
 # BlockFunding
 
-Final project for Alyra's course
-
 This project is a crowdfunding platform, based on the blockchain.
 BlockFunding allows you to create crowdfunding campaigns who establish confidence with funders, as transparency is one of the main key, and the project gives power to financers by allowing them do directly impact the project by voting (DAO).
 
